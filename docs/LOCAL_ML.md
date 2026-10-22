@@ -1,8 +1,8 @@
 # Local battlemap segmentation
 
-Fast Setup can run a small, locally trained U-Net for **solid walls, doors, lights,
-and see-through barriers**. This is an experimental option. The palette detector
-remains the default, and no model is downloaded or executed automatically.
+Fast Setup can run a compact U-Net or a DINOv2-backed decoder for **solid walls,
+doors, lights, and see-through barriers**. These are experimental options. The
+palette detector remains the default, and no model is downloaded or executed automatically.
 
 ## Use a model
 
@@ -11,6 +11,13 @@ Install the ordinary fast requirements, then install the appropriate official
 machine, plus `safetensors`. `requirements-ml.txt` lists the optional dependencies.
 The tested GPU environment uses Python 3.13, PyTorch 2.11.0+cu128, and an RTX 3080.
 The CPU and GPU runtimes use the same model file.
+
+DINO checkpoints additionally need `requirements-ml-dino.txt`. They combine a
+frozen, pretrained DINOv2-small backbone with a trainable local decoder. This adds
+visual context while retaining fine boundary features. Both architectures load
+one local safetensors file; the app does not fetch pretrained weights or execute
+remote model code. DINO is larger and slower than the compact model. Consult the
+[model notes](../models/README.md) before choosing a checkpoint.
 
 ```shell
 python fast_auto_wall.py "map.png" --model "models/battlemap-v1.safetensors" --ml-device auto --resolution 1536
@@ -29,8 +36,11 @@ cloud service. Keep the original PNG for export: detection resolution never
 reduces the embedded image's resolution.
 
 The runtime caches the loaded model and processes tiles with contextual overlap.
-The overlap is discarded before joining predictions, avoiding artificial internal
-borders. GPU memory is bounded by a tile rather than the whole upscaled map.
+The overlap is discarded before joining predictions. The compact network's halo
+covers its receptive field. DINO attention uses bounded windows: overlapping
+predictions can depend on their window, and are not equivalent to running the
+transformer on the entire image. GPU memory is bounded by a tile rather than the
+whole upscaled map.
 Cancellation is checked between tiles. The first pass includes Python/torch/model
 initialization; subsequent passes are much faster. Measure both.
 
@@ -51,7 +61,8 @@ does not infer transparency from arbitrary artwork.
 
 ## Train on your own annotations
 
-`scripts/train_ml.py` trains from scratch using local images and label masks.
+`scripts/train_ml.py` trains using local images and label masks, with either a
+randomly initialized compact network or a locally supplied DINOv2-small backbone.
 It does not use the noncommercial CubiCasa checkpoint or code. Images are BGR/RGB
 artwork; masks are single-channel uint8 images with these IDs:
 
@@ -93,10 +104,60 @@ python benchmarks/evaluate_ml.py training/run-1/best.safetensors dataset/manifes
 The trainer uses class-balanced crop locations, rotations/flips, scale and color
 augmentation, spatial illumination changes, AdamW, cross-entropy plus Dice loss,
 and mixed precision on CUDA. It writes `best.safetensors`, `last.safetensors`, and
-`training.json`. The network has 488,069 parameters at width 16; dilated bottom
+`training.json`. The compact network has 488,069 parameters at width 16; dilated bottom
 convolutions add context without increasing parameter count. Checkpoint metadata
 records classes, architecture, layout splits, seed, recipe, and source hashes.
 Weights are saved atomically as safetensors; loading never unpickles Python code.
+
+For DINO training, install `requirements-ml-dino.txt` and supply the official
+[facebook/dinov2-small](https://huggingface.co/facebook/dinov2-small) safetensors
+weights locally. The fixed architecture expects that model's 384-channel,
+12-layer, 14-pixel-patch backbone. Loading checks every tensor strictly. The
+backbone remains frozen; the context projection and local decoder learn the map
+classes. The supplied backbone's SHA-256 is recorded in training metadata.
+
+```shell
+python scripts/train_ml.py dataset/manifest.json training/dino-1 --architecture dino --backbone pretrained/dinov2-small.safetensors --device cuda
+```
+
+Use `--init-model training/dino-1/best.safetensors --architecture dino
+--learning-rate 0.0002` to fine-tune an Auto-Wall checkpoint. This starts a **fresh
+optimizer and schedule**, not an exact interrupted-run resume. The requested
+architecture, width, and context dilation must match the checkpoint. Do not
+combine `--init-model` with `--backbone`. Initial weights are hashed and preserved;
+write the new run to a separate output directory.
+
+DINOv2 weights are covered by Apache 2.0. Preserve the upstream license and
+attribution when distributing derived checkpoints; see
+[models/licenses/DINOv2.txt](../models/licenses/DINOv2.txt).
+
+### Select using exported geometry
+
+Pixel agreement alone can favor a model with missing gates or overly thick walls.
+Add a `geometry` JSON path to validation samples and use `--selection geometry`.
+The trainer runs each prediction through the actual detector and UVTT conversion,
+then checks door endpoints, light positions, and open/blocked sight lines. It
+reuses the prediction instead of running the model a second time.
+
+```shell
+python scripts/train_ml.py dataset/manifest.json training/geometry-1 --selection geometry --geometry-settings profiles/ml-small-lights.json
+```
+
+Geometry settings must match the intended preview/export settings. Validation
+images are processed at their stored resolution; create bounded-resolution
+dataset images before training. The selected score is 60% geometry and 40%
+foreground pixel IoU. Geometry averages ray correctness and precision-weighted
+instance F0.5; false extra doors/lights cost more than misses. Only complete
+instance lists contribute to that score. Partial lists still report matches,
+but do not claim false-positive precision. These are tunable research choices,
+not proof of general accuracy. See the
+[annotation format and evaluation limits](GEOMETRY_EVALUATION.md).
+
+Partially annotated masks use 255 outside reviewed regions. Include explicit
+background around traced wall boundaries: marking only the wall stroke leaves
+the trainer free to cover neighboring floor. Samples without a requested class
+still crop around supervised pixels. Dataset metadata records decoded image and
+mask hashes, geometry annotation hashes, and the selected detector settings.
 
 The evaluator writes uncompressed class masks, overlays, per-class pixel overlap,
 and first/warm inference times. Green is opaque wall, magenta door, yellow light,

@@ -2,3 +2,5 @@
 # PyTorch CPU/CUDA build for your machine; the palette detector needs neither.
 torch>=2.6,<3
 safetensors>=0.5,<1
+# One-to-one instance matching in the geometry evaluation benchmark.
+scipy>=1.15,<2

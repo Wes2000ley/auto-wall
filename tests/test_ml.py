@@ -17,7 +17,7 @@ from src.core.fast_pipeline import DetectionCancelled
 from src.ml.data import CropSampler, read_dataset
 from src.ml.model import FORMAT, load_model, predict, save_model
 from src.ml.network import BattlemapNet, CLASSES
-from scripts.train_ml import metrics
+from scripts.train_ml import geometry_score, metrics
 
 
 @pytest.fixture(autouse=True)
@@ -133,3 +133,29 @@ def test_metrics_distinguish_undefined_classes_from_false_positives():
     assert result["light"]["precision"] == 0 and result["light"]["recall"] is None
     assert result["door"]["iou"] is None and result["door"]["predicted_pixels"] == 0
     assert result["wall"]["iou"] == 1
+
+
+def test_partial_annotation_crops_include_supervision_for_absent_classes():
+    labels = np.full((512, 512), 255, np.uint8)
+    labels[20:40, 20:40] = 1
+    sample = {"pixels": np.zeros((512, 512, 3), np.uint8), "labels": labels}
+    _, crops = CropSampler([sample], seed=8, crop_size=64).batch(30)
+    assert np.all(np.any(crops == 1, axis=(1, 2)))
+
+
+def test_downsampling_cannot_erase_the_only_supervised_pixel():
+    labels = np.full((512, 512), 255, np.uint8)
+    labels[20, 20] = 1
+    sample = {"pixels": np.zeros((512, 512, 3), np.uint8), "labels": labels}
+    _, crops = CropSampler([sample], seed=8, crop_size=64).batch(100)
+    assert np.all(np.any(crops == 1, axis=(1, 2)))
+
+
+def test_geometry_selection_penalizes_false_instances_and_requires_annotations():
+    perfect = {"map": {"geometry": {"rays_passed": 4, "rays_total": 4,
+        "doors": {"matched": 2, "prediction_count": 2, "truth_count": 2, "complete_annotation": True}}}}
+    assert geometry_score(perfect) == 1
+    perfect["map"]["geometry"]["doors"]["prediction_count"] = 3
+    assert geometry_score(perfect) == pytest.approx((1 + 10 / 14) / 2)
+    with pytest.raises(ValueError, match="complete instance"):
+        geometry_score({"map": {"geometry": {"doors": {"complete_annotation": False}}}})

@@ -74,6 +74,18 @@ def test_portal_endpoints_attach_to_wall_geometry():
     np.testing.assert_allclose(attached, far)
 
 
+def test_portal_stops_at_inner_faces_when_endpoints_extend_into_thick_posts():
+    walls = [((x, 0), (x, 20)) for x in (0, 4, 30, 34)]
+    door = np.array([[1.0, 10], [33.0, 10]])
+    attached, disconnected = _attach_doors(walls, [door], 1)
+    assert not disconnected
+    np.testing.assert_allclose(attached, [[[4, 10], [30, 10]]])
+    # The rule is independent of the door's point ordering.
+    attached, disconnected = _attach_doors(walls, [door[::-1]], 1)
+    assert not disconnected
+    np.testing.assert_allclose(attached, [[[30, 10], [4, 10]]])
+
+
 def test_unattached_candidate_is_rejected_without_cutting_walls(dungeon, monkeypatch):
     from src.core import fast_pipeline
 

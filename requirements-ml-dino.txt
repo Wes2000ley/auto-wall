@@ -1,0 +1,3 @@
+# Optional DINOv2 context. Inference reads only a selected local model file.
+-r requirements-ml.txt
+transformers>=5.8,<6

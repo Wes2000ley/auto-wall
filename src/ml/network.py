@@ -18,6 +18,8 @@ def block(in_channels, out_channels, dilation=1):
 
 
 class BattlemapNet(nn.Module):
+    architecture = "compact"
+
     def __init__(self, width=16, context_dilation=1):
         super().__init__()
         self.width = width

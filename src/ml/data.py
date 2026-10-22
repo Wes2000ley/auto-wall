@@ -1,6 +1,7 @@
 """Small local segmentation datasets with whole-layout train/validation splits."""
 
 import json
+import hashlib
 from pathlib import Path
 import re
 
@@ -37,7 +38,14 @@ def read_dataset(manifest):
             raise ValueError(f"Invalid label IDs: {item['id']}")
         if np.all(mask == 255):
             raise ValueError(f"No labelled pixels: {item['id']}")
-        samples.append({**item, "pixels": image, "labels": mask})
+        sample = {**item, "pixels": image, "labels": mask,
+                  "pixels_sha256": hashlib.sha256(image.tobytes()).hexdigest(),
+                  "labels_sha256": hashlib.sha256(mask.tobytes()).hexdigest()}
+        if "geometry" in item:
+            source = (manifest.parent / item["geometry"]).read_bytes()
+            sample["geometry_annotations"] = json.loads(source)
+            sample["geometry_sha256"] = hashlib.sha256(source).hexdigest()
+        samples.append(sample)
     if not samples:
         raise ValueError("Dataset is empty.")
     return samples
@@ -59,15 +67,25 @@ class CropSampler:
             target = int(self.rng.choice(5, p=(.2, .25, .2, .2, .15)))
             points = self.locations[index][target]
             height, width = sample["labels"].shape
-            if len(points):
-                y, x = points[int(self.rng.integers(len(points)))]
-            else:
-                y, x = self.rng.integers(height), self.rng.integers(width)
+            if not len(points):
+                # A partially annotated map may have no lights or doors. Keep
+                # its crops centered on labelled pixels instead of ignored space.
+                available = [locations for locations in self.locations[index] if len(locations)]
+                points = available[int(self.rng.integers(len(available)))]
+            anchor_y, anchor_x = points[int(self.rng.integers(len(points)))]
             size = min(height, width, round(self.crop_size * self.rng.uniform(.75, 1.5)))
-            x = int(np.clip(x - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, width - size))
-            y = int(np.clip(y - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, height - size))
+            x = int(np.clip(anchor_x - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, width - size))
+            y = int(np.clip(anchor_y - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, height - size))
             image = cv2.resize(sample["pixels"][y:y + size, x:x + size], (self.crop_size,) * 2)
             mask = cv2.resize(sample["labels"][y:y + size, x:x + size], (self.crop_size,) * 2, interpolation=cv2.INTER_NEAREST)
+            if np.all(mask == 255):
+                # Downsampling can erase a one-pixel annotation. Retry around
+                # the same supervised point without shrinking source pixels.
+                size = min(height, width, self.crop_size)
+                x = int(np.clip(anchor_x - size // 2, 0, width - size))
+                y = int(np.clip(anchor_y - size // 2, 0, height - size))
+                image = cv2.resize(sample["pixels"][y:y + size, x:x + size], (self.crop_size,) * 2)
+                mask = cv2.resize(sample["labels"][y:y + size, x:x + size], (self.crop_size,) * 2, interpolation=cv2.INTER_NEAREST)
             turns = int(self.rng.integers(4))
             image, mask = np.rot90(image, turns), np.rot90(mask, turns)
             if self.rng.random() < .5:

@@ -16,13 +16,15 @@ from src.ml.network import BattlemapNet, CLASSES
 
 
 FORMAT = "auto-wall-unet-v1"
+DINO_FORMAT = "auto-wall-dino-v1"
 
 
 def save_model(path, model, details):
     """Atomically save uncompressed, portable CPU tensors with their provenance."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    metadata = {"format": FORMAT, "classes": json.dumps(CLASSES),
+    model_format = DINO_FORMAT if model.architecture == "dino" else FORMAT
+    metadata = {"format": model_format, "classes": json.dumps(CLASSES),
                 "width": str(model.width), "context_dilation": str(model.context_dilation),
                 "details": json.dumps(details, allow_nan=False)}
     tensors = {key: value.detach().cpu().contiguous() for key, value in model.state_dict().items()}
@@ -56,7 +58,8 @@ def load_model(path, device="auto"):
 def _cached_model(path, modified, size, device):
     with safe_open(path, framework="pt", device="cpu") as source:
         metadata = source.metadata() or {}
-        if metadata.get("format") != FORMAT or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
+        model_format = metadata.get("format")
+        if model_format not in (FORMAT, DINO_FORMAT) or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
             raise ValueError("This is not a compatible Auto-Wall segmentation model.")
         width = int(metadata.get("width", "0"))
         if width not in (8, 16, 24, 32):
@@ -64,7 +67,13 @@ def _cached_model(path, modified, size, device):
         dilation = int(metadata.get("context_dilation", "1"))
         if dilation not in (1, 2, 4):
             raise ValueError("Unsupported model context dilation.")
-        model = BattlemapNet(width, dilation)
+        if model_format == DINO_FORMAT:
+            if width != 16 or dilation != 4:
+                raise ValueError("Unsupported DINO decoder configuration.")
+            from src.ml.dino import DinoBattlemap
+            model = DinoBattlemap()
+        else:
+            model = BattlemapNet(width, dilation)
         state = {key: source.get_tensor(key) for key in source.keys()}
         if any(not torch.isfinite(value).all() for value in state.values()):
             raise ValueError("The model contains nonfinite weights.")
@@ -77,8 +86,9 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384):
     """Predict BGR uint8 pixels with a context halo and bounded GPU memory.
 
     Output is (class IDs, winning probabilities); the caller decides thresholds.
-    Halos exceed the network's receptive radius and are discarded, so internal
-    tile borders never receive artificial zero padding.
+    Compact CNN halos exceed its receptive radius and are discarded. DINO uses
+    bounded attention windows with this overlap; its predictions can vary with
+    tile context and are not identical to whole-image transformer inference.
     """
     if tile_size < 8 or tile_size % 8:
         raise ValueError("ML tile size must be a positive multiple of eight.")

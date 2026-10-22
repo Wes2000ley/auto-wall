@@ -42,6 +42,54 @@ def test_transparent_only_result_never_becomes_opaque_or_door():
     assert exported["line_of_sight"] == exported["objects_line_of_sight"] == exported["portals"] == []
 
 
+def test_precomputed_prediction_uses_same_masks_and_checks_working_dimensions(monkeypatch):
+    image = np.zeros((512, 512, 3), np.uint8)
+    labels = np.zeros(image.shape[:2], np.uint8)
+    cv2.rectangle(labels, (20, 20), (480, 480), 1, 8)
+    cv2.line(labels, (100, 80), (200, 80), 4, 5)
+    confidence = np.full(labels.shape, .99, np.float32)
+
+    def unexpected_inference(*args):
+        pytest.fail("An existing prediction must not reload or run a model.")
+
+    monkeypatch.setattr(fast_pipeline, "_learned_masks", unexpected_inference)
+    result = detect_map(image, prediction=(labels, confidence))
+    assert result.detection_backend == "precomputed" and result.walls and result.transparent_barriers
+    with pytest.raises(ValueError, match="working image"):
+        detect_map(image, replace(FastSettings(), max_dimension=256), prediction=(labels, confidence))
+    confidence[0, 0] = float("nan")
+    with pytest.raises(ValueError, match="finite probabilities"):
+        detect_map(image, prediction=(labels, confidence))
+
+
+def test_narrow_learned_jambs_survive_area_filter_without_preserving_specks(monkeypatch):
+    image = np.zeros((512, 512, 3), np.uint8)
+    wall, door, light, transparent = (np.zeros(image.shape[:2], np.uint8) for _ in range(4))
+    # Each post is smaller than the ordinary 1000 px reference-area cutoff.
+    cv2.rectangle(wall, (100, 96), (102, 108), 255, -1)
+    cv2.rectangle(wall, (124, 96), (126, 108), 255, -1)
+    cv2.rectangle(wall, (210, 96), (212, 108), 255, -1)  # unsupported noise
+    cv2.rectangle(door, (104, 98), (122, 106), 255, -1)
+    monkeypatch.setattr(fast_pipeline, "_learned_masks", lambda *args: ([wall, door, light, transparent], "torch-cpu"))
+    result = detect_map(image, replace(FastSettings(), model_path="model.safetensors", lights=False))
+    assert len(result.doors) == 1 and result.walls
+    assert max(point[0] for segment in result.walls for point in segment) < 130
+    # Both exported endpoints meet a wall, with no synthetic bridge to a speck.
+    doors, disconnected = fast_pipeline._attach_doors(result.walls, [np.array(result.doors[0])], 1)
+    assert not disconnected
+    np.testing.assert_allclose(doors, result.doors)
+
+
+def test_learned_rectangle_next_to_parallel_wall_does_not_protect_noise(monkeypatch):
+    image = np.zeros((512, 512, 3), np.uint8)
+    wall, door, light, transparent = (np.zeros(image.shape[:2], np.uint8) for _ in range(4))
+    cv2.rectangle(wall, (95, 110), (128, 111), 255, -1)
+    cv2.rectangle(door, (104, 98), (122, 106), 255, -1)
+    monkeypatch.setattr(fast_pipeline, "_learned_masks", lambda *args: ([wall, door, light, transparent], "torch-cpu"))
+    result = detect_map(image, replace(FastSettings(), model_path="model.safetensors", min_wall_area=2000, lights=False))
+    assert not result.doors and not result.walls
+
+
 @pytest.mark.parametrize("change", [dict(model_path=42), dict(ml_device="magic"),
                                     dict(ml_wall_confidence=.49), dict(ml_door_confidence=float("nan")),
                                     dict(ml_light_confidence=1.1)])
