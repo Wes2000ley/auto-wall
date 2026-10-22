@@ -72,6 +72,22 @@ def geometry_score(result):
     return float(np.mean(scores))
 
 
+def training_optimizer(model, learning_rate, backbone_layers=0):
+    """Keep pretrained adaptation ten times slower than decoder learning."""
+    if backbone_layers and model.architecture != "dino":
+        raise ValueError("Backbone fine-tuning requires a DINO model.")
+    if model.architecture == "dino":
+        model.train_backbone_layers(backbone_layers)
+    decoder, backbone = [], []
+    for name, parameter in model.named_parameters():
+        if parameter.requires_grad:
+            (backbone if name.startswith("backbone.") else decoder).append(parameter)
+    groups = [{"params": decoder, "lr": learning_rate, "initial_lr": learning_rate}]
+    if backbone:
+        groups.append({"params": backbone, "lr": learning_rate * .1, "initial_lr": learning_rate * .1})
+    return torch.optim.AdamW(groups, weight_decay=.0001)
+
+
 def train(args):
     if min(args.steps, args.batch_size, args.validate_every, args.threads) < 1:
         raise ValueError("Steps, batch size, validation interval, and threads must be positive.")
@@ -127,8 +143,7 @@ def train(args):
             raise ValueError("--backbone is only supported with --architecture dino.")
         model = BattlemapNet(args.width, args.context_dilation)
     model = model.to(device)
-    optimizer = torch.optim.AdamW([parameter for parameter in model.parameters() if parameter.requires_grad],
-                                 lr=args.learning_rate, weight_decay=.0001)
+    optimizer = training_optimizer(model, args.learning_rate, args.backbone_layers)
     scaler = torch.amp.GradScaler(device, enabled=device == "cuda")
     class_weights = torch.tensor([1., 2., 4., 4., 2.], device=device)
     provenance = {"dataset_sha256": hashlib.sha256(Path(args.manifest).read_bytes()).hexdigest(),
@@ -137,6 +152,9 @@ def train(args):
                   "labels": "Local annotations; assess their provenance before interpreting scores.",
                   "architecture": args.architecture, "backbone_sha256": backbone_hash,
                   "initial_model_sha256": initial_hash, "learning_rate": args.learning_rate,
+                  "backbone_training_layers": args.backbone_layers,
+                  "backbone_learning_rate": args.learning_rate * .1 if args.backbone_layers else None,
+                  "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
                   "selection": args.selection,
                   "geometry_settings": asdict(geometry_settings) if geometry_settings else None,
                   "data_hashes": [{key: sample[key] for key in ("id", "pixels_sha256", "labels_sha256", "geometry_sha256")
@@ -175,7 +193,7 @@ def train(args):
         scaler.step(optimizer)
         scaler.update()
         for group in optimizer.param_groups:
-            group["lr"] = args.learning_rate * (.1 + .9 * (1 - step / args.steps))
+            group["lr"] = group["initial_lr"] * (.1 + .9 * (1 - step / args.steps))
         if step % 50 == 0 or step == 1:
             print(json.dumps({"step": step, "loss": float(loss.detach()),
                               "elapsed_seconds": round(time.perf_counter() - started, 2)}), flush=True)
@@ -192,6 +210,7 @@ def train(args):
                 save_model(output / "best.safetensors", model, {**provenance, "selected_step": step,
                            "selection_score": score, "validation": result})
             (output / "training.json").write_text(json.dumps({**provenance, "history": history,
+                "peak_allocated_bytes": torch.cuda.max_memory_allocated() if device == "cuda" else None,
                 "elapsed_seconds": time.perf_counter() - started}, indent=2) + "\n", encoding="utf-8")
     save_model(output / "last.safetensors", model, {**provenance, "selected_step": args.steps})
 
@@ -206,6 +225,8 @@ def main():
     parser.add_argument("--width", type=int, choices=(8, 16, 24, 32), default=16)
     parser.add_argument("--architecture", choices=("compact", "dino"), default="compact")
     parser.add_argument("--backbone", type=Path, help="Local DINOv2-small safetensors; never downloaded automatically")
+    parser.add_argument("--backbone-layers", type=int, choices=range(5), default=0,
+                        help="Fine-tune this many final DINO blocks at 0.1x decoder learning rate (default: frozen)")
     parser.add_argument("--init-model", type=Path, help="Start from an Auto-Wall checkpoint with a fresh optimizer")
     parser.add_argument("--learning-rate", type=float, default=.001)
     parser.add_argument("--selection", choices=("pixels", "geometry"), default="pixels")

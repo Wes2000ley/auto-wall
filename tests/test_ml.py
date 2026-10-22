@@ -17,7 +17,7 @@ from src.core.fast_pipeline import DetectionCancelled
 from src.ml.data import CropSampler, read_dataset
 from src.ml.model import FORMAT, load_model, predict, save_model
 from src.ml.network import BattlemapNet, CLASSES
-from scripts.train_ml import geometry_score, metrics
+from scripts.train_ml import geometry_score, metrics, training_optimizer
 
 
 @pytest.fixture(autouse=True)
@@ -159,3 +159,14 @@ def test_geometry_selection_penalizes_false_instances_and_requires_annotations()
     assert geometry_score(perfect) == pytest.approx((1 + 10 / 14) / 2)
     with pytest.raises(ValueError, match="complete instance"):
         geometry_score({"map": {"geometry": {"doors": {"complete_annotation": False}}}})
+
+
+def test_compact_optimizer_keeps_one_rate_and_rejects_backbone_fine_tuning():
+    model = BattlemapNet(8)
+    optimizer = training_optimizer(model, .0003)
+    assert len(optimizer.param_groups) == 1
+    group = optimizer.param_groups[0]
+    assert group["lr"] == group["initial_lr"] == .0003
+    assert {id(p) for p in group["params"]} == {id(p) for p in model.parameters()}
+    with pytest.raises(ValueError, match="requires a DINO"):
+        training_optimizer(model, .0003, backbone_layers=1)

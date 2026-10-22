@@ -1,0 +1,1227 @@
+{
+  "file": "battlemap-dino-v1.safetensors",
+  "sha256": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c",
+  "bytes": 90429548,
+  "tensor_count": 313,
+  "format": "auto-wall-dino-v1",
+  "classes": [
+    "background",
+    "wall",
+    "door",
+    "light",
+    "transparent_barrier"
+  ],
+  "parameters": 22593925,
+  "trainable_parameters": 537349,
+  "status": "experimental optional research checkpoint; palette remains default",
+  "backbone": {
+    "repository": "facebook/dinov2-small",
+    "revision": "ed25f3a31f01632728cabb09d1542f84ab7b0056",
+    "license": "Apache-2.0",
+    "files": {
+      "config.json": {
+        "url": "https://huggingface.co/facebook/dinov2-small/resolve/ed25f3a31f01632728cabb09d1542f84ab7b0056/config.json",
+        "sha256": "1809f83e3bdb1609a501a610ad4a742f4fd8ae44d72ca4aa0df52d1f2ac8628d",
+        "bytes": 547
+      },
+      "preprocessor_config.json": {
+        "url": "https://huggingface.co/facebook/dinov2-small/resolve/ed25f3a31f01632728cabb09d1542f84ab7b0056/preprocessor_config.json",
+        "sha256": "14e780d86fa1861f8751f868d7f45425b5feb55c38ca26f152ca5097ab30f828",
+        "bytes": 436
+      },
+      "model.safetensors": {
+        "url": "https://huggingface.co/facebook/dinov2-small/resolve/ed25f3a31f01632728cabb09d1542f84ab7b0056/model.safetensors",
+        "sha256": "ae1e99fcefd534ed978cdeb8326f08030c96e28b7a81ffcbc98a857c84d14be1",
+        "bytes": 88249960
+      },
+      "README.md": {
+        "url": "https://huggingface.co/facebook/dinov2-small/resolve/ed25f3a31f01632728cabb09d1542f84ab7b0056/README.md",
+        "sha256": "4c20dca454a8e5c670e8de5c7e6040f512aeca5438516f7623eedc4e3b00599c",
+        "bytes": 3033
+      }
+    }
+  },
+  "provenance": {
+    "dataset_sha256": "625d8b4dc10105aace8c70bc4199ac305f8fab4f367f9d76799dae07768032b2",
+    "splits": {
+      "train": [
+        "temple_family",
+        "spaceship",
+        "wood_camp",
+        "dyson-index-card-II-13"
+      ],
+      "validation": [
+        "stone_camp",
+        "dyson-index-card-II-14"
+      ],
+      "test": [
+        "astral"
+      ]
+    },
+    "labels": "Local annotations; assess their provenance before interpreting scores.",
+    "architecture": "dino",
+    "backbone_sha256": null,
+    "initial_model_sha256": "933f3ac22cdd7b3577f84b52e0ad7bcd140fe6efffae9a3ee3ff487d92366302",
+    "learning_rate": 0.0002,
+    "selection": "geometry",
+    "geometry_settings": {
+      "max_dimension": 2048,
+      "grid_size": 70.0,
+      "wall_mode": "color",
+      "wall_color": [
+        160,
+        160,
+        160
+      ],
+      "wall_tolerance": 24,
+      "min_wall_area": 1000.0,
+      "simplify": 1.25,
+      "wall_gap_close": 0.0,
+      "wall_geometry": "outline",
+      "void_color": [
+        0,
+        0,
+        0
+      ],
+      "doors": true,
+      "door_color": [
+        112,
+        32,
+        144
+      ],
+      "door_match": "hue",
+      "door_color_tolerance": 24,
+      "door_hue_tolerance": 16,
+      "door_min_length": 12.0,
+      "door_max_length": 160.0,
+      "door_gap_close": 2.0,
+      "door_rectangularity": 0.78,
+      "door_wall_support": true,
+      "lights": true,
+      "light_mode": "warm",
+      "light_color": [
+        255,
+        190,
+        50
+      ],
+      "light_threshold": 190,
+      "light_min_area": 3,
+      "light_max_area": 5000.0,
+      "light_core_fraction": 0.06,
+      "light_min_fill": 0.25,
+      "light_saturation": 60,
+      "light_range": 6.0,
+      "model_path": "",
+      "ml_device": "auto",
+      "ml_wall_confidence": 0.9,
+      "ml_door_confidence": 0.9,
+      "ml_light_confidence": 0.9
+    },
+    "data_hashes": [
+      {
+        "id": "temple",
+        "pixels_sha256": "8d40aeca300356c858de3b9737003c1d6b9933e7f70f941d1b6d1fc761c59d73",
+        "labels_sha256": "4da917115db95b9863ac1115b2534cd522db19df7e69074bcb92f7b5cc40f8b8"
+      },
+      {
+        "id": "ship",
+        "pixels_sha256": "b7fd811c3271508f116567508b90a85f9d5ec168fd3895b679c75422067b632c",
+        "labels_sha256": "bf80342ab69f74c774abdb695ea159619b7c26838ce4a3fef4169674f4ff3ee3"
+      },
+      {
+        "id": "wood",
+        "pixels_sha256": "f24141fedce477324e24fe340509b5304f039966ecc103a63123b76420e78537",
+        "labels_sha256": "1175f3364f13dcb29b4331e8f076c8aa5171002ac5bbb5bc8b0d64555740b4c0"
+      },
+      {
+        "id": "stone",
+        "pixels_sha256": "59b73eea960a0524ffed302c59f01c94ac4daf65617d7ce2ed4f7c7bfc9da9a9",
+        "labels_sha256": "2553747dad458c6f2262d8721aa55f84e63b038786fdb623b0d303bc007b9af1",
+        "geometry_sha256": "2fc968844f776f7a86b92b8bdad351aaee934d8ceb868ee346c1099ad7c7587f"
+      },
+      {
+        "id": "astral",
+        "pixels_sha256": "15f91bf5b29a50f7b8c1e7f5ab46722f5d58c9980d8531c396129378cb0ffb57",
+        "labels_sha256": "0a010f3a28f89c70d95a7691909bb7f2520237b277689e9bb97895281b01a6c3"
+      },
+      {
+        "id": "dyson-13",
+        "pixels_sha256": "12b4a6e3241b2c47dd7420db137de55870f1e0182c97018b1fc7e4b71215799d",
+        "labels_sha256": "ef0ed7decf0b03ccc89f058c5ce242bc27c97b5ffa11085d76b566c13cec28de"
+      },
+      {
+        "id": "dyson-14",
+        "pixels_sha256": "9b9c48ee22dc87b78f7b9855c73af083d023633b2489606e17c18fc348ebd7b5",
+        "labels_sha256": "bf4ae8996415b4ca9424c2df1134376151148d70b82a93b028c7b389520fde14",
+        "geometry_sha256": "a4afb85c93e90ac04efe62a78df325e04ee3130fc8f07da009d57f984e65a27b"
+      }
+    ],
+    "seed": 1729,
+    "training_steps": 6000,
+    "batch_size": 8,
+    "crop_size": 384,
+    "context_dilation": 4,
+    "augmentation": "rotations, flips, scale, hue, saturation, RGB gain, gamma, grayscale, spatial lighting",
+    "source_sha256": {
+      "scripts\\train_ml.py": "3732aabde4162819c258227182e39fb3b2baeca6566372434bbd14a74e32dac7",
+      "src\\ml\\data.py": "5c70be05c22256c85a2efcf4b8d10deda56c84888b8ffaa01624f82386944304",
+      "src\\ml\\dino.py": "4cb6c5be29eea4f0704ef66bcce9bc99ff129632a4fa0d0369000f8f137b175f",
+      "src\\ml\\model.py": "8bce67d6ef7efe26bcbfbb6d219512be442b37ef884fb1930fc3368314497d8d",
+      "src\\ml\\network.py": "1ac9f84eefb7a0555c2fe9d1c812fd3086bcc3c60c443dbe1928c49239ad34c0"
+    },
+    "torch": "2.11.0+cu128",
+    "device": "cuda",
+    "experimental": true,
+    "selected_step": 300,
+    "selection_score": 0.8343312512616038,
+    "validation": {
+      "stone": {
+        "argmax": {
+          "background": {
+            "precision": 0.9779292553497086,
+            "recall": 0.9958276880840113,
+            "iou": 0.9739387156152791,
+            "truth_pixels": 1401621,
+            "predicted_pixels": 1427274
+          },
+          "wall": {
+            "precision": 0.9423920038613145,
+            "recall": 0.8030693824388823,
+            "iou": 0.7654904843584089,
+            "truth_pixels": 116701,
+            "predicted_pixels": 99448
+          },
+          "door": {
+            "precision": 0.9989733059548255,
+            "recall": 0.926446084265651,
+            "iou": 0.9255648038049941,
+            "truth_pixels": 8402,
+            "predicted_pixels": 7792
+          },
+          "light": {
+            "precision": 0.9969465648854962,
+            "recall": 0.9491279069767442,
+            "iou": 0.946376811594203,
+            "truth_pixels": 1376,
+            "predicted_pixels": 1310
+          },
+          "transparent_barrier": {
+            "precision": 0.9249296215201752,
+            "recall": 0.4188978608868112,
+            "iou": 0.40512398958761475,
+            "truth_pixels": 14118,
+            "predicted_pixels": 6394
+          }
+        },
+        "confidence_0.9": {
+          "background": {
+            "precision": 0.9702837496404174,
+            "recall": 0.9986829535230993,
+            "iou": 0.9690437669739721,
+            "truth_pixels": 1401621,
+            "predicted_pixels": 1442645
+          },
+          "wall": {
+            "precision": 0.981560851544838,
+            "recall": 0.7143212140427245,
+            "iou": 0.7048627258660488,
+            "truth_pixels": 116701,
+            "predicted_pixels": 84928
+          },
+          "door": {
+            "precision": 1.0,
+            "recall": 0.8944298976434182,
+            "iou": 0.8944298976434182,
+            "truth_pixels": 8402,
+            "predicted_pixels": 7515
+          },
+          "light": {
+            "precision": 1.0,
+            "recall": 0.9280523255813954,
+            "iou": 0.9280523255813954,
+            "truth_pixels": 1376,
+            "predicted_pixels": 1277
+          },
+          "transparent_barrier": {
+            "precision": 0.9443020673159064,
+            "recall": 0.3914860461821788,
+            "iou": 0.3826502353918582,
+            "truth_pixels": 14118,
+            "predicted_pixels": 5853
+          }
+        },
+        "geometry": {
+          "annotation": "Agent manually marked visible gates, physical light sources, and selected sight-line probes. Full gate/light instance lists; sparse ray coverage. Not independently human-verified.",
+          "units": "annotation reference pixels",
+          "doors": {
+            "matched": 3,
+            "truth_count": 4,
+            "prediction_count": 4,
+            "precision": 0.75,
+            "recall": 0.75,
+            "mean_error": 4.005172759506306,
+            "matches": [
+              [
+                1,
+                1,
+                3.942979003540612
+              ],
+              [
+                2,
+                2,
+                4.922452173486325
+              ],
+              [
+                3,
+                0,
+                3.150087101491983
+              ]
+            ],
+            "missed": [
+              0
+            ],
+            "extra": [
+              3
+            ],
+            "complete_annotation": true
+          },
+          "lights": {
+            "matched": 11,
+            "truth_count": 13,
+            "prediction_count": 11,
+            "precision": 1.0,
+            "recall": 0.8461538461538461,
+            "mean_error": 1.8730909479439803,
+            "matches": [
+              [
+                0,
+                2,
+                1.4268360575551213
+              ],
+              [
+                1,
+                3,
+                3.0152544677347795
+              ],
+              [
+                2,
+                0,
+                1.6707415722423171
+              ],
+              [
+                3,
+                1,
+                3.4560446191926704
+              ],
+              [
+                4,
+                4,
+                1.7987612122751728
+              ],
+              [
+                5,
+                5,
+                2.2697644360664437
+              ],
+              [
+                6,
+                6,
+                1.5446859068011844
+              ],
+              [
+                7,
+                7,
+                1.2375072331067456
+              ],
+              [
+                8,
+                10,
+                0.7764887098331837
+              ],
+              [
+                9,
+                9,
+                0.5407187485709243
+              ],
+              [
+                10,
+                8,
+                2.867197464005241
+              ]
+            ],
+            "missed": [
+              11,
+              12
+            ],
+            "extra": [],
+            "complete_annotation": true
+          },
+          "rays": [
+            {
+              "name": "north gate open",
+              "from": [
+                536.5,
+                23.0
+              ],
+              "to": [
+                536.5,
+                73.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "north gate closed",
+              "from": [
+                536.5,
+                23.0
+              ],
+              "to": [
+                536.5,
+                73.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west gate open",
+              "from": [
+                26.0,
+                324.5
+              ],
+              "to": [
+                76.0,
+                324.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "west gate closed",
+              "from": [
+                26.0,
+                324.5
+              ],
+              "to": [
+                76.0,
+                324.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east gate open",
+              "from": [
+                948.0,
+                275.5
+              ],
+              "to": [
+                998.0,
+                275.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "east gate closed",
+              "from": [
+                948.0,
+                275.5
+              ],
+              "to": [
+                998.0,
+                275.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south gate open",
+              "from": [
+                513.5,
+                627.0
+              ],
+              "to": [
+                513.5,
+                677.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south gate closed",
+              "from": [
+                513.5,
+                627.0
+              ],
+              "to": [
+                513.5,
+                677.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north wall",
+              "from": [
+                730,
+                65
+              ],
+              "to": [
+                730,
+                114
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west wall",
+              "from": [
+                53,
+                405
+              ],
+              "to": [
+                104,
+                405
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east wall",
+              "from": [
+                951,
+                420
+              ],
+              "to": [
+                1003,
+                420
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south wall",
+              "from": [
+                720,
+                687
+              ],
+              "to": [
+                720,
+                745
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "northwest shade",
+              "from": [
+                342,
+                92
+              ],
+              "to": [
+                342,
+                137
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "southwest curve",
+              "from": [
+                180,
+                480
+              ],
+              "to": [
+                180,
+                535
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "open floor west",
+              "from": [
+                280,
+                304
+              ],
+              "to": [
+                375,
+                305
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "open floor east",
+              "from": [
+                624,
+                325
+              ],
+              "to": [
+                700,
+                325
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen north rail",
+              "from": [
+                840,
+                382
+              ],
+              "to": [
+                840,
+                420
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen west rail",
+              "from": [
+                770,
+                450
+              ],
+              "to": [
+                808,
+                450
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen south rail",
+              "from": [
+                849,
+                489
+              ],
+              "to": [
+                849,
+                523
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south pickets",
+              "from": [
+                430,
+                597
+              ],
+              "to": [
+                430,
+                639
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            }
+          ],
+          "rays_passed": 20,
+          "rays_total": 20,
+          "wall_segments": 1668
+        }
+      },
+      "dyson-14": {
+        "argmax": {
+          "background": {
+            "precision": 0.9907306492285336,
+            "recall": 0.9713886109699691,
+            "iou": 0.9626397699311662,
+            "truth_pixels": 190903,
+            "predicted_pixels": 187176
+          },
+          "wall": {
+            "precision": 0.8264520643806857,
+            "recall": 0.9232745141836051,
+            "iou": 0.7733395696913002,
+            "truth_pixels": 26862,
+            "predicted_pixels": 30009
+          },
+          "door": {
+            "precision": 0.6980810234541578,
+            "recall": 0.9274787535410765,
+            "iou": 0.6619490497371613,
+            "truth_pixels": 1765,
+            "predicted_pixels": 2345
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0
+          }
+        },
+        "confidence_0.9": {
+          "background": {
+            "precision": 0.9722992975543339,
+            "recall": 0.9875329355746112,
+            "iou": 0.9605092880361128,
+            "truth_pixels": 190903,
+            "predicted_pixels": 193894
+          },
+          "wall": {
+            "precision": 0.9066006181464076,
+            "recall": 0.797148388057479,
+            "iou": 0.7366519884408972,
+            "truth_pixels": 26862,
+            "predicted_pixels": 23619
+          },
+          "door": {
+            "precision": 0.7803668815071889,
+            "recall": 0.8917847025495751,
+            "iou": 0.7128623188405797,
+            "truth_pixels": 1765,
+            "predicted_pixels": 2017
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0
+          }
+        },
+        "geometry": {
+          "annotation": "Agent-reviewed partial door spans and sparse rays on the validation drawing; not independent human ground truth. Cartography by Dyson Logos.",
+          "units": "annotation reference pixels",
+          "doors": {
+            "matched": 1,
+            "truth_count": 3,
+            "prediction_count": 1,
+            "precision": null,
+            "recall": 0.3333333333333333,
+            "mean_error": 5.754225500543986,
+            "matches": [
+              [
+                2,
+                0,
+                5.754225500543986
+              ]
+            ],
+            "missed": [
+              0,
+              1
+            ],
+            "extra": [],
+            "complete_annotation": false
+          },
+          "lights": {
+            "matched": 0,
+            "truth_count": 0,
+            "prediction_count": 3,
+            "precision": null,
+            "recall": null,
+            "mean_error": null,
+            "matches": [],
+            "missed": [],
+            "extra": [
+              0,
+              1,
+              2
+            ],
+            "complete_annotation": false
+          },
+          "rays": [
+            {
+              "name": "west door open",
+              "from": [
+                538,
+                283
+              ],
+              "to": [
+                587,
+                283
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "west door closed",
+              "from": [
+                538,
+                283
+              ],
+              "to": [
+                587,
+                283
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": false,
+              "passed": false
+            },
+            {
+              "name": "east door open",
+              "from": [
+                820,
+                283
+              ],
+              "to": [
+                868,
+                283
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "east door closed",
+              "from": [
+                820,
+                283
+              ],
+              "to": [
+                868,
+                283
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": false,
+              "passed": false
+            },
+            {
+              "name": "south door open",
+              "from": [
+                691,
+                317
+              ],
+              "to": [
+                691,
+                357
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south door closed",
+              "from": [
+                691,
+                317
+              ],
+              "to": [
+                691,
+                357
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north west wall",
+              "from": [
+                425,
+                75
+              ],
+              "to": [
+                425,
+                120
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west room wall",
+              "from": [
+                330,
+                190
+              ],
+              "to": [
+                385,
+                190
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east room wall",
+              "from": [
+                792,
+                220
+              ],
+              "to": [
+                843,
+                220
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north east wall",
+              "from": [
+                700,
+                85
+              ],
+              "to": [
+                700,
+                130
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west room floor",
+              "from": [
+                405,
+                180
+              ],
+              "to": [
+                480,
+                180
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "middle room floor",
+              "from": [
+                650,
+                200
+              ],
+              "to": [
+                750,
+                200
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "small room floor",
+              "from": [
+                1060,
+                270
+              ],
+              "to": [
+                1100,
+                270
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "blank margin",
+              "from": [
+                50,
+                60
+              ],
+              "to": [
+                200,
+                60
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            }
+          ],
+          "rays_passed": 12,
+          "rays_total": 14,
+          "wall_segments": 3229
+        }
+      }
+    }
+  },
+  "run_note": "Warm-started from trial 6 selected step 2250. Trial 8 planned 6000 steps and was stopped after step 2800 when a shifted training door annotation was found. Best step 300 was retained; later corrected-label trial 9 was evaluated but scored lower. Selection occurred before inspecting Dyson map 15.",
+  "license": "Apache-2.0 pretrained DINOv2 weights; preserve models/licenses/DINOv2.txt and attribution. Modified model by Auto-Wall fork; not official Meta output.",
+  "cartography_credit": "Cartography by Dyson Logos. Map 13 training, map 14 validation, map 15 post-selection test; no source artwork distributed.",
+  "benchmark": {
+    "platform": "Windows, RTX 3080, PyTorch 2.11.0+cu128, 4 CPU threads",
+    "settings": {
+      "max_dimension": 1536,
+      "grid_size": 70.0,
+      "wall_mode": "color",
+      "wall_color": [
+        160,
+        160,
+        160
+      ],
+      "wall_tolerance": 24,
+      "min_wall_area": 1000.0,
+      "simplify": 1.25,
+      "wall_gap_close": 0.0,
+      "wall_geometry": "outline",
+      "void_color": [
+        0,
+        0,
+        0
+      ],
+      "doors": true,
+      "door_color": [
+        112,
+        32,
+        144
+      ],
+      "door_match": "hue",
+      "door_color_tolerance": 24,
+      "door_hue_tolerance": 16,
+      "door_min_length": 12.0,
+      "door_max_length": 160.0,
+      "door_gap_close": 2.0,
+      "door_rectangularity": 0.78,
+      "door_wall_support": true,
+      "lights": true,
+      "light_mode": "warm",
+      "light_color": [
+        255,
+        190,
+        50
+      ],
+      "light_threshold": 190,
+      "light_min_area": 3,
+      "light_max_area": 5000.0,
+      "light_core_fraction": 0.06,
+      "light_min_fill": 0.25,
+      "light_saturation": 60,
+      "light_range": 6.0,
+      "ml_device": "cuda",
+      "ml_wall_confidence": 0.9,
+      "ml_door_confidence": 0.9,
+      "ml_light_confidence": 0.9
+    },
+    "definition": "Median of five warm detect_map calls, excluding image decode and UVTT serialization. First cold model load reported separately. No concurrent training.",
+    "model_load_seconds": 11.547552499978337,
+    "peak_allocated_tensor_bytes": 384369152,
+    "gpu_memory_caveat": "Excludes CUDA context, reserved allocator memory and other applications.",
+    "samples": [
+      {
+        "id": "wood",
+        "split": "train",
+        "size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "walls": 812,
+        "doors": 1,
+        "lights": 8,
+        "median_seconds": 0.20761230000061914,
+        "source_png_identical": true
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "size": [
+          1448,
+          1086
+        ],
+        "working_size": [
+          1448,
+          1086
+        ],
+        "walls": 1668,
+        "doors": 4,
+        "lights": 11,
+        "median_seconds": 0.21306510001886636,
+        "source_png_identical": true
+      },
+      {
+        "id": "temple",
+        "split": "train",
+        "size": [
+          1448,
+          1086
+        ],
+        "working_size": [
+          1448,
+          1086
+        ],
+        "walls": 2316,
+        "doors": 68,
+        "lights": 30,
+        "median_seconds": 0.27488870004890487,
+        "source_png_identical": true
+      },
+      {
+        "id": "ship",
+        "split": "train",
+        "size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "walls": 1896,
+        "doors": 59,
+        "lights": 0,
+        "median_seconds": 0.310858900018502,
+        "source_png_identical": true
+      },
+      {
+        "id": "demon",
+        "split": "related train",
+        "size": [
+          5792,
+          4344
+        ],
+        "working_size": [
+          1536,
+          1152
+        ],
+        "walls": 2346,
+        "doors": 66,
+        "lights": 30,
+        "median_seconds": 0.2951941000064835,
+        "source_png_identical": true
+      },
+      {
+        "id": "dyson-14",
+        "split": "validation",
+        "size": [
+          9000,
+          5400
+        ],
+        "working_size": [
+          1536,
+          922
+        ],
+        "walls": 3229,
+        "doors": 1,
+        "lights": 3,
+        "median_seconds": 0.2356016999692656,
+        "source_png_identical": true
+      },
+      {
+        "id": "astral",
+        "split": "historical test",
+        "size": [
+          5792,
+          4344
+        ],
+        "working_size": [
+          1536,
+          1152
+        ],
+        "walls": 2470,
+        "doors": 42,
+        "lights": 19,
+        "median_seconds": 0.2780008999980055,
+        "source_png_identical": true
+      },
+      {
+        "id": "dyson-15",
+        "split": "unseen test",
+        "size": [
+          9000,
+          5400
+        ],
+        "working_size": [
+          1536,
+          922
+        ],
+        "walls": 1576,
+        "doors": 0,
+        "lights": 0,
+        "median_seconds": 0.21749980002641678,
+        "source_png_identical": true
+      },
+      {
+        "id": "new-camp",
+        "split": "new supplied map; layout relationship not yet reviewed",
+        "size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "walls": 1035,
+        "doors": 1,
+        "lights": 9,
+        "median_seconds": 0.24385819997405633,
+        "source_png_identical": true
+      },
+      {
+        "id": "ship-upscaled",
+        "split": "related train",
+        "size": [
+          6144,
+          4096
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "walls": 1824,
+        "doors": 55,
+        "lights": 0,
+        "median_seconds": 0.3238836000091396,
+        "source_png_identical": true
+      }
+    ],
+    "cpu_stone_median_seconds": 5.958701599971391
+  },
+  "limitations": [
+    "Weak agent-reviewed real-art labels; not independent full ground truth.",
+    "Stone validation: 3 of 4 exported door spans meet strict tolerance; 11 of 13 lights, 20 of 20 sparse sight-line probes.",
+    "Wood training map: only 1 of 4 gates matches; 7 of 9 real lights with 1 extra candidate.",
+    "Cartographic validation: 1 of 3 annotated doors detected; pool strokes falsely detected as lights.",
+    "Unseen Dyson map 15: mostly traced cave boundary but zero exported doors; visible doors missed.",
+    "New supplied palisade layout: one gate, missing open gates, multiple light fragments around one campfire.",
+    "Astral map includes false interior wall fragments and decorative-symbol light candidates; cool emitters remain missed.",
+    "Spaceship emissive sources are not reliably learned.",
+    "See-through classes are previewed and omitted from both UVTT LOS arrays and door portals.",
+    "No live Foundry import, Linux/macOS, alternate GPU, or release package validation in this experiment."
+  ]
+}

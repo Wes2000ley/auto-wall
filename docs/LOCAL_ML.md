@@ -13,11 +13,17 @@ The tested GPU environment uses Python 3.13, PyTorch 2.11.0+cu128, and an RTX 30
 The CPU and GPU runtimes use the same model file.
 
 DINO checkpoints additionally need `requirements-ml-dino.txt`. They combine a
-frozen, pretrained DINOv2-small backbone with a trainable local decoder. This adds
-visual context while retaining fine boundary features. Both architectures load
+pretrained DINOv2-small backbone with a trainable local decoder. The backbone is
+frozen by default. This adds visual context while retaining fine boundary features.
+Both architectures load
 one local safetensors file; the app does not fetch pretrained weights or execute
 remote model code. DINO is larger and slower than the compact model. Consult the
 [model notes](../models/README.md) before choosing a checkpoint.
+
+The included `models/battlemap-dino-v1.safetensors` is an optional comparison
+checkpoint. See its [model card](../models/DINO_MODEL_CARD.md) for measured warm
+and cold runtimes, strict geometry results, and known errors. It does not replace
+the compact baseline or make ML the default.
 
 ```shell
 python fast_auto_wall.py "map.png" --model "models/battlemap-v1.safetensors" --ml-device auto --resolution 1536
@@ -113,8 +119,8 @@ For DINO training, install `requirements-ml-dino.txt` and supply the official
 [facebook/dinov2-small](https://huggingface.co/facebook/dinov2-small) safetensors
 weights locally. The fixed architecture expects that model's 384-channel,
 12-layer, 14-pixel-patch backbone. Loading checks every tensor strictly. The
-backbone remains frozen; the context projection and local decoder learn the map
-classes. The supplied backbone's SHA-256 is recorded in training metadata.
+backbone remains frozen by default; the context projection and local decoder
+learn the map classes. The supplied backbone's SHA-256 is recorded in training metadata.
 
 ```shell
 python scripts/train_ml.py dataset/manifest.json training/dino-1 --architecture dino --backbone pretrained/dinov2-small.safetensors --device cuda
@@ -126,6 +132,15 @@ optimizer and schedule**, not an exact interrupted-run resume. The requested
 architecture, width, and context dilation must match the checkpoint. Do not
 combine `--init-model` with `--backbone`. Initial weights are hashed and preserved;
 write the new run to a separate output directory.
+
+For a controlled domain-adaptation experiment, add `--backbone-layers 1` (up to
+four final transformer blocks). The selected blocks and final layer normalization
+learn at one tenth of the decoder's learning rate; the earlier backbone remains
+frozen. Both rates follow the same decay schedule and are recorded in metadata.
+This costs additional training memory and can overfit a small dataset. Compare
+exported geometry on separate layouts before choosing the resulting checkpoint.
+Zero, the default, preserves decoder-only training. The stored model format and
+inference path are unchanged; loading for inference freezes all backbone weights.
 
 DINOv2 weights are covered by Apache 2.0. Preserve the upstream license and
 attribution when distributing derived checkpoints; see

@@ -1,4 +1,17 @@
-# Battlemap v1: experimental baseline
+# Local battlemap models
+
+Two optional checkpoints are available. Palette detection remains the default.
+
+| Model | File size | Role |
+| --- | ---: | --- |
+| `battlemap-v1.safetensors` | 1.97 MB | Fast compact baseline, trained from scratch |
+| `battlemap-dino-v1.safetensors` | 90.43 MB | Pretrained context with a local decoder; broader style coverage but unresolved structural errors |
+
+Read the [DINO model card](DINO_MODEL_CARD.md) for its exact training history,
+timings, geometry checks, licensing, and known failures. It uses the existing
+model picker and requires the optional `requirements-ml-dino.txt` dependencies.
+
+## Battlemap v1: experimental baseline
 
 `battlemap-v1.safetensors` is a 488,069-parameter U-Net trained from scratch locally
 on an RTX 3080. It is 1,969,292 bytes, uncompressed. Its SHA-256 is
