@@ -505,10 +505,7 @@ class ExportPanel:
         # Save the initial state to history with a deep copy to ensure it's preserved properly
         if 'line_of_sight' in uvtt_walls and '_preview_pixels' in uvtt_walls:
             import copy
-            initial_state = {
-                'line_of_sight': copy.deepcopy(uvtt_walls['line_of_sight']),
-                'preview_pixels': copy.deepcopy(uvtt_walls['_preview_pixels'])
-            }
+            initial_state = self._wall_state()
             # We need to save the same initial state twice to make undo work immediately
             # The first state is our baseline, and the second is our "current" state
             # This makes it possible to undo the first wall drawing action
@@ -1346,14 +1343,9 @@ class ExportPanel:
             # Ensure we're in preview mode
             self.app.uvtt_preview_active = True
             
-            # Create a copy without the preview pixel data
-            uvtt_data_to_save = self.app.uvtt_walls_preview.copy()
-            if '_preview_pixels' in uvtt_data_to_save:
-                del uvtt_data_to_save['_preview_pixels']
-            
-            with open(file_path, 'w') as f:
-                json.dump(uvtt_data_to_save, f, indent=2)
-                
+            from src.core.fast_pipeline import write_uvtt
+            write_uvtt(file_path, self.export_data())
+
             wall_count = len(self.app.uvtt_walls_preview.get('line_of_sight', []))
             print(f"Successfully exported {wall_count} walls to {file_path}")
             file_saved_path = file_path  # Store for later use
@@ -1441,6 +1433,16 @@ class ExportPanel:
         # Update status
         self.app.setStatusTip("Universal VTT preview canceled, returned to edit mode")
 
+    def export_data(self):
+        """Create export data, attaching the original image only when requested."""
+        data = {key: value for key, value in self.app.uvtt_walls_preview.items()
+                if not key.startswith('_')}
+        source = getattr(self.app, 'fast_source_image', None)
+        if source is not None and source[0] is self.app.original_image:
+            from src.core.fast_pipeline import export_image_bytes
+            data['image'] = base64.b64encode(export_image_bytes(*source)).decode('ascii')
+        return data
+
     def copy_uvtt_to_clipboard(self):
         """Copy the Universal VTT file JSON to the clipboard."""
         if not hasattr(self.app, 'uvtt_walls_preview') or not self.app.uvtt_walls_preview:
@@ -1449,11 +1451,8 @@ class ExportPanel:
             return
             
         try:
-            # Create a copy without the preview pixel data
-            uvtt_data_to_copy = self.app.uvtt_walls_preview.copy()
-            if '_preview_pixels' in uvtt_data_to_copy:
-                del uvtt_data_to_copy['_preview_pixels']
-            
+            uvtt_data_to_copy = self.export_data()
+
             # Convert UVTT data to JSON string
             uvtt_json = json.dumps(uvtt_data_to_copy, indent=2)
             
@@ -1664,24 +1663,27 @@ class ExportPanel:
         
         print(f"Undo wall edit - history size before: {len(self.app.wall_edit_history)}")
         
-        # Get details about current state for debugging
-        current_state = self.app.wall_edit_history[-1]
-        current_wall_count = len(current_state['line_of_sight'])
-        
-        # Remove current state
-        self.app.wall_edit_history.pop()
-        
-        # Get the previous state (now last in the list)
+        # Some tools save before and after editing, while batch deletion saves
+        # only before. Skip snapshots matching the current state, then restore
+        # the most recent different state. Keep that restored state as baseline.
+        current_state = self._wall_state()
+        while len(self.app.wall_edit_history) > 1 and self.app.wall_edit_history[-1] == current_state:
+            # The editor keeps a baseline/current pair. An extra undo at the
+            # baseline must not consume that pair and disable the next edit.
+            if len(self.app.wall_edit_history) == 2 and self.app.wall_edit_history[0] == current_state:
+                break
+            self.app.wall_edit_history.pop()
         last_state = self.app.wall_edit_history[-1]
-        prev_wall_count = len(last_state['line_of_sight'])
-        
-        # Restore the previous state with deep copy to ensure complete separation
-        if last_state:
+        if last_state != current_state:
             import copy
             self.app.uvtt_walls_preview['line_of_sight'] = copy.deepcopy(last_state['line_of_sight'])
             self.app.uvtt_walls_preview['_preview_pixels'] = copy.deepcopy(last_state['preview_pixels'])
             self.app.uvtt_walls_preview['portals'] = copy.deepcopy(last_state.get('portals', []))
-            
+            self.app.uvtt_walls_preview['lights'] = copy.deepcopy(last_state.get('lights', []))
+            self.app.current_lights = copy.deepcopy(self.app.uvtt_walls_preview['lights'])
+            self.app.selected_portal_indices = []
+            self.app.selected_light_indices = []
+
             # Reset any active selection or dragging state
             self.app.selected_wall_index = -1
             self.app.selected_point_index = -1
@@ -1695,7 +1697,7 @@ class ExportPanel:
             if hasattr(self.app, 'undo_button'):
                 self.update_undo_button_state()
             
-            print(f"Undo complete: Wall count changed from {current_wall_count} to {prev_wall_count}")
+            print("Undo complete: restored walls, doors, and lights")
 
     def clear_all_walls(self):
         """Remove all walls from the preview."""
@@ -1722,6 +1724,17 @@ class ExportPanel:
             self.display_uvtt_preview()
             self.app.setStatusTip("All walls cleared")
 
+    def _wall_state(self):
+        from copy import deepcopy
+
+        preview = self.app.uvtt_walls_preview
+        return deepcopy({
+            'line_of_sight': preview.get('line_of_sight', []),
+            'preview_pixels': preview.get('_preview_pixels', []),
+            'portals': preview.get('portals', []),
+            'lights': preview.get('lights', []),
+        })
+
     def save_wall_state_for_undo(self, force=False):
         """
         Save the current wall state for undo operations.
@@ -1736,48 +1749,11 @@ class ExportPanel:
         if not hasattr(self.app, 'wall_edit_history'):
             self.app.wall_edit_history = []
             
-        # Save a deep copy of the current walls to the wall edit history
-        import copy
-        current_state = {
-            'line_of_sight': copy.deepcopy(self.app.uvtt_walls_preview.get('line_of_sight', [])),
-            'preview_pixels': copy.deepcopy(self.app.uvtt_walls_preview.get('_preview_pixels', [])),
-            'portals': copy.deepcopy(self.app.uvtt_walls_preview.get('portals', []))
-        }
-        
-        # Check if this state is different from the last one to avoid duplicate states
-        # Skip this check if force=True
-        if not force and self.app.wall_edit_history and len(self.app.wall_edit_history) > 0:
-            last_state = self.app.wall_edit_history[-1]
-            
-            # More thorough comparison to detect changes
-            same_state = False
-            
-            # Compare wall counts
-            if (len(last_state['line_of_sight']) == len(current_state['line_of_sight']) and
-                len(last_state['preview_pixels']) == len(current_state['preview_pixels'])):
-                
-                # If same number of walls, check for any content changes
-                same_state = True
-                
-                # Check if any walls have different coordinates
-                for i, (old_wall, new_wall) in enumerate(zip(last_state['preview_pixels'], current_state['preview_pixels'])):
-                    if len(old_wall) != len(new_wall):
-                        same_state = False
-                        break
-                    
-                    # Check if any point in this wall has changed
-                    for j, (old_point, new_point) in enumerate(zip(old_wall, new_wall)):
-                        if abs(old_point['x'] - new_point['x']) > 0.001 or abs(old_point['y'] - new_point['y']) > 0.001:
-                            same_state = False
-                            break
-                    
-                    if not same_state:
-                        break
-                
-                if same_state:
-                    # No changes detected, don't save duplicate state
-                    return
-            
+        current_state = self._wall_state()
+        if (not force and self.app.wall_edit_history
+                and self.app.wall_edit_history[-1] == current_state):
+            return
+
         # New or changed state - add to history (limit history to 20 states)
         self.app.wall_edit_history.append(current_state)
         if len(self.app.wall_edit_history) > 20:

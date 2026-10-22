@@ -1,5 +1,25 @@
 # Auto-Wall
 
+## Fast Setup fork
+
+This fork adds a responsive **Walls / Doors / Lights** workspace, conservative doorway
+checks, original-resolution UVTT export, and a much faster native OpenCV detection path.
+On the 5792 × 4344 Demon Temple test map, the complete new pass takes about **0.46 s**.
+The existing edge detector is **46.7× faster** at full resolution with identical contour
+point sets. These are separate measurements; see [the benchmark notes](docs/FAST_SETUP.md#measured-performance).
+
+```shell
+python -m pip install -r requirements-fast.txt
+python fast_auto_wall.py "path/to/map.png" --resolution 0
+```
+
+Windows users can also drop a map onto `run-fast.bat`. Use **Auto setup** in the
+existing editor to generate walls, doors, and lights, then continue editing them.
+See [Fast Setup instructions and limitations](docs/FAST_SETUP.md).
+The upstream downloads linked below do not include these fork changes.
+
+---
+
 ![Auto-Wall](resources/icon.ico)
 
 **Automatically detect walls in TTRPG battle maps and export them to your virtual tabletop.**

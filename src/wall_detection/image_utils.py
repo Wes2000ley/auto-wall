@@ -8,8 +8,7 @@ import traceback
 
 def load_image(image_path):
     """
-    Load an image from the specified path with enhanced WebP support.
-    WebP images are converted to PNG format in memory for consistent color handling.
+    Load an image from the specified path, including WebP and Unicode paths.
     
     Parameters:
     - image_path: Path to the image file or URL
@@ -82,18 +81,6 @@ def load_image(image_path):
                 # If alpha is all 255 (fully opaque), just drop the channel
                 image = image[:, :, :3]
                 
-        # CRITICAL FIX: For WebP files, ensure identical color processing as PNG
-        if is_webp:
-            print(f"Converting WebP to PNG format in memory for consistent color handling...")
-            print(f"Original WebP shape: {original_shape}, Current shape: {image.shape}")
-            
-            # Always convert through PNG format in memory to ensure consistent color handling
-            # Use compression=0 for lossless conversion
-            _, png_data = cv2.imencode('.png', image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-            image = cv2.imdecode(png_data, cv2.IMREAD_UNCHANGED)
-            
-            print(f"After PNG conversion shape: {image.shape}")
-        
         return image
     
     except Exception as e:

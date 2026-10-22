@@ -40,92 +40,26 @@ class ContourProcessor:
         return scaled_contours
 
     def update_display_from_contours(self):
-        """Update the display with the current contours."""
-        if self.app.current_image is not None and self.app.current_contours:
-            # Use bg-removed preview as base image when active
-            base_image = self.app.image_processor._get_display_base_image(self.app.current_image)
+        """Redraw contours without changing the stored light coordinates."""
+        if self.app.current_image is None:
+            return
+        base_image = self.app.image_processor._get_display_base_image(self.app.current_image)
+        contours = self.app.current_contours or []
+        if self.app.scale_factor != 1.0 and self.app.original_image is not None:
+            contours = self.scale_contours_to_original(contours, self.app.scale_factor)
+        self.app.processed_image = draw_walls(base_image, contours)
+        if (getattr(self.app, 'current_lights', None)
+                and self.app.enable_light_detection.isChecked()):
+            from src.wall_detection.light_detector import draw_lights_on_image
 
-            # Handle scaling properly - display on full-resolution image if available
-            if self.app.scale_factor != 1.0 and self.app.original_image is not None:
-                # Scale contours to original resolution for display
-                display_contours = self.scale_contours_to_original(self.app.current_contours, self.app.scale_factor)
-                self.app.processed_image = draw_walls(base_image, display_contours)
-            else:
-                self.app.processed_image = draw_walls(base_image, self.app.current_contours)
-            
-            # Re-draw lights if they exist and light detection is enabled
-            if (hasattr(self.app, 'current_lights') and self.app.current_lights and 
-                hasattr(self.app, 'enable_light_detection') and self.app.enable_light_detection.isChecked()):
-                from src.wall_detection.light_detector import draw_lights_on_image
-                
-                # Scale lights to match the display image if necessary
-                lights_to_draw = self.app.current_lights.copy()
-                if self.app.scale_factor != 1.0 and self.app.original_image is not None:
-                    # Scale light positions to match the original image size
-                    for light in lights_to_draw:
-                        if "position" in light:
-                            # Convert from grid coordinates back to pixels in working image
-                            pixel_x = light["position"]["x"] * 70.0  # Convert grid to pixels
-                            pixel_y = light["position"]["y"] * 70.0
-                            
-                            # Scale to original image size
-                            scaled_x = pixel_x * self.app.scale_factor
-                            scaled_y = pixel_y * self.app.scale_factor
-                            
-                            # Convert back to grid coordinates for drawing
-                            light["position"]["x"] = scaled_x / 70.0
-                            light["position"]["y"] = scaled_y / 70.0
-                
-                # Draw the lights on the processed image
-                self.app.processed_image = draw_lights_on_image(
-                    self.app.processed_image,
-                    lights_to_draw,
-                    grid_size=70.0,
-                    show_range=False,  # Don't show range circles in detection mode
-                    alpha=0.8  # More visible in detection mode
-                )
-            
-            self.app.original_processed_image = self.app.processed_image.copy()
-            self.app.refresh_display()
-        elif self.app.current_image is not None:
-            # Use bg-removed preview as base when active, otherwise original
-            display_image = self.app.image_processor._get_display_base_image(self.app.current_image)
-            self.app.processed_image = display_image
-            
-            # Re-draw lights even when no contours exist
-            if (hasattr(self.app, 'current_lights') and self.app.current_lights and 
-                hasattr(self.app, 'enable_light_detection') and self.app.enable_light_detection.isChecked()):
-                from src.wall_detection.light_detector import draw_lights_on_image
-                
-                # Scale lights to match the display image if necessary
-                lights_to_draw = self.app.current_lights.copy()
-                if self.app.scale_factor != 1.0 and self.app.original_image is not None:
-                    # Scale light positions to match the original image size
-                    for light in lights_to_draw:
-                        if "position" in light:
-                            # Convert from grid coordinates back to pixels in working image
-                            pixel_x = light["position"]["x"] * 70.0  # Convert grid to pixels
-                            pixel_y = light["position"]["y"] * 70.0
-                            
-                            # Scale to original image size
-                            scaled_x = pixel_x * self.app.scale_factor
-                            scaled_y = pixel_y * self.app.scale_factor
-                            
-                            # Convert back to grid coordinates for drawing
-                            light["position"]["x"] = scaled_x / 70.0
-                            light["position"]["y"] = scaled_y / 70.0
-                
-                # Draw the lights on the processed image
-                self.app.processed_image = draw_lights_on_image(
-                    self.app.processed_image,
-                    lights_to_draw,
-                    grid_size=70.0,
-                    show_range=False,  # Don't show range circles in detection mode
-                    alpha=0.8  # More visible in detection mode
-                )
-            
-            self.app.original_processed_image = self.app.processed_image.copy()
-            self.app.refresh_display()
+            # Positions are already in original-image grid units. Rendering is
+            # read-only; repeated redraws must not scale shared dictionaries.
+            self.app.processed_image = draw_lights_on_image(
+                self.app.processed_image, self.app.current_lights,
+                grid_size=70.0, show_range=False, alpha=0.8
+            )
+        self.app.original_processed_image = self.app.processed_image.copy()
+        self.app.refresh_display()
 
     def delete_selected_contours(self):
         """Delete the selected contours from the current image."""

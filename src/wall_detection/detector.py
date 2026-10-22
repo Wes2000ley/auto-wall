@@ -26,8 +26,8 @@ def detect_walls(image, min_contour_area=100, max_contour_area=None, blur_kernel
     Returns:
     - List of contours representing walls
     """
-    # Create a copy of the image for processing
-    working_image = image.copy()
+    # All kernels below produce their own outputs; the source is read-only.
+    working_image = image
     
     # If wall colors are provided, use direct color-based contour detection
     if wall_colors is not None:
@@ -88,26 +88,20 @@ def detect_walls(image, min_contour_area=100, max_contour_area=None, blur_kernel
     
     # No edge margin - simpler processing
     if edge_margin <= 0:
-        for i in range(1, num_labels):  # Skip background (label 0)
-            # Get the area of this component
-            area = stats[i, cv2.CC_STAT_AREA]
-            
-            # Apply area filtering
-            if area >= min_contour_area and (max_contour_area is None or area <= max_contour_area):
-                # Extract the contours for this component
-                component_mask = np.zeros_like(labels, dtype=np.uint8)
-                component_mask[labels == i] = 255
-                
-                # Find all contours in this component (including holes)
-                component_contours, component_hierarchy = cv2.findContours(
-                    component_mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
-                )
-                
-                # Process and add contours from this component
-                component_result = process_contours_with_hierarchy(
-                    component_contours, component_hierarchy, min_contour_area, max_contour_area
-                )
-                result_contours.extend(component_result)
+        # One label lookup and one contour pass replace a full-image allocation
+        # and scan for every component. Preserve both holes and area filtering.
+        areas = stats[:, cv2.CC_STAT_AREA]
+        accepted = areas >= min_contour_area
+        if max_contour_area is not None:
+            accepted &= areas <= max_contour_area
+        accepted[0] = False
+        filtered_mask = (accepted.astype(np.uint8) * 255)[labels]
+        component_contours, component_hierarchy = cv2.findContours(
+            filtered_mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE
+        )
+        result_contours = process_contours_with_hierarchy(
+            component_contours, component_hierarchy, min_contour_area, max_contour_area
+        )
     
     # Handle edge margin case
     else:

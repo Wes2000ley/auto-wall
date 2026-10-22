@@ -9,8 +9,8 @@ from src.utils.update_checker import check_for_updates, fetch_version
 from src.utils.debug_logger import get_log_dir
 
 # Version information - will be updated by GitHub workflow
-APP_VERSION = "1.3.1"
-GITHUB_REPO = "ThreeHats/auto-wall"
+APP_VERSION = "1.4.0-dev-fast"
+GITHUB_REPO = "Wes2000ley/auto-wall"
 
 # Add the project root directory to the Python path
 def get_base_path():

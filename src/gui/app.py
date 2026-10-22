@@ -100,6 +100,7 @@ class WallDetectionApp(QMainWindow):
         
     def initialize_state(self):
         self.original_image = None  # Original full-size image
+        self.fast_source_image = None
         self.current_image = None   # Working image
         self.max_working_dimension = 1500  # Maximum dimension for processing
         self.scale_factor = 1.0     # Scale factor between original and working image
@@ -397,6 +398,11 @@ class WallDetectionApp(QMainWindow):
         self.uvtt_tool_btn.setToolTip("UVTT Wall Editor")
         self.tool_group.addButton(self.uvtt_tool_btn, 2)
         self.left_layout.addWidget(self.uvtt_tool_btn)
+
+        self.fast_setup_button = QPushButton(" Auto setup")
+        self.fast_setup_button.setToolTip("Fast automatic walls, doors, and lights")
+        self.fast_setup_button.clicked.connect(self.open_fast_setup)
+        self.left_layout.insertWidget(0, self.fast_setup_button)
         
         self.left_layout.addStretch()
         
@@ -405,6 +411,15 @@ class WallDetectionApp(QMainWindow):
         
         self.main_layout.addWidget(self.left_panel)
         
+    def open_fast_setup(self):
+        from src.gui.fast_setup import FastSetupDialog
+
+        self.image_processor.debounced_update.timer.stop()
+        source = self.fast_source_image
+        source_bytes = source[1] if source and source[0] is self.original_image else None
+        dialog = FastSetupDialog(self, image=self.original_image, source=source_bytes)
+        dialog.exec()
+
     def setup_central_image_area(self):
         """Create the central image viewing area."""
         # Central image area

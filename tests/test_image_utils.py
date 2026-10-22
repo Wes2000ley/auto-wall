@@ -10,6 +10,19 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 
 from src.wall_detection.image_utils import preprocess_image, detect_edges, convert_to_rgb
 
+
+def test_webp_decode_does_not_reencode_pixels(tmp_path, monkeypatch):
+    from src.wall_detection.image_utils import load_image
+
+    path = tmp_path / 'map.webp'
+    path.write_bytes(b'encoded webp fixture')
+    decoded = np.full((20, 30, 3), 91, dtype=np.uint8)
+    monkeypatch.setattr(cv2, 'imdecode', lambda *args: decoded)
+    def reject_encode(*args):
+        raise AssertionError('Decoded WebP pixels must not be reencoded')
+    monkeypatch.setattr(cv2, 'imencode', reject_encode)
+    np.testing.assert_array_equal(load_image(path), decoded)
+
 class TestImageUtils(unittest.TestCase):
     def setUp(self):
         # Create a simple test image

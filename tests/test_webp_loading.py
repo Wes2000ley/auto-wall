@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath(os.path.dirname(os.path.dirname(__file__))))
 from src.wall_detection.image_utils import load_image, convert_to_rgb
 from src.wall_detection.detector import create_color_mask
 
-def test_webp_loading():
+def diagnose_webp_loading():
     """
     Test WebP loading functionality with robust error handling.
     This can be used to diagnose WebP loading issues.
@@ -194,7 +194,7 @@ def test_webp_loading():
 
 if __name__ == "__main__":
     try:
-        test_webp_loading()
+        diagnose_webp_loading()
     except Exception as e:
         print(f"Unhandled exception: {e}")
         traceback.print_exc()

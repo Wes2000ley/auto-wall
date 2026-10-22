@@ -20,6 +20,7 @@ class ImageProcessor:
         # Initialize performance optimizations
         self.detection_cache = ImageCache(max_size=8)
         self.last_detection_params = None
+        self._cache_source = None
         
         # Create debounced version of update_image
         self.debounced_update = debounce(delay_ms=250)(self._update_image_internal)
@@ -45,7 +46,7 @@ class ImageProcessor:
                 base = cv2.resize(base, (orig_w, orig_h), interpolation=cv2.INTER_LINEAR)
             return base
         if self.app.original_image is not None:
-            return self.app.original_image.copy()
+            return self.app.original_image
         return fallback
 
     def update_image(self):
@@ -95,20 +96,26 @@ class ImageProcessor:
             working_min_area = min_area
         
         # If we're working with a scaled image, the min area needs to be scaled too
-        if self.app.scale_factor != 1.0 and not (hasattr(self.app, 'using_pixels_mode') and self.app.using_pixels_mode):
-            # Only scale min_area if we're using percentages
-            working_min_area = int(min_area * self.app.scale_factor * self.app.scale_factor)
-        elif self.app.scale_factor != 1.0:
-            # If using pixels mode, scale the pixels to the working image size
+        if self.app.scale_factor != 1.0 and getattr(self.app, 'using_pixels_mode', False):
+            # Percentages already used the working image area above. Only an
+            # absolute pixel area needs converting from original to working size.
             working_min_area = int(min_area * self.app.scale_factor * self.app.scale_factor)
         
         # Use background-removed image if available and enabled
         if (hasattr(self.app, 'bg_removal_checkbox')
                 and self.app.bg_removal_checkbox.isChecked()
                 and self.app.bg_removed_image is not None):
-            processed_image = self.app.bg_removed_image.copy()
+            processed_image = self.app.bg_removed_image
         else:
-            processed_image = self.app.current_image.copy()
+            processed_image = self.app.current_image
+
+        # Loaded and background-removed images are replaced, not modified. Keep
+        # their identity rather than copying all pixels to hash the first 1 KB
+        # (which caused cache collisions on maps with identical dark borders).
+        if self._cache_source is not processed_image:
+            self.detection_cache.clear()
+            self.last_detection_params = None
+            self._cache_source = processed_image
         
         # Apply hatching removal if enabled
         if self.app.remove_hatching_checkbox.isChecked():
@@ -173,14 +180,14 @@ class ImageProcessor:
             'hatching_enabled': self.app.remove_hatching_checkbox.isChecked(),
             'hatching_params': (self.app.hatching_color.rgb(), self.app.hatching_threshold, self.app.hatching_width) if self.app.remove_hatching_checkbox.isChecked() else None,
             'bg_removal_enabled': hasattr(self.app, 'bg_removal_checkbox') and self.app.bg_removal_checkbox.isChecked() and self.app.bg_removed_image is not None,
-            'image_hash': fast_hash(processed_image.tobytes()[:1000])  # Hash first 1KB for speed
+            'image_identity': id(self._cache_source)
         }
         
         cache_key = fast_hash(tuple(sorted(detection_params.items())))
         
         # Check cache first
         cached_result = self.detection_cache.get(cache_key)
-        if cached_result is not None and self.last_detection_params == detection_params:
+        if cached_result is not None:
             print("[CACHE] Using cached detection result")
             contours = cached_result
         else:
@@ -302,23 +309,9 @@ class ImageProcessor:
         if current_lights and len(current_lights) > 0:
             from src.wall_detection.light_detector import draw_lights_on_image
             
-            # Scale lights to match the display image if necessary
-            lights_to_draw = current_lights.copy()
-            if self.app.scale_factor != 1.0 and self.app.original_image is not None:
-                # Scale light positions to match the original image size
-                for light in lights_to_draw:
-                    if "position" in light:
-                        # Convert from grid coordinates back to pixels in working image
-                        pixel_x = light["position"]["x"] * 70.0  # Convert grid to pixels
-                        pixel_y = light["position"]["y"] * 70.0
-                        
-                        # Scale to original image size
-                        scaled_x = pixel_x * self.app.scale_factor
-                        scaled_y = pixel_y * self.app.scale_factor
-                        
-                        # Convert back to grid coordinates for drawing
-                        light["position"]["x"] = scaled_x / 70.0
-                        light["position"]["y"] = scaled_y / 70.0
+            # Detection already converted positions to original-image grid units.
+            # A shallow list copy must not mutate the shared light dictionaries.
+            lights_to_draw = current_lights
             
             # Draw the lights on the processed image
             self.app.processed_image = draw_lights_on_image(
@@ -366,7 +359,7 @@ class ImageProcessor:
         rgb_image = convert_to_rgb(image)
         height, width, channel = rgb_image.shape
         bytes_per_line = channel * width
-        q_image = QImage(rgb_image.data.tobytes(), width, height, bytes_per_line, QImage.Format.Format_RGB888)
+        q_image = QImage(rgb_image.data, width, height, bytes_per_line, QImage.Format.Format_RGB888)
         pixmap = QPixmap.fromImage(q_image)
         
         # If the image label supports zoom and pan, use the new method
@@ -387,6 +380,7 @@ class ImageProcessor:
             # Load the original full-resolution image
             print(f"Loading image: {file_path}")
             self.app.original_image = load_image(file_path)
+            self.app.fast_source_image = None
             
             # Verify image loaded correctly
             if self.app.original_image is None:
@@ -472,6 +466,7 @@ class ImageProcessor:
             
             # Load the image into the application
             self.app.original_image = img
+            self.app.fast_source_image = None
             self.app.current_image, self.app.scale_factor = self.create_working_image(self.app.original_image)
             
             print(f"Image loaded from URL: Original size {self.app.original_image.shape}, Working size {self.app.current_image.shape}, Scale factor {self.app.scale_factor}")
