@@ -22,6 +22,8 @@ def main(argv=None):
     parser.add_argument("--geometry", choices=("outline", "centerline"), help="Wall representation")
     parser.add_argument("--resolution", type=int, help="Longest detection edge; 0 uses original pixels")
     parser.add_argument("--grid-size", type=float, help="Original-image pixels per grid square")
+    parser.add_argument("--model", type=Path, help="Optional local Auto-Wall .safetensors model (experimental)")
+    parser.add_argument("--ml-device", choices=("auto", "cpu", "cuda"), help="Inference device; auto prefers CUDA")
     parser.add_argument("--benchmark", type=int, metavar="RUNS", help="Run repeated headless detections")
     parser.add_argument("--report", type=Path, help="Save timing and object counts as JSON")
     args = parser.parse_args(argv)
@@ -47,6 +49,10 @@ def main(argv=None):
             values["grid_size"] = args.grid_size
         if args.geometry:
             values["wall_geometry"] = args.geometry
+        if args.model:
+            values["model_path"] = str(args.model)
+        if args.ml_device:
+            values["ml_device"] = args.ml_device
         settings = settings_from_data(values, settings)
         if headless:
             return process(args, settings)
@@ -97,6 +103,8 @@ def process(args, settings):
             cv2.line(canvas, point(start), point(end), (110, 225, 70), 1, cv2.LINE_AA)
         for start, end in result.doors:
             cv2.line(canvas, point(start), point(end), (255, 215, 53), 3, cv2.LINE_AA)
+        for start, end in result.transparent_barriers:
+            cv2.line(canvas, point(start), point(end), (230, 150, 200), 1, cv2.LINE_AA)
         for light in result.lights:
             cv2.circle(canvas, point((light["position"]["x"], light["position"]["y"])), 7, (94, 215, 255), 2)
         success, buffer = cv2.imencode(".bmp", canvas)
@@ -107,7 +115,8 @@ def process(args, settings):
               "walls": len(result.walls), "doors": len(result.doors), "lights": len(result.lights),
               "decode_seconds": decode_seconds, "export_seconds": export_seconds,
               "runs": runs, "settings": asdict(settings), "opencv": cv2.__version__,
-              "geometry_backend": result.geometry_backend, "warnings": result.warnings}
+              "geometry_backend": result.geometry_backend, "detection_backend": result.detection_backend,
+              "transparent_segments_omitted": len(result.transparent_barriers), "warnings": result.warnings}
     print(json.dumps(report, indent=2))
     if args.report:
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

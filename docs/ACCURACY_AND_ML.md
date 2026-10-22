@@ -2,9 +2,10 @@
 
 Assessment date: 2026-10-22. This release implements palette imports, stricter
 light-source grouping, dark/shaded door support, and optional C++ centerlines.
-The app does not contain a trained semantic model. An official pretrained CubiCasa
-checkpoint was downloaded and evaluated locally on CPU, outside the application.
-No training, dataset download, or GPU inference was performed.
+The app now also supports an optional custom semantic model trained locally on
+CUDA. See [local ML usage and training limits](LOCAL_ML.md). The earlier pretrained
+CubiCasa trial below used CPU, outside the application; its weights are not used
+by the custom model.
 
 ## What the supplied schema actually provides
 
@@ -156,16 +157,17 @@ repair the demonstrated semantic failures. SAM 3 and training a U-Net/SegFormer 
 not run; no labeled battlemap training set or SAM checkpoint was available for this
 trial. Architectural pretraining alone does not meet the requested precision.
 
-## Next ML design
+## Implemented local ML path
 
-Keep this fast palette path for structurally colored maps. For artwork such as
-wooden palisades, train a small segmentation model on **background/floor, wall,
-door, and light-source** labels. Feed its accepted masks into the existing geometry
-stage; retain connected jamb validation, open-passage checks, and editable vectors.
-Keep confidence thresholds class-specific and prefer abstaining to drawing an
-unsupported barrier. This is a proposed next implementation, not a shipped model.
+The optional small U-Net now predicts **background/floor, opaque wall, door, light,
+and transparent barrier**. Accepted masks feed the existing geometry stage with
+class-specific confidence thresholds and connected jamb validation. See-through
+barriers appear separately in the preview and never enter opaque UVTT walls.
+The palette path remains the default. [Training and evaluation](LOCAL_ML.md) use
+whole-layout splits and retain failed trials; the dataset is still far too small
+to establish general accuracy across artists and styles.
 
-Start with a small U-Net baseline, then compare a compact SegFormer only if it
+The small U-Net is the baseline; compare a compact SegFormer only if it
 improves held-out errors enough to justify its latency. Segmentation Models PyTorch
 supports both architectures and configurable output classes. Pretrained image
 encoders do not supply battlemap-specific labels by themselves.
@@ -206,11 +208,11 @@ must be measured with held-out battle maps.
 
 ## GPU and native-code choices
 
-The evaluated machine has an RTX 3080 with 10 GiB VRAM. A compact tiled model is a
-reasonable experiment, but no particular training batch size or model speed has
-been established here. Tile overlap must preserve thin walls and door context;
-measure seam errors before reducing resolution. GPU acceleration becomes useful
-for learned inference, while existing OpenCV kernels already run natively on CPU.
+The evaluated machine has an RTX 3080 with 10 GiB VRAM. Custom training used batches
+of eight, 256/384 px crops, and mixed precision. Inference uses bounded tiles with
+discarded context halos; automated checks compare seams with whole-image inference.
+GPU inference and CPU fallback are supported. Existing OpenCV kernels already run
+natively on CPU. See the model card for the selected run and measured timings.
 
 ONNX Runtime offers a CUDA execution provider for Python and C++. Its package,
 CUDA, and cuDNN compatibility matrix must be matched before deployment. CPU fallback

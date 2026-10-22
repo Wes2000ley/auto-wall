@@ -8,7 +8,7 @@ from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QImage, QPainter, QPainterPath, QPen, QPixmap
 from PyQt6.QtWidgets import (
     QCheckBox, QColorDialog, QComboBox, QDialog, QDoubleSpinBox, QFileDialog,
-    QFormLayout, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QPushButton,
+    QFormLayout, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QSpinBox, QTabWidget, QVBoxLayout, QWidget,
 )
 
@@ -78,7 +78,7 @@ class MapView(QGraphicsView):
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate)
         self.bitmap = None
-        self.layers = {"walls": [], "doors": [], "lights": []}
+        self.layers = {"walls": [], "doors": [], "lights": [], "transparent": []}
         self.visibility = {name: True for name in self.layers}
         self.picking = False
         self.removing = False
@@ -116,6 +116,13 @@ class MapView(QGraphicsView):
             path.moveTo(*start)
             path.lineTo(*end)
         self.layers["walls"].append(self.scene().addPath(path, self.pen("#4ee19b", 1.6)))
+        path = QPainterPath()
+        for start, end in result.transparent_barriers:
+            path.moveTo(*start)
+            path.lineTo(*end)
+        pen = self.pen("#d5a5e8", 1.6)
+        pen.setStyle(Qt.PenStyle.DashLine)
+        self.layers["transparent"].append(self.scene().addPath(path, pen))
         for index, (start, end) in enumerate(result.doors):
             item = self.scene().addLine(*start, *end, self.pen("#35d4ff", 4))
             item.setData(0, "doors")
@@ -320,6 +327,37 @@ class FastSetupDialog(QDialog):
         self.light_fill.setToolTip("Colored area divided by its bounding box; rejects sparse markings")
         lights.addRow("Range (squares)", self.light_range)
         self._add_tab("Lights", lights)
+        ml = QFormLayout()
+        explanation = QLabel("Optional learned detection for all three layers. Models are experimental; review the preview. See-through barriers are omitted from UVTT walls.")
+        explanation.setWordWrap(True)
+        ml.addRow(explanation)
+        self.model_path = QLineEdit()
+        self.model_path.setReadOnly(True)
+        self.model_path.setPlaceholderText("No model · palette detection")
+        ml.addRow(self.model_path)
+        model_buttons = QHBoxLayout()
+        choose_model = QPushButton("Choose model…")
+        choose_model.clicked.connect(self.choose_model)
+        clear_model = QPushButton("Use palette")
+        clear_model.clicked.connect(self.clear_model)
+        model_buttons.addWidget(choose_model)
+        model_buttons.addWidget(clear_model)
+        ml.addRow(model_buttons)
+        self.ml_device = QComboBox()
+        for name, device in (("Automatic", "auto"), ("CPU", "cpu"), ("CUDA GPU", "cuda")):
+            self.ml_device.addItem(name, device)
+        self.ml_device.currentIndexChanged.connect(self.settings_changed)
+        ml.addRow("Device", self.ml_device)
+        self.ml_wall = self._number(.5, 1, .9, decimals=2)
+        self.ml_door = self._number(.5, 1, .9, decimals=2)
+        self.ml_light = self._number(.5, 1, .9, decimals=2)
+        ml.addRow("Wall confidence", self.ml_wall)
+        ml.addRow("Door confidence", self.ml_door)
+        ml.addRow("Light confidence", self.ml_light)
+        ml_note = QLabel("Model selection replaces color detection. Geometry, size limits, and door-jamb checks still apply. Higher confidence accepts fewer candidates.")
+        ml_note.setWordWrap(True)
+        ml.addRow(ml_note)
+        self._add_tab("ML", ml)
         units = QLabel("Lengths and areas use a 2048 px reference so settings remain consistent across quality levels.")
         units.setWordWrap(True)
         controls.addWidget(units)
@@ -356,8 +394,8 @@ class FastSetupDialog(QDialog):
         self.view = MapView()
         self.view.color_picked.connect(self.pick_color)
         self.view.candidate_clicked.connect(self.remove_candidate)
-        for name in ("walls", "doors", "lights"):
-            check = QCheckBox(name.capitalize())
+        for name in ("walls", "doors", "lights", "transparent"):
+            check = QCheckBox("See-through (not exported)" if name == "transparent" else name.capitalize())
             check.setChecked(True)
             check.toggled.connect(lambda checked, name=name: self.view.show_layer(name, checked))
             toolbar.addWidget(check)
@@ -465,6 +503,18 @@ class FastSetupDialog(QDialog):
             except (OSError, ValueError) as error:
                 self.status.setText("Could not save settings: " + str(error))
 
+    def choose_model(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Choose local Auto-Wall model", "", "Auto-Wall models (*.safetensors)")
+        if path:
+            self.model_path.setText(path)
+            self.model_path.setToolTip(path)
+            self.settings_changed()
+
+    def clear_model(self):
+        self.model_path.clear()
+        self.model_path.setToolTip("")
+        self.settings_changed()
+
     def settings(self):
         return FastSettings(max_dimension=self.quality.currentData(), grid_size=self.grid.value(),
                             wall_mode=self.wall_mode.currentData(), wall_color=self.wall_color,
@@ -481,7 +531,10 @@ class FastSetupDialog(QDialog):
                             light_color=self.light_color, light_threshold=self.brightness.value(),
                             light_min_area=self.min_light.value(), light_max_area=self.max_light.value(),
                             light_core_fraction=self.light_core.value(), light_min_fill=self.light_fill.value(),
-                            light_saturation=self.saturation.value(), light_range=self.light_range.value())
+                            light_saturation=self.saturation.value(), light_range=self.light_range.value(),
+                            model_path=self.model_path.text(), ml_device=self.ml_device.currentData(),
+                            ml_wall_confidence=self.ml_wall.value(), ml_door_confidence=self.ml_door.value(),
+                            ml_light_confidence=self.ml_light.value())
 
     def apply_settings(self, settings):
         """Use the same settings in GUI and headless runs."""
@@ -499,6 +552,9 @@ class FastSetupDialog(QDialog):
         self.geometry.setCurrentIndex(self.geometry.findData(settings.wall_geometry))
         self.door_match.setCurrentIndex(self.door_match.findData(settings.door_match))
         self.light_mode.setCurrentIndex(self.light_mode.findData(settings.light_mode))
+        self.model_path.setText(settings.model_path)
+        self.model_path.setToolTip(settings.model_path)
+        self.ml_device.setCurrentIndex(self.ml_device.findData(settings.ml_device))
         for widget, value in ((self.grid, settings.grid_size), (self.wall_tolerance, settings.wall_tolerance),
                               (self.min_area, settings.min_wall_area), (self.simplify, settings.simplify),
                               (self.gap_close, settings.wall_gap_close), (self.door_tolerance, settings.door_color_tolerance),
@@ -508,7 +564,8 @@ class FastSetupDialog(QDialog):
                               (self.brightness, settings.light_threshold), (self.saturation, settings.light_saturation),
                               (self.min_light, settings.light_min_area), (self.max_light, settings.light_max_area),
                               (self.light_core, settings.light_core_fraction), (self.light_fill, settings.light_min_fill),
-                              (self.light_range, settings.light_range)):
+                              (self.light_range, settings.light_range), (self.ml_wall, settings.ml_wall_confidence),
+                              (self.ml_door, settings.ml_door_confidence), (self.ml_light, settings.ml_light_confidence)):
             # Imported profiles may exceed a control's convenient initial range.
             # Expand it instead of silently changing a valid detector setting.
             widget.setRange(min(widget.minimum(), value), max(widget.maximum(), value))
@@ -591,6 +648,8 @@ class FastSetupDialog(QDialog):
         text = (f"{len(result.walls):,} wall segments · {len(result.doors)} doors · {len(result.lights)} lights\n"
                 f"Detection: {result.timings['total']:.3f} s · {result.working_size[0]} × {result.working_size[1]}\n"
                 "Green: walls · Cyan: doors · Yellow: lights")
+        if result.detection_backend.startswith("torch-"):
+            text += "\nML device: " + ("CUDA GPU" if result.detection_backend == "torch-cuda" else "CPU")
         if result.warnings:
             text += "\n" + "\n".join(result.warnings)
         self.status.setText(text)

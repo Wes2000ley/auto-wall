@@ -51,6 +51,11 @@ class FastSettings:
     light_min_fill: float = 0.25  # reject sparse markings inside a large bounding box
     light_saturation: int = 60
     light_range: float = 6.0  # grid squares
+    model_path: str = ""  # optional local Auto-Wall .safetensors model
+    ml_device: str = "auto"
+    ml_wall_confidence: float = 0.9
+    ml_door_confidence: float = 0.9
+    ml_light_confidence: float = 0.9
 
     def validate(self):
         integers = (self.max_dimension, self.wall_tolerance, self.door_color_tolerance,
@@ -62,7 +67,8 @@ class FastSettings:
         numeric = (self.grid_size, self.min_wall_area, self.simplify, self.wall_gap_close,
                    self.door_min_length, self.door_max_length, self.door_gap_close, self.door_rectangularity,
                    self.light_min_area, self.light_max_area, self.light_core_fraction,
-                   self.light_min_fill, self.light_range)
+                   self.light_min_fill, self.light_range, self.ml_wall_confidence,
+                   self.ml_door_confidence, self.ml_light_confidence)
         if not all(type(value) in (int, float) and math.isfinite(value) for value in numeric):
             raise ValueError("Detection settings must be finite numbers.")
         if self.grid_size <= 0 or self.light_range <= 0:
@@ -73,6 +79,11 @@ class FastSettings:
             raise ValueError("Unknown wall geometry or door color method.")
         if self.light_mode not in ("warm", "cool", "color", "brightness"):
             raise ValueError("Unknown light detection method.")
+        if not isinstance(self.model_path, str) or self.ml_device not in ("auto", "cpu", "cuda"):
+            raise ValueError("ML requires a local model path and an auto, cpu, or cuda device.")
+        if any(not .5 <= value <= 1 for value in
+               (self.ml_wall_confidence, self.ml_door_confidence, self.ml_light_confidence)):
+            raise ValueError("ML confidence thresholds must be between 0.5 and 1.")
         if self.min_wall_area < 0 or self.simplify < 0 or self.wall_gap_close < 0:
             raise ValueError("Wall area, simplification, and gap repair cannot be negative.")
         if not 0 < self.door_min_length <= self.door_max_length:
@@ -108,6 +119,8 @@ class DetectionResult:
     working_size: tuple = (0, 0)
     warnings: list = field(default_factory=list)
     geometry_backend: str = "opencv"
+    detection_backend: str = "opencv"
+    transparent_barriers: list = field(default_factory=list)  # review only; never opaque LOS
 
 
 def _stage(name, progress, cancelled):
@@ -158,10 +171,12 @@ def _wall_mask(image, hsv, settings, reference_scale):
     return _keep_components(mask, max(1, settings.min_wall_area * reference_scale ** 2))
 
 
-def _detect_doors(hsv, wall_mask, settings, reference_scale, image=None):
+def _detect_doors(hsv, wall_mask, settings, reference_scale, image=None, candidate_mask=None):
     rgb = np.uint8([[settings.door_color]])
     hue, saturation, value = map(int, cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)[0, 0])
-    if settings.door_match == "rgb":
+    if candidate_mask is not None:
+        mask = candidate_mask.copy()
+    elif settings.door_match == "rgb":
         if image is None:
             image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
         mask = _color_mask(image, settings.door_color, settings.door_color_tolerance)
@@ -227,12 +242,16 @@ def _detect_doors(hsv, wall_mask, settings, reference_scale, image=None):
     return doors, footprints
 
 
-def _detect_lights(image, hsv, door_footprints, settings, reference_scale):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    bright = cv2.inRange(gray, settings.light_threshold, 255)
-    if settings.light_saturation:
-        bright = cv2.bitwise_and(bright, cv2.inRange(hsv[:, :, 1], settings.light_saturation, 255))
-    if settings.light_mode == "warm":
+def _detect_lights(image, hsv, door_footprints, settings, reference_scale, candidate_mask=None):
+    bright = None
+    if candidate_mask is None:
+        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        bright = cv2.inRange(gray, settings.light_threshold, 255)
+        if settings.light_saturation:
+            bright = cv2.bitwise_and(bright, cv2.inRange(hsv[:, :, 1], settings.light_saturation, 255))
+    if candidate_mask is not None:
+        mask = candidate_mask.copy()
+    elif settings.light_mode == "warm":
         mask = cv2.inRange(hsv, (0, 120, 180), (40, 255, 255))
     elif settings.light_mode == "cool":
         mask = cv2.inRange(hsv, (75, 40, 170), (115, 255, 255))
@@ -258,14 +277,15 @@ def _detect_lights(image, hsv, door_footprints, settings, reference_scale):
             continue
         # Only inspect this component's bounding box for its intensity/color.
         component = (labels[y:y + height, x:x + width] == index).astype(np.uint8)
-        core = cv2.bitwise_and(bright[y:y + height, x:x + width], component * 255)
         # A source can have a small bright flame inside a larger colored glow.
         # Keep source size separate from core size; require enough bright pixels
         # to reject isolated glints in hay, flowers, and other colored textures.
         minimum_core = max(1, min(3, settings.light_min_area) * reference_scale ** 2,
                            area * settings.light_core_fraction)
-        if cv2.countNonZero(core) < minimum_core:
-            continue
+        if bright is not None:
+            core = cv2.bitwise_and(bright[y:y + height, x:x + width], component * 255)
+            if cv2.countNonZero(core) < minimum_core:
+                continue
         b, g, r, _ = cv2.mean(image[y:y + height, x:x + width], mask=component)
         lights.append({"position": {"x": float(centers[index][0]), "y": float(centers[index][1])},
                        "range": settings.light_range, "intensity": 1.0,
@@ -415,6 +435,20 @@ def _connect_centerlines(walls, doors, reference_scale, wall_mask):
     return walls, [door for index, door in enumerate(connected) if index not in rejected], rejected
 
 
+def _learned_masks(image, settings, progress, cancelled):
+    # Optional dependencies are imported only when a model is explicitly selected.
+    try:
+        from src.ml.model import load_model, predict
+    except ImportError as error:
+        raise RuntimeError("ML needs PyTorch and safetensors. Install requirements-ml.txt in this Python environment.") from error
+    model, _ = load_model(settings.model_path, settings.ml_device)
+    labels, confidence = predict(model, image, cancelled, progress)
+    thresholds = (settings.ml_wall_confidence, settings.ml_door_confidence, settings.ml_light_confidence, .5)
+    masks = [((labels == cls) & (confidence >= threshold)).astype(np.uint8) * 255
+             for cls, threshold in enumerate(thresholds, 1)]
+    return masks, "torch-" + next(model.parameters()).device.type
+
+
 def detect_map(image, settings=None, progress=None, cancelled=None):
     """Detect a map without mutating the input or touching any Qt objects."""
     settings = settings or FastSettings()
@@ -437,7 +471,14 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     timings["prepare"] = time.perf_counter() - started
     _stage("Detecting walls", progress, cancelled)
     tick = time.perf_counter()
-    mask = _wall_mask(working, hsv, settings, reference_scale)
+    learned, detector = None, "opencv"
+    if settings.model_path:
+        learned, detector = _learned_masks(working, settings, progress, cancelled)
+        timings["inference"] = time.perf_counter() - tick
+        tick = time.perf_counter()
+        mask = _keep_components(learned[0], max(1, settings.min_wall_area * reference_scale ** 2))
+    else:
+        mask = _wall_mask(working, hsv, settings, reference_scale)
     from src.core.wall_geometry import centerline_backend, centerline_segments, outline_segments
     backend = "opencv"
     if settings.wall_geometry == "centerline":
@@ -450,11 +491,16 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     _stage("Detecting doors", progress, cancelled)
     tick = time.perf_counter()
     # Detect footprints even when doors are off, to exclude highlights from lights.
-    doors, footprints = _detect_doors(hsv, mask, settings, reference_scale, working) if settings.doors or settings.lights else ([], [])
+    if settings.doors or settings.lights:
+        arguments = {} if learned is None else {"candidate_mask": learned[1]}
+        doors, footprints = _detect_doors(hsv, mask, settings, reference_scale, working, **arguments)
+    else:
+        doors, footprints = [], []
     timings["doors"] = time.perf_counter() - tick
     _stage("Detecting lights", progress, cancelled)
     tick = time.perf_counter()
-    lights = _detect_lights(working, hsv, footprints, settings, reference_scale) if settings.lights else []
+    arguments = {} if learned is None else {"candidate_mask": learned[2]}
+    lights = _detect_lights(working, hsv, footprints, settings, reference_scale, **arguments) if settings.lights else []
     timings["lights"] = time.perf_counter() - tick
     _stage("Building geometry", progress, cancelled)
     tick = time.perf_counter()
@@ -491,17 +537,30 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     for light in lights:
         light["position"]["x"] *= to_original[0]
         light["position"]["y"] *= to_original[1]
+    transparent = []
+    if learned is not None:
+        transparent = outline_segments(_keep_components(learned[3], max(2, 20 * reference_scale ** 2)),
+                                       settings.simplify * reference_scale, 2)
+        transparent = [(tuple(a * to_original), tuple(b * to_original)) for a, b in transparent]
     timings["geometry"] = time.perf_counter() - tick
     timings["total"] = time.perf_counter() - started
     warnings = []
+    if learned is not None:
+        warnings.append("Experimental ML: review predictions. Confidence scores are not accuracy guarantees.")
+    if transparent:
+        warnings.append("See-through barriers are shown for review and omitted from UVTT vision-blocking walls.")
+    if learned is not None and settings.doors and np.any(learned[1]) and not doors:
+        warnings.append("Door pixels found, but no candidates passed the size, shape, and wall-jamb checks.")
     if not walls:
-        warnings.append("No walls found. Check the palette or sample the actual wall color; this artwork may not follow the schema.")
+        warnings.append("No walls found. Review the selected model and confidence thresholds." if learned is not None else
+                        "No walls found. Check the palette or sample the actual wall color; this artwork may not follow the schema.")
     if rejected:
         warnings.append(f"Skipped {rejected} door candidate(s) without two connected wall jambs.")
     if disconnected:
         warnings.append(f"{len(disconnected)} door(s) could not connect to both wall jambs. Review these in the wall editor.")
     _stage("Ready", progress, cancelled)
-    return DetectionResult(width, height, walls, doors, lights, timings, (work_w, work_h), warnings, backend)
+    return DetectionResult(width, height, walls, doors, lights, timings, (work_w, work_h), warnings, backend,
+                           detector, transparent)
 
 
 def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):

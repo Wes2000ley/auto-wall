@@ -24,10 +24,13 @@ existing editor to generate walls, doors, and lights, then continue editing them
 See [Fast Setup instructions and limitations](docs/FAST_SETUP.md).
 For centerlines, install `requirements-centerline.txt` and choose **Walls → Geometry →
 Centerlines**. Use `--preset demon` for the earlier gray/orange-door artwork.
-The [accuracy and ML assessment](docs/ACCURACY_AND_ML.md) explains the measured
-cross-style limits, the tested CubiCasa model's failure on these artworks, and the
-training work needed for semantic detection. The research model is not enabled in
-the app; `benchmarks/evaluate_cubicasa.py` reproduces the isolated evaluation.
+The optional **ML** tab runs a compact custom segmentation model locally on CPU
+or CUDA. It distinguishes opaque walls from see-through barriers and keeps those
+barriers out of vision-blocking UVTT walls. Models remain experimental and need
+preview review. [Local ML setup and training](docs/LOCAL_ML.md) covers the optional
+dependencies, model selection, and whole-layout validation. The
+[accuracy assessment](docs/ACCURACY_AND_ML.md) also records the pretrained CubiCasa
+model's failure on these artworks; that unrelated model is not used by the app.
 The upstream downloads linked below do not include these fork changes.
 
 ---

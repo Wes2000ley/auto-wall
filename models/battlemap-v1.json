@@ -1,0 +1,154 @@
+{
+  "format": "auto-wall-model-card-v1",
+  "file": "battlemap-v1.safetensors",
+  "sha256": "cf7a10498fa9c938ce96f68fded84632c9e70fe4115f7a46f71edd777aca4bbe",
+  "parameters": 488069,
+  "bytes": 1969292,
+  "dataset_sha256": "b0130da544ac2761d0b14d6e579e2b9dd64938a7596f4355128a03b271a6155f",
+  "splits": {
+    "train": [
+      "temple_family",
+      "spaceship",
+      "wood_camp"
+    ],
+    "validation": [
+      "stone_camp"
+    ],
+    "test": [
+      "astral"
+    ]
+  },
+  "labels": "Color-seeded masks with agent visual review and hand corrections; not independent ground truth.",
+  "seed": 1729,
+  "training_steps": 2400,
+  "batch_size": 8,
+  "crop_size": 384,
+  "context_dilation": 4,
+  "augmentation": "rotations, flips, scale, hue, saturation, RGB gain, gamma, grayscale, spatial lighting",
+  "source_sha256": {
+    "scripts\\train_ml.py": "1fc2d9037f1af5f6296652a09b64e32955ab02b93879e5d231118f6bf8db5357",
+    "src\\ml\\data.py": "86f4831e20cd4bf2273609be756f13c6f7add09c3e6597825cd5537f1058de8b",
+    "src\\ml\\model.py": "85b612e6c09587f13f00fe457458e62bfa90a6223dc2f712476bdcfa538637fa",
+    "src\\ml\\network.py": "472a983bf10843a4a4a41467963a179ae9d03b9bf92cfa6172f1cd21d591214d"
+  },
+  "torch": "2.11.0+cu128",
+  "device": "cuda",
+  "experimental": true,
+  "selected_step": 1500,
+  "validation": {
+    "stone": {
+      "argmax": {
+        "background": {
+          "precision": 0.9768757222631761,
+          "recall": 0.9993457575193294,
+          "iou": 0.9762513782620029,
+          "truth_pixels": 1401621,
+          "predicted_pixels": 1433861
+        },
+        "wall": {
+          "precision": 0.9894181589091414,
+          "recall": 0.7939949100693224,
+          "iou": 0.7873092478673147,
+          "truth_pixels": 116701,
+          "predicted_pixels": 93651
+        },
+        "door": {
+          "precision": 0.9678704536691942,
+          "recall": 0.8963342061413949,
+          "iou": 0.8704345815996302,
+          "truth_pixels": 8402,
+          "predicted_pixels": 7781
+        },
+        "light": {
+          "precision": 1.0,
+          "recall": 0.967296511627907,
+          "iou": 0.967296511627907,
+          "truth_pixels": 1376,
+          "predicted_pixels": 1331
+        },
+        "transparent_barrier": {
+          "precision": 0.9286735788344656,
+          "recall": 0.3679699674174812,
+          "iou": 0.3578563063993938,
+          "truth_pixels": 14118,
+          "predicted_pixels": 5594
+        }
+      },
+      "confidence_0.9": {
+        "background": {
+          "precision": 0.9689618118125732,
+          "recall": 0.9997481487506251,
+          "iou": 0.9687253501020043,
+          "truth_pixels": 1401621,
+          "predicted_pixels": 1446154
+        },
+        "wall": {
+          "precision": 0.9957827894181946,
+          "recall": 0.704115645967044,
+          "iou": 0.7020222300062368,
+          "truth_pixels": 116701,
+          "predicted_pixels": 82519
+        },
+        "door": {
+          "precision": 0.985702614379085,
+          "recall": 0.8615805760533206,
+          "iou": 0.850946279534501,
+          "truth_pixels": 8402,
+          "predicted_pixels": 7344
+        },
+        "light": {
+          "precision": 1.0,
+          "recall": 0.9534883720930233,
+          "iou": 0.9534883720930233,
+          "truth_pixels": 1376,
+          "predicted_pixels": 1312
+        },
+        "transparent_barrier": {
+          "precision": 0.9625690325219881,
+          "recall": 0.3333333333333333,
+          "iou": 0.32906789734983566,
+          "truth_pixels": 14118,
+          "predicted_pixels": 4889
+        }
+      }
+    }
+  },
+  "selection_rule": "Highest mean foreground pixel IoU on the stone-camp validation layout; test layout not used for selection.",
+  "training_data": [
+    {
+      "id": "temple",
+      "group": "temple_family",
+      "split": "train",
+      "image_sha256": "e6fc750df1bf11c1b53552a24dedbb308d330297bf038f7f71c9c8c4741f626c",
+      "mask_sha256": "7c5c1107abb4dd731905049de67b8b591c4fcddc1b530dc6b3ffabb67a1cc20a"
+    },
+    {
+      "id": "ship",
+      "group": "spaceship",
+      "split": "train",
+      "image_sha256": "2938379489cef79e7ca364fb6cce993292fb8c70285b733e0be7ffd7395007c9",
+      "mask_sha256": "36af4ceaca24828e0198d98b44b61485446c257e4ee55bd267f11054d9a8c7f8"
+    },
+    {
+      "id": "wood",
+      "group": "wood_camp",
+      "split": "train",
+      "image_sha256": "58d984b39751bf761aa15833bb9fa23f93c5689d478612527614072e8ff6f250",
+      "mask_sha256": "601b7554fc17de7295f29002e876a90dd7c92e9689e0e07c45397809d58416a8"
+    },
+    {
+      "id": "stone",
+      "group": "stone_camp",
+      "split": "validation",
+      "image_sha256": "af61029dec1e45b55ba61343755714e5103fcaba9bbc1726ea4a664a2ca0111e",
+      "mask_sha256": "cf12c065ef41283482cf090180cc003518ea7fe7d6151af2deca85539bcdef32"
+    },
+    {
+      "id": "astral",
+      "group": "astral",
+      "split": "test",
+      "image_sha256": "b12466fc5a7e6b74e10457753938a1df2c79b09de57dff8886bebab848d46814",
+      "mask_sha256": "051b4be898b66203163784e5e764b4012d1b4ac244778dbdada4977d7eb6a50a"
+    }
+  ]
+}

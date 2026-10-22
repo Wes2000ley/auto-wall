@@ -2,8 +2,10 @@
 
 Fast Setup adds automatic walls, doors, and torch lights to the existing PyQt desktop
 application. It runs local OpenCV kernels in a background worker and preserves the
-original map resolution when exporting. No model download, cloud service, CUDA
-installation, or additional native compiler is needed.
+original map resolution when exporting. The default palette detector needs no
+model download, cloud service, CUDA installation, or additional native compiler.
+An optional **ML** tab supports local models, CPU/CUDA inference, and a separate
+see-through-barrier preview. See [local ML instructions](LOCAL_ML.md).
 
 ## Run it
 

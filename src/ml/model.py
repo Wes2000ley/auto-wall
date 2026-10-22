@@ -1,0 +1,117 @@
+"""Optional PyTorch runtime. Models contain tensors and JSON metadata, never pickle."""
+
+from functools import lru_cache
+import json
+import os
+from pathlib import Path
+import tempfile
+
+import numpy as np
+from safetensors import SafetensorError, safe_open
+from safetensors.torch import save_file
+import torch
+from torch.nn import functional as F
+
+from src.ml.network import BattlemapNet, CLASSES
+
+
+FORMAT = "auto-wall-unet-v1"
+
+
+def save_model(path, model, details):
+    """Atomically save uncompressed, portable CPU tensors with their provenance."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    metadata = {"format": FORMAT, "classes": json.dumps(CLASSES),
+                "width": str(model.width), "context_dilation": str(model.context_dilation),
+                "details": json.dumps(details, allow_nan=False)}
+    tensors = {key: value.detach().cpu().contiguous() for key, value in model.state_dict().items()}
+    descriptor, temporary = tempfile.mkstemp(dir=path.parent, suffix=".safetensors")
+    os.close(descriptor)
+    try:
+        save_file(tensors, temporary, metadata=metadata)
+        os.replace(temporary, path)
+    finally:
+        if os.path.exists(temporary):
+            os.unlink(temporary)
+
+
+def load_model(path, device="auto"):
+    path = Path(path).resolve(strict=True)
+    if device not in ("auto", "cpu", "cuda"):
+        raise ValueError("ML device must be auto, cpu, or cuda.")
+    device = ("cuda" if torch.cuda.is_available() else "cpu") if device == "auto" else device
+    if device == "cuda" and not torch.cuda.is_available():
+        raise ValueError("CUDA is unavailable. Install a CUDA build of PyTorch or select CPU.")
+    stat = path.stat()
+    if stat.st_size > 128 * 1024 * 1024:
+        raise ValueError("This detector accepts compact Auto-Wall models up to 128 MiB.")
+    try:
+        return _cached_model(str(path), stat.st_mtime_ns, stat.st_size, device)
+    except (SafetensorError, KeyError) as error:
+        raise ValueError("Could not read this Auto-Wall model: invalid or incomplete safetensors file.") from error
+
+
+@lru_cache(maxsize=1)
+def _cached_model(path, modified, size, device):
+    with safe_open(path, framework="pt", device="cpu") as source:
+        metadata = source.metadata() or {}
+        if metadata.get("format") != FORMAT or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
+            raise ValueError("This is not a compatible Auto-Wall segmentation model.")
+        width = int(metadata.get("width", "0"))
+        if width not in (8, 16, 24, 32):
+            raise ValueError("Unsupported model width.")
+        dilation = int(metadata.get("context_dilation", "1"))
+        if dilation not in (1, 2, 4):
+            raise ValueError("Unsupported model context dilation.")
+        model = BattlemapNet(width, dilation)
+        state = {key: source.get_tensor(key) for key in source.keys()}
+        if any(not torch.isfinite(value).all() for value in state.values()):
+            raise ValueError("The model contains nonfinite weights.")
+        model.load_state_dict(state, strict=True)
+        details = json.loads(metadata.get("details", "{}"))
+    return model.to(device).eval(), details
+
+
+def predict(model, image, cancelled=None, progress=None, tile_size=384):
+    """Predict BGR uint8 pixels with a context halo and bounded GPU memory.
+
+    Output is (class IDs, winning probabilities); the caller decides thresholds.
+    Halos exceed the network's receptive radius and are discarded, so internal
+    tile borders never receive artificial zero padding.
+    """
+    if tile_size < 8 or tile_size % 8:
+        raise ValueError("ML tile size must be a positive multiple of eight.")
+    if image.dtype != np.uint8 or image.ndim != 3 or image.shape[2] != 3 or not image.size:
+        raise ValueError("ML prediction needs a nonempty uint8 BGR image.")
+    height, width = image.shape[:2]
+    classes = np.empty((height, width), np.uint8)
+    confidence = np.empty((height, width), np.float32)
+    device = next(model.parameters()).device
+    halo = 64 if model.context_dilation == 1 else 128
+    tiles = ((height + tile_size - 1) // tile_size) * ((width + tile_size - 1) // tile_size)
+    completed = 0
+    with torch.inference_mode():
+        for y in range(0, height, tile_size):
+            for x in range(0, width, tile_size):
+                if cancelled and cancelled():
+                    from src.core.fast_pipeline import DetectionCancelled
+                    raise DetectionCancelled()
+                y0, x0 = max(0, y - halo), max(0, x - halo)
+                y1, x1 = min(height, y + tile_size + halo), min(width, x + tile_size + halo)
+                rgb = np.ascontiguousarray(image[y0:y1, x0:x1, ::-1].transpose(2, 0, 1))
+                tensor = torch.from_numpy(rgb).to(device=device, dtype=torch.float32).unsqueeze(0) / 255
+                tensor = F.pad(tensor, (0, (-tensor.shape[3]) % 8, 0, (-tensor.shape[2]) % 8), mode="replicate")
+                with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
+                    logits = model(tensor)
+                probabilities, labels = logits[0].float().softmax(0).max(0)
+                if not torch.isfinite(probabilities).all():
+                    raise RuntimeError("The model produced nonfinite probabilities.")
+                end_y, end_x = min(height, y + tile_size), min(width, x + tile_size)
+                region = np.s_[y - y0:end_y - y0, x - x0:end_x - x0]
+                classes[y:end_y, x:end_x] = labels[region].cpu().numpy().astype(np.uint8)
+                confidence[y:end_y, x:end_x] = probabilities[region].cpu().numpy()
+                completed += 1
+                if progress:
+                    progress(f"ML segmentation: {completed}/{tiles} tiles")
+    return classes, confidence
