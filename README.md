@@ -7,6 +7,9 @@ checks, original-resolution UVTT export, and a much faster native OpenCV detecti
 It imports map-style JSON palettes, defaults to gray `#A0A0A0` walls and purple
 `#702090` doors, and supports other sampled colors, shaded gates, and warm/cool lights.
 Optional **centerlines** reduce double outlines while retaining connected door jambs.
+An optional C++ tracer makes the complete centerline pass **1.86–2.20× faster** on
+six tested maps at a 2048 px cap, with exactly matching geometry. It builds locally
+with `python scripts/build_native.py`; the Python fallback remains available.
 On the 5792 × 4344 Demon Temple test map, the current complete pass takes about **0.35 s**.
 The existing edge detector is **46.7× faster** at full resolution with identical contour
 point sets. These are separate measurements; see [the benchmark notes](docs/FAST_SETUP.md#measured-performance).
@@ -22,7 +25,9 @@ See [Fast Setup instructions and limitations](docs/FAST_SETUP.md).
 For centerlines, install `requirements-centerline.txt` and choose **Walls → Geometry →
 Centerlines**. Use `--preset demon` for the earlier gray/orange-door artwork.
 The [accuracy and ML assessment](docs/ACCURACY_AND_ML.md) explains the measured
-cross-style limits and the training work needed for semantic detection.
+cross-style limits, the tested CubiCasa model's failure on these artworks, and the
+training work needed for semantic detection. The research model is not enabled in
+the app; `benchmarks/evaluate_cubicasa.py` reproduces the isolated evaluation.
 The upstream downloads linked below do not include these fork changes.
 
 ---

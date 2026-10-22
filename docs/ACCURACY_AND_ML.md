@@ -1,9 +1,10 @@
 # Accuracy across styles and the next useful ML step
 
 Assessment date: 2026-10-22. This release implements palette imports, stricter
-light-source grouping, dark/shaded door support, and optional centerlines. It does
-not contain a trained semantic model. No weights or datasets were downloaded and
-no training or GPU inference was performed.
+light-source grouping, dark/shaded door support, and optional C++ centerlines.
+The app does not contain a trained semantic model. An official pretrained CubiCasa
+checkpoint was downloaded and evaluated locally on CPU, outside the application.
+No training, dataset download, or GPU inference was performed.
 
 ## What the supplied schema actually provides
 
@@ -82,7 +83,80 @@ can identify emissive-looking material but cannot reliably infer its semantic ro
   Explicit length checking fixed it. The failed run is retained in the local
   validation history; the corrected focused suite passed.
 
-## Recommended ML design
+## Actual pretrained-model trial
+
+The official CubiCasa5k `hg_furukawa_original` checkpoint loads successfully with
+PyTorch 2.11.0+cpu, `weights_only=True`, and strict state-dictionary matching. Its
+740 state entries match the 44-channel architecture. Checkpoint SHA-256:
+`dd20b4e1bf1d670f2125107b079df06958b1ccd36e49a464ab739aeb00b8e7a2`.
+The official architecture and weights stay outside the fork because the project's
+[published license](https://github.com/CubiCasa/CubiCasa5k/blob/master/LICENSE) is
+CC BY-NC 4.0. The evaluation wrapper contains no copied model implementation.
+
+Preprocessing follows the official RGB [-1, 1] normalization. Four rotations are
+run and their spatially restored room/icon logits averaged, following the official
+sample's semantic pass. Wall is room class 2; door is icon class 2. Junction heatmaps
+and the author's polygon postprocessor are not evaluated. The input keeps its aspect
+ratio, capped at 1024 px, with no upscaling. Masks require both class argmax and
+probability >= 0.5 or >= 0.8; these probabilities are not calibrated guarantees.
+[Official sample procedure](https://github.com/CubiCasa/CubiCasa5k/blob/master/samples.ipynb),
+[official normalization](https://github.com/CubiCasa/CubiCasa5k/blob/master/floortrans/loaders/svg_loader.py).
+
+A raster crop of the architectural source example embedded in the official notebook
+serves as a positive control. It produces recognizable walls and eight disconnected
+door-mask regions. This is a visual sanity check, not a reproduction of the paper's
+dataset metrics. The same loaded model produces the following on all seven supplied
+images (the spaceship pair shares one layout):
+
+| Artwork | Door-mask regions at p >= 0.8 | Warm CPU inference |
+| --- | ---: | ---: |
+| Wooden camp | 0 | 2.92 s |
+| Purple temple | 0 | 3.20 s |
+| Spaceship, original | 1 | 3.04 s |
+| Astral cavern | 0 | 3.66 s |
+| Stone camp | 0 | 3.30 s |
+| Demon Temple | 0 | 3.05 s |
+| Spaceship, upscaled | 1 | 2.94 s |
+
+Each time is the median of two measured four-rotation passes after one warmup, using
+eight CPU threads; it excludes decode, model load, mask conversion, and rendering.
+These region counts are not valid-door counts or precision/recall. At p >= 0.5,
+the five non-spaceship images still contain zero door pixels. Visual review shows
+walls placed on the spaceship's walkable corridors, on black temple backgrounds,
+and on camp props, while much actual masonry/palisade is missed. The stricter
+threshold reduces coverage without repairing these semantic errors.
+
+To check whether resolution caused the failure, the camp (1536 × 1024) and purple
+temple (1448 × 1086) were rerun at their original size, using four rotations. They
+still produce zero door pixels at both thresholds and misplaced wall masks. One
+warm measured pass took 7.26 s and 7.36 s respectively, after one warmup. Thus the
+tested checkpoint is unsuitable for automatic wall/door placement on this corpus;
+this does not establish that a model trained on battle maps would fail. The model
+also lacks a general torch/light-source class.
+
+The evaluation can be reproduced with the optional PyTorch dependency and inspected
+external source/weights:
+
+```shell
+python benchmarks/evaluate_cubicasa.py "map.png" --model-source "research/hg_furukawa_original.py" --checkpoint "research/model_best_val_loss_var.pkl" --output "research-results" --max-edge 1024 --rotations 4 --runs 2
+```
+
+Obtain the checkpoint from the official README's pretrained-model link. For the
+standalone architecture file, remove its unused `from floortrans.models import
+model_1427` import; the wrapper constructs the 44-channel class and replaces all
+weights directly, so its legacy `init_weights` method is never called. This avoids
+loading the unrelated pose-pretraining checkpoint. Inspect the external source before
+running it. The wrapper refuses unsafe pickle loading, checks finite predictions,
+records hashes/backend/timings, and writes uncompressed BMP masks and comparison
+panels (green walls, magenta doors). No images or weights are sent to a service.
+
+CUDA was not benchmarked: the installed PyTorch and ONNX Runtime environments are
+CPU builds/providers. GPU inference could change latency, but would not by itself
+repair the demonstrated semantic failures. SAM 3 and training a U-Net/SegFormer were
+not run; no labeled battlemap training set or SAM checkpoint was available for this
+trial. Architectural pretraining alone does not meet the requested precision.
+
+## Next ML design
 
 Keep this fast palette path for structurally colored maps. For artwork such as
 wooden palisades, train a small segmentation model on **background/floor, wall,
@@ -144,7 +218,10 @@ should report its actual backend. Test numerical and geometry parity after expor
 using a GPU is not evidence of better detection accuracy.
 [Official CUDA provider documentation](https://onnxruntime.ai/docs/execution-providers/CUDA-ExecutionProvider.html).
 
-A Rust/C++ rewrite is not currently justified by the measured outline timings.
-Profile future learned-mask vectorization and centerline graph tracing first. Move
-only a demonstrated bottleneck into a native extension if it materially improves
-interactive latency; keep the same tests and geometry contract.
+Profiling identified Python centerline graph tracing as a real bottleneck. The
+optional C++17 tracer now replaces only that graph walk and preserves exact ordered
+paths, junctions, loops, and cancellation. Complete centerline detection is
+1.86–2.20× faster on the six nonempty maps at the 2048 px cap, with exact geometry
+and light parity across all seven inputs. At original Demon resolution the gain is
+1.42× because skeletonization remains expensive. OpenCV outlines retain their
+existing native implementation. See [build instructions and timings](FAST_SETUP.md#optional-c-centerline-acceleration).

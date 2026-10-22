@@ -1,5 +1,7 @@
 """Convert a structural mask to connected vector geometry, independent of color."""
 
+import os
+
 import cv2
 import numpy as np
 
@@ -16,7 +18,22 @@ def outline_segments(mask, tolerance, minimum_area):
     return walls
 
 
-def centerline_segments(mask, tolerance, cancelled=None):
+def centerline_backend(backend=None):
+    from src.core.native_geometry import native_available
+
+    backend = backend or os.environ.get("AUTO_WALL_GEOMETRY_BACKEND", "auto")
+    if backend not in ("auto", "python", "cpp"):
+        raise ValueError("Geometry backend must be auto, python, or cpp.")
+    if backend == "python":
+        return backend
+    if native_available():
+        return "cpp"
+    if backend == "cpp":
+        raise ValueError("C++ geometry is not built. Run python scripts/build_native.py and restart.")
+    return "python"
+
+
+def centerline_segments(mask, tolerance, cancelled=None, backend=None):
     """Trace each skeleton edge once; keep junctions shared and closed loops closed."""
     try:
         from skimage.morphology import skeletonize
@@ -24,6 +41,23 @@ def centerline_segments(mask, tolerance, cancelled=None):
         raise ValueError("Centerlines need scikit-image. Install requirements-centerline.txt.") from error
 
     skeleton = skeletonize(mask != 0)
+    if centerline_backend(backend) == "cpp":
+        from src.core.native_geometry import trace_skeleton
+        paths = trace_skeleton(skeleton, cancelled)
+    else:
+        paths = _trace_python(skeleton, cancelled)
+    walls = []
+    for path in paths:
+        closed = np.array_equal(path[-1], path[0])
+        points = cv2.approxPolyDP(path[:-1] if closed else path, tolerance, closed).reshape(-1, 2)
+        ends = np.roll(points, -1, axis=0) if closed else points[1:]
+        starts = points if closed else points[:-1]
+        walls.extend((a.astype(float), b.astype(float)) for a, b in zip(starts, ends) if np.any(a != b))
+    return walls
+
+
+def _trace_python(skeleton, cancelled=None):
+    """Portable reference implementation, also used to verify native equivalence."""
     pixels = set(zip(*np.nonzero(skeleton)))
     neighbors = {}
     for index, (row, column) in enumerate(pixels):
@@ -41,7 +75,7 @@ def centerline_segments(mask, tolerance, cancelled=None):
             adjacent.append(candidate)
         neighbors[row, column] = adjacent
     visited = set()
-    walls = []
+    paths = []
 
     def trace(start, next_pixel):
         path = [start]
@@ -57,12 +91,7 @@ def centerline_segments(mask, tolerance, cancelled=None):
                 break
             visited.add(edge)
             previous, current = current, following
-        closed = path[-1] == path[0]
-        points = np.asarray(path[:-1] if closed else path, dtype=np.float32)[:, ::-1]
-        points = cv2.approxPolyDP(points, tolerance, closed).reshape(-1, 2)
-        ends = np.roll(points, -1, axis=0) if closed else points[1:]
-        starts = points if closed else points[:-1]
-        walls.extend((a.astype(float), b.astype(float)) for a, b in zip(starts, ends) if np.any(a != b))
+        paths.append(np.asarray(path, dtype=np.float32)[:, ::-1])
 
     # Branches first, then any remaining closed cycles without branch pixels.
     ordered = sorted(pixels, key=lambda point: (len(neighbors[point]) == 2, point))
@@ -73,7 +102,7 @@ def centerline_segments(mask, tolerance, cancelled=None):
         for adjacent in neighbors[point]:
             if tuple(sorted((point, adjacent))) not in visited:
                 trace(point, adjacent)
-    return walls
+    return paths
 
 
 def attach_centerline_doors(walls, doors, reference_scale, wall_mask):

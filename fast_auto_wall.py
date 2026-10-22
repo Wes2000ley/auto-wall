@@ -67,7 +67,7 @@ def main(argv=None):
         window.apply_settings(settings)
         window.show()
         return app.exec()
-    except (OSError, ValueError, TypeError) as error:
+    except (OSError, ValueError, TypeError, RuntimeError) as error:
         print(f"Auto-Wall: {error}", file=sys.stderr)
         return 1
 
@@ -106,7 +106,8 @@ def process(args, settings):
     report = {"image_size": [result.width, result.height], "working_size": result.working_size,
               "walls": len(result.walls), "doors": len(result.doors), "lights": len(result.lights),
               "decode_seconds": decode_seconds, "export_seconds": export_seconds,
-              "runs": runs, "settings": asdict(settings), "opencv": cv2.__version__, "warnings": result.warnings}
+              "runs": runs, "settings": asdict(settings), "opencv": cv2.__version__,
+              "geometry_backend": result.geometry_backend, "warnings": result.warnings}
     print(json.dumps(report, indent=2))
     if args.report:
         args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

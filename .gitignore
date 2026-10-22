@@ -1,6 +1,8 @@
 # Build artifacts
 dist/
 build/pyinstaller_work/
+build/native/
+src/core/_native/
 *.spec
 
 # AppImage build artifacts

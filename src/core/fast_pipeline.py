@@ -107,6 +107,7 @@ class DetectionResult:
     timings: dict = field(default_factory=dict)
     working_size: tuple = (0, 0)
     warnings: list = field(default_factory=list)
+    geometry_backend: str = "opencv"
 
 
 def _stage(name, progress, cancelled):
@@ -437,9 +438,11 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     _stage("Detecting walls", progress, cancelled)
     tick = time.perf_counter()
     mask = _wall_mask(working, hsv, settings, reference_scale)
-    from src.core.wall_geometry import centerline_segments, outline_segments
+    from src.core.wall_geometry import centerline_backend, centerline_segments, outline_segments
+    backend = "opencv"
     if settings.wall_geometry == "centerline":
-        walls = centerline_segments(mask, settings.simplify * reference_scale, cancelled)
+        backend = centerline_backend()
+        walls = centerline_segments(mask, settings.simplify * reference_scale, cancelled, backend)
     else:
         walls = outline_segments(mask, settings.simplify * reference_scale,
                                  max(2, settings.min_wall_area * reference_scale ** 2 * 0.1))
@@ -498,7 +501,7 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     if disconnected:
         warnings.append(f"{len(disconnected)} door(s) could not connect to both wall jambs. Review these in the wall editor.")
     _stage("Ready", progress, cancelled)
-    return DetectionResult(width, height, walls, doors, lights, timings, (work_w, work_h), warnings)
+    return DetectionResult(width, height, walls, doors, lights, timings, (work_w, work_h), warnings, backend)
 
 
 def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):

@@ -27,6 +27,30 @@ For optional single centerlines, install `requirements-centerline.txt`. This add
 scikit-image's skeletonization; outlines need only the fast requirements. A missing
 optional dependency produces an actionable error without changing existing results.
 
+### Optional C++ centerline acceleration
+
+With CMake 3.16+ on PATH and a C++17 compiler (MSVC Build Tools on Windows, or
+Clang/GCC), run:
+
+```shell
+python scripts/build_native.py
+```
+
+Restart Auto-Wall after building. Centerlines automatically use the local library
+in `src/core/_native`; when absent, the portable Python tracer runs instead. No
+compiler is needed to keep using Python or OpenCV outlines. The build was validated
+on Windows x64 with MSVC 19.43; Linux/macOS builds have not been run here.
+
+`AUTO_WALL_GEOMETRY_BACKEND=python` forces the reference implementation, `cpp`
+requires the compiled library, and `auto` is the default. In PowerShell, set
+`$env:AUTO_WALL_GEOMETRY_BACKEND = 'python'`. CLI reports identify the backend as
+`cpp`, `python`, or `opencv` (outlines). Rebuild after native-source changes.
+
+The C++ library traces the skeleton's pixel graph. Skeletonization and polygon
+simplification keep their existing implementations, so topology and coordinates
+stay the same. The wrapper releases the GIL, supports cancellation during tracing,
+and owns returned coordinates in Python after freeing the native buffers.
+
 ## Palettes and saved settings
 
 The default **Foundry schema · tolerant** preset uses wall `#A0A0A0`, door `#702090`,
@@ -146,9 +170,40 @@ history containing the upstream commit):
 python benchmarks/compare_detector.py "map.png" --runs 3 --report "comparison.json"
 ```
 
-The new pipeline and GUI do not use GPU compute. OpenCV already supplies native C++
-image kernels; eliminating repeated scans gave a large gain without a second
-compiler toolchain, GPU transfers, or hardware-specific runtime requirements.
+### C++ tracer versus Python
+
+Seven alternating measured runs per backend, after one warmup per backend, with
+centerlines and a 2048 px cap on the same machine. Smaller source images retain
+their original resolution. Each run checks exact ordered walls/doors, light data,
+warnings, and working dimensions; all match. These timings cover the complete
+detector, excluding decode, rendering, and export.
+
+| Artwork | Python | C++ | Speedup |
+| --- | ---: | ---: | ---: |
+| Demon Temple | 351.3 ms | 165.7 ms | 2.12× |
+| Wooden camp (no matching walls) | 26.5 ms | 25.1 ms | 1.06× |
+| Spaceship, upscaled | 455.3 ms | 241.9 ms | 1.88× |
+| Spaceship, original | 318.6 ms | 157.5 ms | 2.02× |
+| Stone camp | 198.7 ms | 106.7 ms | 1.86× |
+| Purple temple | 219.4 ms | 99.7 ms | 2.20× |
+| Astral cavern | 304.7 ms | 148.1 ms | 2.06× |
+
+The wall stage improves 2.39–3.78× on the six nonempty maps. The full-resolution
+5792 × 4344 centerline pass improves from 2.592 s to 1.830 s (1.42×, three measured
+runs per backend after warmup); full-resolution skeletonization remains expensive.
+Its output matches exactly: 1004 wall segments, 66 accepted doors, and 30 lights.
+These centerline counts differ from the outline export above; the pre-existing
+centerline jamb checks reject two doors at that resolution. The native backend
+changes speed, not acceptance criteria or detection accuracy.
+
+```shell
+python benchmarks/compare_centerlines.py "map.png" --runs 7 --report "native-comparison.json"
+python benchmarks/compare_centerlines.py "map.png" --preset demon --resolution 0 --runs 3
+```
+
+Use `--settings` to reproduce a saved palette/light configuration. CPU load affects
+absolute timings; compare backends within the same alternating run. The detector
+and GUI do not use GPU compute. Existing OpenCV kernels remain native CPU code.
 
 ## Quality and validation
 
@@ -166,11 +221,16 @@ also cover the existing light-position drift and WebP re-encoding regressions.
 Additional coverage checks palette imports, alternate colors and dark doors, exact
 RGB behavior, preserved openings/voids, wide shaded gates, source grouping, connected
 centerline branches/loops, rejected portal restoration, and GUI profile round trips.
+Native tests cover 25 random graph layouts, ordered path and simplification parity,
+loops/junctions, empty/noncontiguous inputs, output lifetime, cancellation inside a
+long path, callback failures, and missing-library fallback. The complete suite passed
+104 tests with the native default and again with Python forced; both runs had one
+existing `pytz` deprecation warning.
 
 ```shell
 python -m pytest -q
-python -m ruff check fast_auto_wall.py src/core/fast_pipeline.py src/core/detection_profiles.py src/core/wall_geometry.py src/gui/fast_setup.py benchmarks/compare_detector.py tests/conftest.py tests/test_fast_pipeline.py tests/test_fast_setup.py tests/test_detection_profiles.py tests/test_wall_geometry.py tests/test_editor_integration.py
-python -m compileall -q src fast_auto_wall.py auto_wall.py benchmarks/compare_detector.py
+python -m ruff check fast_auto_wall.py src/core/fast_pipeline.py src/core/detection_profiles.py src/core/wall_geometry.py src/core/native_geometry.py src/gui/fast_setup.py benchmarks/compare_detector.py benchmarks/compare_centerlines.py benchmarks/evaluate_cubicasa.py scripts/build_native.py tests/conftest.py tests/test_fast_pipeline.py tests/test_fast_setup.py tests/test_detection_profiles.py tests/test_wall_geometry.py tests/test_native_geometry.py tests/test_editor_integration.py
+python -m compileall -q src fast_auto_wall.py auto_wall.py benchmarks scripts/build_native.py
 git diff --check
 ```
 
