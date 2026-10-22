@@ -1,6 +1,7 @@
 """Native desktop workspace for fast wall, door, and light setup."""
 
 from copy import deepcopy
+from dataclasses import replace
 from pathlib import Path
 
 from PyQt6.QtCore import Qt, QThread, QTimer, pyqtSignal
@@ -15,6 +16,7 @@ from src.core.fast_pipeline import (
     DetectionCancelled, FastSettings, detect_map, export_image_bytes, load_map,
     to_uvtt, write_uvtt,
 )
+from src.core.detection_profiles import PRESETS, load_settings, preset_settings, save_settings
 
 
 class DetectionWorker(QThread):
@@ -168,7 +170,7 @@ class FastSetupDialog(QDialog):
     def __init__(self, parent=None, image=None, source=None, path=None):
         super().__init__(parent)
         self.setWindowTitle("Auto-Wall • Fast Setup")
-        self.resize(1380, 900)
+        self.resize(1440, 960)
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
         self.image, self.source, self.path = image, source, path
         self.result = None
@@ -179,13 +181,17 @@ class FastSetupDialog(QDialog):
         self.generation = 0
         self.closing = False
         self.pick_target = None
-        self.wall_color = (131, 131, 131)
-        self.door_color = (255, 160, 65)
+        self.wall_color = FastSettings().wall_color
+        self.door_color = FastSettings().door_color
+        self.void_color = FastSettings().void_color
+        self.light_color = FastSettings().light_color
+        self.applying_settings = False
         self.undo_states = []
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.run_detection)
         self._build_ui()
+        self.apply_settings(FastSettings())
         if image is not None:
             self.view.set_image(image)
         if image is not None or path:
@@ -205,6 +211,21 @@ class FastSetupDialog(QDialog):
         open_button = QPushButton("Open map…")
         open_button.clicked.connect(self.open_map)
         controls.addWidget(open_button)
+        self.preset = QComboBox()
+        for key, label in PRESETS.items():
+            self.preset.addItem(label, key)
+        self.preset.addItem("Custom / imported settings", None)
+        self.preset.currentIndexChanged.connect(self.select_preset)
+        controls.addWidget(self.preset)
+        profile_row = QHBoxLayout()
+        import_button = QPushButton("Import JSON…")
+        import_button.setToolTip("Import a map-style palette schema or saved detector settings")
+        import_button.clicked.connect(self.import_settings)
+        save_button = QPushButton("Save settings…")
+        save_button.clicked.connect(self.save_current_settings)
+        profile_row.addWidget(import_button)
+        profile_row.addWidget(save_button)
+        controls.addLayout(profile_row)
         common = QFormLayout()
         self.quality = QComboBox()
         for label, value in (("Fast · 2048 px", 2048), ("Detailed · 3072 px", 3072),
@@ -227,12 +248,20 @@ class FastSetupDialog(QDialog):
         self.wall_mode.currentIndexChanged.connect(self.settings_changed)
         walls.addRow("Method", self.wall_mode)
         self.wall_swatch = self._color_controls("wall", walls)
-        self.wall_tolerance = self._number(0, 100, 24)
+        self.wall_tolerance = self._number(0, 255, 24)
         walls.addRow("Color tolerance", self.wall_tolerance)
         self.min_area = self._number(0, 5000, 1000, decimals=1)
         walls.addRow("Minimum area", self.min_area)
         self.simplify = self._number(0, 10, 1.25, decimals=2)
         walls.addRow("Simplify", self.simplify)
+        self.geometry = QComboBox()
+        self.geometry.addItem("Outlines", "outline")
+        self.geometry.addItem("Centerlines", "centerline")
+        self.geometry.currentIndexChanged.connect(self.settings_changed)
+        walls.addRow("Geometry", self.geometry)
+        self.gap_close = self._number(0, 10, 0, decimals=1)
+        self.gap_close.setToolTip("0 preserves openings. Increase only to repair artwork seams.")
+        walls.addRow("Repair gaps", self.gap_close)
         self._add_tab("Walls", walls)
         doors = QFormLayout()
         self.enable_doors = QCheckBox("Auto-detect doors")
@@ -240,12 +269,21 @@ class FastSetupDialog(QDialog):
         self.enable_doors.toggled.connect(self.settings_changed)
         doors.addRow(self.enable_doors)
         self.door_swatch = self._color_controls("door", doors)
+        self.door_match = QComboBox()
+        self.door_match.addItem("Hue + sampled brightness", "hue")
+        self.door_match.addItem("RGB palette", "rgb")
+        self.door_match.currentIndexChanged.connect(self.settings_changed)
+        doors.addRow("Color method", self.door_match)
+        self.door_tolerance = self._number(0, 255, 24)
+        doors.addRow("RGB tolerance", self.door_tolerance)
         self.hue = self._number(0, 90, 16)
         doors.addRow("Hue tolerance", self.hue)
         self.min_door = self._number(2, 400, 12, decimals=1)
         self.max_door = self._number(2, 800, 60, decimals=1)
         doors.addRow("Min length", self.min_door)
         doors.addRow("Max length", self.max_door)
+        self.door_gap = self._number(0, 10, 2, decimals=1)
+        doors.addRow("Repair seams", self.door_gap)
         self.rectangularity = self._number(0.1, 1, 0.78, decimals=2)
         doors.addRow("Rectangularity", self.rectangularity)
         self.support = QCheckBox("Require nearby wall jambs")
@@ -258,15 +296,28 @@ class FastSetupDialog(QDialog):
         self.enable_lights.setChecked(True)
         self.enable_lights.toggled.connect(self.settings_changed)
         lights.addRow(self.enable_lights)
+        self.light_mode = QComboBox()
+        for label, value in (("Warm sources", "warm"), ("Cool sources", "cool"),
+                             ("Sampled hue", "color"), ("All bright regions", "brightness")):
+            self.light_mode.addItem(label, value)
+        self.light_mode.currentIndexChanged.connect(self.settings_changed)
+        lights.addRow("Method", self.light_mode)
+        self.light_swatch = self._color_controls("light", lights)
         self.brightness = self._number(0, 255, 190)
         self.saturation = self._number(0, 255, 60)
         self.min_light = self._number(1, 5000, 3, decimals=1)
         self.max_light = self._number(1, 10000, 180, decimals=1)
+        self.light_core = self._number(0, 1, 0.06, decimals=2)
+        self.light_fill = self._number(0, 1, 0.25, decimals=2)
         self.light_range = self._number(0.1, 100, 6, decimals=1)
         lights.addRow("Brightness", self.brightness)
         lights.addRow("Min saturation", self.saturation)
         lights.addRow("Min area", self.min_light)
         lights.addRow("Max area", self.max_light)
+        lights.addRow("Bright fraction", self.light_core)
+        lights.addRow("Min fill ratio", self.light_fill)
+        self.light_core.setToolTip("Fraction of the colored source that must exceed the brightness threshold")
+        self.light_fill.setToolTip("Colored area divided by its bounding box; rejects sparse markings")
         lights.addRow("Range (squares)", self.light_range)
         self._add_tab("Lights", lights)
         units = QLabel("Lengths and areas use a 2048 px reference so settings remain consistent across quality levels.")
@@ -353,7 +404,7 @@ class FastSetupDialog(QDialog):
         return swatch
 
     def _update_swatches(self):
-        for target in ("wall", "door"):
+        for target in ("wall", "door", "light"):
             rgb = tuple(getattr(self, target + "_color"))
             getattr(self, target + "_swatch").setStyleSheet(
                 f"background-color: rgb{rgb}; color: {'black' if sum(rgb) > 380 else 'white'};")
@@ -367,6 +418,8 @@ class FastSetupDialog(QDialog):
         setattr(self, target + "_color", rgb)
         if target == "wall":
             self.wall_mode.setCurrentIndex(1)
+        elif target == "light":
+            self.light_mode.setCurrentIndex(self.light_mode.findData("color"))
         self._update_swatches()
         self.settings_changed()
 
@@ -383,21 +436,57 @@ class FastSetupDialog(QDialog):
         self.view.unsetCursor()
         self.pick_target = None
 
+    def select_preset(self):
+        name = self.preset.currentData()
+        if name is None or self.applying_settings:
+            return
+        settings = replace(preset_settings(name), max_dimension=self.quality.currentData(), grid_size=self.grid.value())
+        self.apply_settings(settings)
+        self.settings_changed()
+        self.preset.blockSignals(True)
+        self.preset.setCurrentIndex(self.preset.findData(name))
+        self.preset.blockSignals(False)
+
+    def import_settings(self):
+        path, _ = QFileDialog.getOpenFileName(self, "Import map schema or detector settings", "", "JSON (*.json)")
+        if path:
+            try:
+                self.apply_settings(load_settings(path, self.settings()))
+                self.settings_changed()
+            except (OSError, ValueError) as error:
+                self.status.setText("Could not import settings: " + str(error))
+
+    def save_current_settings(self):
+        path, _ = QFileDialog.getSaveFileName(self, "Save detector settings", "map-settings.json", "JSON (*.json)")
+        if path:
+            try:
+                save_settings(path, self.settings())
+                self.status.setText("Saved detector settings: " + path)
+            except (OSError, ValueError) as error:
+                self.status.setText("Could not save settings: " + str(error))
+
     def settings(self):
         return FastSettings(max_dimension=self.quality.currentData(), grid_size=self.grid.value(),
                             wall_mode=self.wall_mode.currentData(), wall_color=self.wall_color,
                             wall_tolerance=self.wall_tolerance.value(), min_wall_area=self.min_area.value(),
-                            simplify=self.simplify.value(), doors=self.enable_doors.isChecked(),
+                            simplify=self.simplify.value(), wall_gap_close=self.gap_close.value(),
+                            wall_geometry=self.geometry.currentData(), void_color=self.void_color,
+                            doors=self.enable_doors.isChecked(), door_match=self.door_match.currentData(),
+                            door_color_tolerance=self.door_tolerance.value(),
                             door_color=self.door_color, door_hue_tolerance=self.hue.value(),
                             door_min_length=self.min_door.value(), door_max_length=self.max_door.value(),
+                            door_gap_close=self.door_gap.value(),
                             door_rectangularity=self.rectangularity.value(), door_wall_support=self.support.isChecked(),
-                            lights=self.enable_lights.isChecked(), light_threshold=self.brightness.value(),
+                            lights=self.enable_lights.isChecked(), light_mode=self.light_mode.currentData(),
+                            light_color=self.light_color, light_threshold=self.brightness.value(),
                             light_min_area=self.min_light.value(), light_max_area=self.max_light.value(),
+                            light_core_fraction=self.light_core.value(), light_min_fill=self.light_fill.value(),
                             light_saturation=self.saturation.value(), light_range=self.light_range.value())
 
     def apply_settings(self, settings):
         """Use the same settings in GUI and headless runs."""
         settings.validate()
+        self.applying_settings = True
         quality_index = self.quality.findData(settings.max_dimension)
         if quality_index < 0:
             self.quality.addItem(f"Custom · {settings.max_dimension} px", settings.max_dimension)
@@ -405,23 +494,43 @@ class FastSetupDialog(QDialog):
         self.quality.setCurrentIndex(quality_index)
         self.wall_mode.setCurrentIndex(self.wall_mode.findData(settings.wall_mode))
         self.wall_color, self.door_color = settings.wall_color, settings.door_color
+        self.void_color = settings.void_color
+        self.light_color = settings.light_color
+        self.geometry.setCurrentIndex(self.geometry.findData(settings.wall_geometry))
+        self.door_match.setCurrentIndex(self.door_match.findData(settings.door_match))
+        self.light_mode.setCurrentIndex(self.light_mode.findData(settings.light_mode))
         for widget, value in ((self.grid, settings.grid_size), (self.wall_tolerance, settings.wall_tolerance),
                               (self.min_area, settings.min_wall_area), (self.simplify, settings.simplify),
+                              (self.gap_close, settings.wall_gap_close), (self.door_tolerance, settings.door_color_tolerance),
+                              (self.door_gap, settings.door_gap_close),
                               (self.hue, settings.door_hue_tolerance), (self.min_door, settings.door_min_length),
                               (self.max_door, settings.door_max_length), (self.rectangularity, settings.door_rectangularity),
                               (self.brightness, settings.light_threshold), (self.saturation, settings.light_saturation),
                               (self.min_light, settings.light_min_area), (self.max_light, settings.light_max_area),
+                              (self.light_core, settings.light_core_fraction), (self.light_fill, settings.light_min_fill),
                               (self.light_range, settings.light_range)):
+            # Imported profiles may exceed a control's convenient initial range.
+            # Expand it instead of silently changing a valid detector setting.
+            widget.setRange(min(widget.minimum(), value), max(widget.maximum(), value))
+            if isinstance(widget, QDoubleSpinBox):
+                decimals = len(f"{value:.10f}".rstrip("0").split(".")[1])
+                widget.setDecimals(max(widget.decimals(), decimals))
             widget.setValue(value)
         self.enable_doors.setChecked(settings.doors)
         self.enable_lights.setChecked(settings.lights)
         self.support.setChecked(settings.door_wall_support)
         self._update_swatches()
         self.timer.stop()
+        match = next((name for name in PRESETS if preset_settings(name) == settings), None)
+        self.preset.setCurrentIndex(self.preset.findData(match))
+        self.applying_settings = False
 
     def settings_changed(self, *_):
-        if not hasattr(self, "live"):
+        if not hasattr(self, "live") or self.applying_settings:
             return
+        self.preset.blockSignals(True)
+        self.preset.setCurrentIndex(self.preset.findData(None))
+        self.preset.blockSignals(False)
         self.export_button.setEnabled(False)
         self.editor_button.setEnabled(False)
         if self.live.isChecked() and (self.image is not None or self.path):

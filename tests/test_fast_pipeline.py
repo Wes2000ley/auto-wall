@@ -16,10 +16,10 @@ from src.core.fast_pipeline import (
 @pytest.fixture
 def dungeon():
     image = np.full((384, 512, 3), 12, dtype=np.uint8)
-    cv2.rectangle(image, (30, 30), (480, 350), (131, 131, 131), 7)
-    # A doorway with a bright rectangular door, plus a separate torch.
-    cv2.rectangle(image, (250, 26), (263, 34), (65, 180, 255), -1)
-    cv2.circle(image, (150, 180), 1, (0, 255, 255), -1)
+    cv2.rectangle(image, (30, 30), (480, 350), (160, 160, 160), 7)
+    # A doorway with a dark purple rectangular door, plus a separate torch.
+    cv2.rectangle(image, (250, 26), (263, 34), (144, 32, 112), -1)
+    cv2.circle(image, (150, 180), 2, (0, 255, 255), -1)
     # A large bright patch must not become a point light or a door.
     cv2.rectangle(image, (280, 200), (380, 300), (0, 220, 255), -1)
     return image
@@ -40,7 +40,7 @@ def test_detects_door_and_torch_but_not_lava(dungeon):
 
 
 def test_door_requires_wall_jambs(dungeon):
-    cv2.rectangle(dungeon, (220, 180), (233, 188), (65, 180, 255), -1)
+    cv2.rectangle(dungeon, (220, 180), (233, 188), (144, 32, 112), -1)
     assert len(detect_map(dungeon).doors) == 1
     assert len(detect_map(dungeon, FastSettings(door_wall_support=False)).doors) == 2
 
@@ -56,8 +56,8 @@ def test_quality_preserves_original_coordinates(dungeon):
     np.testing.assert_allclose(result.doors, np.asarray(baseline.doors) * 2)
 
 
-def test_warm_rectangle_beside_parallel_wall_is_not_a_door(dungeon):
-    cv2.rectangle(dungeon, (200, 340), (213, 348), (65, 180, 255), -1)
+def test_colored_rectangle_beside_parallel_wall_is_not_a_door(dungeon):
+    cv2.rectangle(dungeon, (200, 340), (213, 348), (144, 32, 112), -1)
     result = detect_map(dungeon)
     assert len(result.doors) == 1
 
@@ -187,3 +187,89 @@ def test_atomic_export_preserves_existing_file_on_error(tmp_path):
     assert list(tmp_path.iterdir()) == [path]
     write_uvtt(path, {"format": 0.3})
     assert json.loads(path.read_text()) == {"format": 0.3}
+
+
+@pytest.mark.parametrize("wall,door", [((160, 160, 160), (112, 32, 144)),
+    ((30, 110, 180), (100, 45, 15)), ((210, 80, 40), (180, 20, 25))])
+def test_dark_doors_and_alternative_palettes(wall, door):
+    image = np.zeros((384, 512, 3), np.uint8)
+    cv2.rectangle(image, (30, 30), (480, 350), wall[::-1], 9)
+    cv2.rectangle(image, (240, 25), (258, 35), door[::-1], -1)
+    result = detect_map(image, FastSettings(wall_color=wall, door_color=door, lights=False))
+    assert len(result.doors) == 1 and result.walls
+
+
+def test_exact_palette_preserves_openings_voids_and_original_rgb():
+    from src.core.fast_pipeline import _wall_mask, _detect_doors
+    from src.core.detection_profiles import preset_settings
+
+    image = np.full((384, 512, 3), 20, np.uint8)
+    cv2.rectangle(image, (30, 30), (480, 350), (160, 160, 160), 7)
+    image[25:36, 100:103] = 20  # intentional three-pixel opening
+    image[150:180, 150:180] = 0  # exact void must never enter the wall mask
+    image[100:120, 200:220] = 159  # one channel off is not an exact wall
+    cv2.rectangle(image, (250, 26), (263, 34), (144, 32, 112), -1)
+    settings = preset_settings("exact")
+    hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+    mask = _wall_mask(image, hsv, settings, 0.25)
+    assert not mask[25:36, 100:103].any()
+    assert not mask[150:180, 150:180].any()
+    assert not mask[100:120, 200:220].any()
+    assert mask[30, 50]
+    # RGB->HSV->RGB is lossy for this purple; exact matching uses source pixels.
+    doors, _ = _detect_doors(hsv, mask, settings, 0.25, image)
+    assert len(doors) == 1
+    broad = _wall_mask(image, hsv, replace(settings, wall_tolerance=255), 0.25)
+    assert not broad[150:180, 150:180].any()
+
+
+def test_wide_shaded_gate_is_one_portal():
+    image = np.zeros((1024, 1536, 3), np.uint8)
+    cv2.rectangle(image, (30, 80), (1500, 900), (160, 160, 160), 17)
+    cv2.rectangle(image, (600, 70), (710, 90), (144, 32, 112), -1)
+    image[70:91, 654:656] = 15  # dark seam between the gate's leaves
+    result = detect_map(image, FastSettings(lights=False))
+    assert len(result.doors) == 1
+    assert abs(result.doors[0][1][0] - result.doors[0][0][0]) >= 110
+
+
+def test_lights_group_highlights_and_reject_sparse_marks_and_glints():
+    image = np.zeros((512, 512, 3), np.uint8)
+    # One orange source, with two separate yellow cores, is one light.
+    cv2.rectangle(image, (50, 50), (60, 60), (0, 90, 240), -1)
+    cv2.circle(image, (53, 54), 2, (0, 255, 255), -1)
+    cv2.circle(image, (57, 57), 2, (0, 255, 255), -1)
+    # Another neighboring source is distinct, not distance-merged into the first.
+    cv2.circle(image, (80, 55), 3, (0, 255, 255), -1)
+    # Sparse bright diagram and a glint in a large colored patch are not sources.
+    cv2.rectangle(image, (150, 50), (190, 90), (0, 255, 255), 1)
+    cv2.rectangle(image, (250, 50), (264, 64), (0, 90, 240), -1)
+    image[55, 255] = (0, 255, 255)
+    result = detect_map(image, FastSettings(doors=False))
+    assert len(result.lights) == 2
+    positions = sorted(light["position"]["x"] for light in result.lights)
+    assert positions == pytest.approx([55, 80])
+
+
+def test_cool_and_sampled_sources_support_other_art_palettes():
+    image = np.zeros((512, 512, 3), np.uint8)
+    cv2.circle(image, (80, 80), 3, (255, 255, 80), -1)
+    assert not detect_map(image, FastSettings()).lights
+    for settings in (FastSettings(light_mode="cool"),
+                     FastSettings(light_mode="color", light_color=(80, 255, 255))):
+        result = detect_map(image, settings)
+        assert len(result.lights) == 1
+        assert result.lights[0]["position"] == {"x": 80, "y": 80}
+
+
+@pytest.mark.parametrize("door_match", ["rgb", "hue"])
+def test_exact_downsampling_does_not_invent_wall_colors(door_match):
+    from src.core.detection_profiles import preset_settings
+
+    # Area averaging would turn these non-wall colors into exactly gray 160.
+    image = np.empty((1024, 1024, 3), np.uint8)
+    image[::2] = 140
+    image[1::2] = 180
+    result = detect_map(image, replace(preset_settings("exact"), max_dimension=512,
+                                       door_match=door_match, lights=False))
+    assert not result.walls

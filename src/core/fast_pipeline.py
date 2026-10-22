@@ -23,49 +23,74 @@ class DetectionCancelled(Exception):
 class FastSettings:
     max_dimension: int = 2048  # 0 processes the original pixels
     grid_size: float = 70.0  # original-image pixels per grid square
-    wall_mode: str = "stone"  # stone, color, or edges
-    wall_color: tuple = (131, 131, 131)  # RGB
+    wall_mode: str = "color"  # stone, color, or edges
+    wall_color: tuple = (160, 160, 160)  # RGB; Foundry map schema v2
     wall_tolerance: int = 24
     min_wall_area: float = 1000.0  # area at a 2048-pixel longest edge
     simplify: float = 1.25  # pixels at a 2048-pixel longest edge
+    wall_gap_close: float = 0.0  # opt-in seam repair; 0 preserves open passages
+    wall_geometry: str = "outline"  # outline or centerline
+    void_color: tuple = (0, 0, 0)
     doors: bool = True
-    door_color: tuple = (255, 160, 65)  # RGB; hue plus shape and wall support
+    door_color: tuple = (112, 32, 144)  # RGB; Foundry map schema v2
+    door_match: str = "hue"  # hue handles shaded art; rgb supports exact palettes
+    door_color_tolerance: int = 24
     door_hue_tolerance: int = 16
     door_min_length: float = 12.0  # lengths at a 2048-pixel longest edge
-    door_max_length: float = 60.0
+    door_max_length: float = 160.0
+    door_gap_close: float = 2.0  # join shading seams; never overwrite wall pixels
     door_rectangularity: float = 0.78
     door_wall_support: bool = True
     lights: bool = True
+    light_mode: str = "warm"  # warm, cool, color, or brightness
+    light_color: tuple = (255, 190, 50)
     light_threshold: int = 190
-    light_min_area: float = 3.0  # areas at a 2048-pixel longest edge
-    light_max_area: float = 180.0
+    light_min_area: float = 100.0  # colored-source area at a 2048-pixel longest edge
+    light_max_area: float = 5000.0
+    light_core_fraction: float = 0.06  # minimum bright fraction of a colored source
+    light_min_fill: float = 0.25  # reject sparse markings inside a large bounding box
     light_saturation: int = 60
     light_range: float = 6.0  # grid squares
 
     def validate(self):
+        integers = (self.max_dimension, self.wall_tolerance, self.door_color_tolerance,
+                    self.door_hue_tolerance, self.light_threshold, self.light_saturation)
+        if any(type(value) is not int for value in integers):
+            raise ValueError("Resolution and color thresholds must be integers.")
         if self.max_dimension != 0 and self.max_dimension < 256:
             raise ValueError("Detection resolution must be 0 (original) or at least 256.")
-        numeric = (self.grid_size, self.min_wall_area, self.simplify,
-                   self.door_min_length, self.door_max_length, self.door_rectangularity,
-                   self.light_min_area, self.light_max_area, self.light_range)
-        if not all(math.isfinite(value) for value in numeric):
+        numeric = (self.grid_size, self.min_wall_area, self.simplify, self.wall_gap_close,
+                   self.door_min_length, self.door_max_length, self.door_gap_close, self.door_rectangularity,
+                   self.light_min_area, self.light_max_area, self.light_core_fraction,
+                   self.light_min_fill, self.light_range)
+        if not all(type(value) in (int, float) and math.isfinite(value) for value in numeric):
             raise ValueError("Detection settings must be finite numbers.")
         if self.grid_size <= 0 or self.light_range <= 0:
             raise ValueError("Grid size and light range must be positive.")
         if self.wall_mode not in ("stone", "color", "edges"):
             raise ValueError("Unknown wall detection mode.")
-        if self.min_wall_area < 0 or self.simplify < 0:
-            raise ValueError("Wall area and simplification cannot be negative.")
+        if self.wall_geometry not in ("outline", "centerline") or self.door_match not in ("hue", "rgb"):
+            raise ValueError("Unknown wall geometry or door color method.")
+        if self.light_mode not in ("warm", "cool", "color", "brightness"):
+            raise ValueError("Unknown light detection method.")
+        if self.min_wall_area < 0 or self.simplify < 0 or self.wall_gap_close < 0:
+            raise ValueError("Wall area, simplification, and gap repair cannot be negative.")
         if not 0 < self.door_min_length <= self.door_max_length:
             raise ValueError("Door minimum length must be positive and no larger than the maximum.")
+        if self.door_gap_close < 0:
+            raise ValueError("Door seam repair cannot be negative.")
         if not 0 < self.door_rectangularity <= 1:
             raise ValueError("Door rectangularity must be between 0 and 1.")
         if not 0 < self.light_min_area <= self.light_max_area:
             raise ValueError("Light minimum area must be positive and no larger than the maximum.")
-        for color in (self.wall_color, self.door_color):
-            if len(color) != 3 or any(not 0 <= value <= 255 for value in color):
+        if not 0 <= self.light_core_fraction <= 1 or not 0 <= self.light_min_fill <= 1:
+            raise ValueError("Light fill and bright-core fractions must be between 0 and 1.")
+        for color in (self.wall_color, self.door_color, self.void_color, self.light_color):
+            if not isinstance(color, (list, tuple)) or len(color) != 3 or any(type(value) is not int or not 0 <= value <= 255 for value in color):
                 raise ValueError("Colors must contain three RGB values between 0 and 255.")
-        for value in (self.wall_tolerance, self.light_threshold, self.light_saturation):
+        if any(type(value) is not bool for value in (self.doors, self.lights, self.door_wall_support)):
+            raise ValueError("Detection toggles must be true or false.")
+        for value in (self.wall_tolerance, self.door_color_tolerance, self.light_threshold, self.light_saturation):
             if not 0 <= value <= 255:
                 raise ValueError("Color and brightness thresholds must be between 0 and 255.")
         if not 0 <= self.door_hue_tolerance <= 90:
@@ -122,23 +147,39 @@ def _wall_mask(image, hsv, settings, reference_scale):
     else:
         gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         mask = cv2.Canny(cv2.GaussianBlur(gray, (3, 3), 0), 50, 150)
-    # Seal hairline stone seams, without joining separate wall runs or doorways.
-    radius = max(1, round(reference_scale))
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2 * radius + 1,) * 2)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    # Gap repair is explicit: even a narrow opening may be an intentional path.
+    if settings.wall_gap_close > 0:
+        radius = max(1, round(reference_scale * settings.wall_gap_close))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (2 * radius + 1,) * 2)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    # True void is not a wall, even when a broad color tolerance overlaps it.
+    mask[_color_mask(image, settings.void_color, 0) != 0] = 0
     return _keep_components(mask, max(1, settings.min_wall_area * reference_scale ** 2))
 
 
-def _detect_doors(hsv, wall_mask, settings, reference_scale):
+def _detect_doors(hsv, wall_mask, settings, reference_scale, image=None):
     rgb = np.uint8([[settings.door_color]])
     hue, saturation, value = map(int, cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)[0, 0])
-    if saturation < 40:
+    if settings.door_match == "rgb":
+        if image is None:
+            image = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
+        mask = _color_mask(image, settings.door_color, settings.door_color_tolerance)
+    elif saturation < 40:
         mask = cv2.inRange(hsv, (0, 0, max(0, value - 35)), (179, 55, min(255, value + 35)))
     else:
         # Circular hue distance includes reds on both sides of OpenCV's hue seam.
         delta = cv2.absdiff(hsv[:, :, 0], hue)
+        # Derive brightness from the selected sample. A fixed V>=170 excluded
+        # the schema's purple (V=144), brown wood, and other legitimate dark doors.
         mask = ((np.minimum(delta, 180 - delta) <= settings.door_hue_tolerance)
-                & (hsv[:, :, 1] >= 90) & (hsv[:, :, 2] >= 170)).astype(np.uint8) * 255
+                & (hsv[:, :, 1] >= min(90, max(35, saturation - 70)))
+                & (hsv[:, :, 2] >= max(20, value - 85))
+                & (hsv[:, :, 2] <= min(255, value + 85))).astype(np.uint8) * 255
+    if settings.door_gap_close > 0:
+        radius = max(1, round(reference_scale * settings.door_gap_close))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (radius * 2 + 1,) * 2)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+        mask[wall_mask != 0] = 0
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     doors, footprints = [], []
     height, width = mask.shape
@@ -187,20 +228,43 @@ def _detect_doors(hsv, wall_mask, settings, reference_scale):
 
 def _detect_lights(image, hsv, door_footprints, settings, reference_scale):
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    mask = cv2.inRange(gray, settings.light_threshold, 255)
+    bright = cv2.inRange(gray, settings.light_threshold, 255)
     if settings.light_saturation:
-        mask = cv2.bitwise_and(mask, cv2.inRange(hsv[:, :, 1], settings.light_saturation, 255))
+        bright = cv2.bitwise_and(bright, cv2.inRange(hsv[:, :, 1], settings.light_saturation, 255))
+    if settings.light_mode == "warm":
+        mask = cv2.inRange(hsv, (0, 120, 180), (40, 255, 255))
+    elif settings.light_mode == "cool":
+        mask = cv2.inRange(hsv, (75, 40, 170), (115, 255, 255))
+    elif settings.light_mode == "color":
+        hue, saturation, value = map(int, cv2.cvtColor(np.uint8([[settings.light_color]]), cv2.COLOR_RGB2HSV)[0, 0])
+        delta = cv2.absdiff(hsv[:, :, 0], hue)
+        mask = ((np.minimum(delta, 180 - delta) <= 15) & (hsv[:, :, 1] >= max(20, saturation - 100))
+                & (hsv[:, :, 2] >= max(80, value - 70))).astype(np.uint8) * 255
+    else:
+        mask = bright.copy()
     # Door highlights are not torches. Exclude the whole door, not just its center.
     for footprint in door_footprints:
         cv2.fillConvexPoly(mask, np.rint(footprint).astype(np.int32), 0)
+    # One connected colored source produces one light, even when its bright core
+    # is broken into several highlights. Large lava/paint regions remain excluded.
     count, labels, stats, centers = cv2.connectedComponentsWithStats(mask, connectivity=8)
     lights = []
     for index in range(1, count):
         x, y, width, height, area = stats[index]
         if not settings.light_min_area * reference_scale ** 2 <= area <= settings.light_max_area * reference_scale ** 2:
             continue
+        if area / (width * height) < settings.light_min_fill:
+            continue
         # Only inspect this component's bounding box for its intensity/color.
         component = (labels[y:y + height, x:x + width] == index).astype(np.uint8)
+        core = cv2.bitwise_and(bright[y:y + height, x:x + width], component * 255)
+        # A source can have a small bright flame inside a larger colored glow.
+        # Keep source size separate from core size; require enough bright pixels
+        # to reject isolated glints in hay, flowers, and other colored textures.
+        minimum_core = max(1, min(3, settings.light_min_area) * reference_scale ** 2,
+                           area * settings.light_core_fraction)
+        if cv2.countNonZero(core) < minimum_core:
+            continue
         b, g, r, _ = cv2.mean(image[y:y + height, x:x + width], mask=component)
         lights.append({"position": {"x": float(centers[index][0]), "y": float(centers[index][1])},
                        "range": settings.light_range, "intensity": 1.0,
@@ -334,6 +398,22 @@ def _attach_doors(walls, doors, reference_scale):
     return attached, disconnected
 
 
+def _connect_centerlines(walls, doors, reference_scale, wall_mask):
+    from src.core.wall_geometry import attach_centerline_doors
+
+    # At room/corridor corners a door meets the middle of a continuous wall run.
+    # Remaining corners need short jamb connections supported by wall pixels.
+    connected, missing = _attach_doors(walls, doors, reference_scale)
+    walls, repaired, rejected_local = attach_centerline_doors(
+        walls, [doors[index] for index in missing], reference_scale, wall_mask)
+    repaired = iter(repaired)
+    rejected = {missing[index] for index in rejected_local}
+    for index in missing:
+        if index not in rejected:
+            connected[index] = next(repaired)
+    return walls, [door for index, door in enumerate(connected) if index not in rejected], rejected
+
+
 def detect_map(image, settings=None, progress=None, cancelled=None):
     """Detect a map without mutating the input or touching any Qt objects."""
     settings = settings or FastSettings()
@@ -345,7 +425,10 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     height, width = image.shape[:2]
     _stage("Preparing image", progress, cancelled)
     scale = min(1.0, settings.max_dimension / max(width, height)) if settings.max_dimension else 1.0
-    working = cv2.resize(image, (max(1, round(width * scale)), max(1, round(height * scale))), interpolation=cv2.INTER_AREA) if scale < 1 else image
+    exact_palette = ((settings.wall_mode == "color" and settings.wall_tolerance == 0)
+                     or (settings.door_match == "rgb" and settings.door_color_tolerance == 0))
+    interpolation = cv2.INTER_NEAREST if exact_palette else cv2.INTER_AREA
+    working = cv2.resize(image, (max(1, round(width * scale)), max(1, round(height * scale))), interpolation=interpolation) if scale < 1 else image
     work_h, work_w = working.shape[:2]
     to_original = np.array([width / work_w, height / work_h])
     reference_scale = max(work_w, work_h) / 2048
@@ -354,20 +437,17 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     _stage("Detecting walls", progress, cancelled)
     tick = time.perf_counter()
     mask = _wall_mask(working, hsv, settings, reference_scale)
-    contours, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
-    walls = []
-    for contour in contours:
-        if cv2.contourArea(contour) < max(2, settings.min_wall_area * reference_scale ** 2 * 0.1):
-            continue
-        points = cv2.approxPolyDP(contour, settings.simplify * reference_scale, True).reshape(-1, 2)
-        for start, end in zip(points, np.roll(points, -1, axis=0)):
-            if np.any(start != end):
-                walls.append((start.astype(float), end.astype(float)))
+    from src.core.wall_geometry import centerline_segments, outline_segments
+    if settings.wall_geometry == "centerline":
+        walls = centerline_segments(mask, settings.simplify * reference_scale, cancelled)
+    else:
+        walls = outline_segments(mask, settings.simplify * reference_scale,
+                                 max(2, settings.min_wall_area * reference_scale ** 2 * 0.1))
     timings["walls"] = time.perf_counter() - tick
     _stage("Detecting doors", progress, cancelled)
     tick = time.perf_counter()
     # Detect footprints even when doors are off, to exclude highlights from lights.
-    doors, footprints = _detect_doors(hsv, mask, settings, reference_scale) if settings.doors or settings.lights else ([], [])
+    doors, footprints = _detect_doors(hsv, mask, settings, reference_scale, working) if settings.doors or settings.lights else ([], [])
     timings["doors"] = time.perf_counter() - tick
     _stage("Detecting lights", progress, cancelled)
     tick = time.perf_counter()
@@ -376,7 +456,19 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     _stage("Building geometry", progress, cancelled)
     tick = time.perf_counter()
     disconnected, rejected = [], 0
-    if settings.doors:
+    if settings.doors and settings.wall_geometry == "centerline":
+        original_walls = walls
+        candidate_doors = doors
+        walls = _clip_doorways(original_walls, footprints)
+        walls, doors, rejected_indices = _connect_centerlines(walls, candidate_doors, reference_scale, mask)
+        rejected = len(rejected_indices)
+        if rejected:
+            rejected_indices = set(rejected_indices)
+            footprints = [box for index, box in enumerate(footprints) if index not in rejected_indices]
+            candidate_doors = [door for index, door in enumerate(candidate_doors) if index not in rejected_indices]
+            walls = _clip_doorways(original_walls, footprints)
+            walls, doors, _ = _connect_centerlines(walls, candidate_doors, reference_scale, mask)
+    elif settings.doors:
         original_walls = walls
         walls = _clip_doorways(original_walls, footprints, preserve_jambs=True)
         doors, disconnected = _attach_doors(walls, doors, reference_scale)
@@ -400,7 +492,7 @@ def detect_map(image, settings=None, progress=None, cancelled=None):
     timings["total"] = time.perf_counter() - started
     warnings = []
     if not walls:
-        warnings.append("No walls found. Try a wall color sample or Edge mode.")
+        warnings.append("No walls found. Check the palette or sample the actual wall color; this artwork may not follow the schema.")
     if rejected:
         warnings.append(f"Skipped {rejected} door candidate(s) without two connected wall jambs.")
     if disconnected:

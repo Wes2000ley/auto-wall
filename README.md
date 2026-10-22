@@ -4,18 +4,25 @@
 
 This fork adds a responsive **Walls / Doors / Lights** workspace, conservative doorway
 checks, original-resolution UVTT export, and a much faster native OpenCV detection path.
-On the 5792 × 4344 Demon Temple test map, the complete new pass takes about **0.46 s**.
+It imports map-style JSON palettes, defaults to gray `#A0A0A0` walls and purple
+`#702090` doors, and supports other sampled colors, shaded gates, and warm/cool lights.
+Optional **centerlines** reduce double outlines while retaining connected door jambs.
+On the 5792 × 4344 Demon Temple test map, the current complete pass takes about **0.35 s**.
 The existing edge detector is **46.7× faster** at full resolution with identical contour
 point sets. These are separate measurements; see [the benchmark notes](docs/FAST_SETUP.md#measured-performance).
 
 ```shell
 python -m pip install -r requirements-fast.txt
-python fast_auto_wall.py "path/to/map.png" --resolution 0
+python fast_auto_wall.py "path/to/map.png" --schema "profiles/foundry-v2.json"
 ```
 
 Windows users can also drop a map onto `run-fast.bat`. Use **Auto setup** in the
 existing editor to generate walls, doors, and lights, then continue editing them.
 See [Fast Setup instructions and limitations](docs/FAST_SETUP.md).
+For centerlines, install `requirements-centerline.txt` and choose **Walls → Geometry →
+Centerlines**. Use `--preset demon` for the earlier gray/orange-door artwork.
+The [accuracy and ML assessment](docs/ACCURACY_AND_ML.md) explains the measured
+cross-style limits and the training work needed for semantic detection.
 The upstream downloads linked below do not include these fork changes.
 
 ---

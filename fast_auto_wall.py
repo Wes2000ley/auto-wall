@@ -7,7 +7,8 @@ from pathlib import Path
 import sys
 import time
 
-from src.core.fast_pipeline import FastSettings, detect_map, export_image_bytes, load_map, to_uvtt, write_uvtt
+from src.core.fast_pipeline import detect_map, export_image_bytes, load_map, to_uvtt, write_uvtt
+from src.core.detection_profiles import PRESETS, load_settings, preset_settings, settings_from_data
 
 
 def main(argv=None):
@@ -16,6 +17,9 @@ def main(argv=None):
     parser.add_argument("--export", type=Path, help="Write a .dd2vtt or .uvtt file and exit")
     parser.add_argument("--preview", type=Path, help="Save an uncompressed BMP overlay (headless only)")
     parser.add_argument("--settings", type=Path, help="JSON object containing FastSettings overrides")
+    parser.add_argument("--preset", choices=PRESETS, default="foundry", help="Built-in palette (default: foundry)")
+    parser.add_argument("--schema", type=Path, help="Map-style JSON containing wall, door, and void colors")
+    parser.add_argument("--geometry", choices=("outline", "centerline"), help="Wall representation")
     parser.add_argument("--resolution", type=int, help="Longest detection edge; 0 uses original pixels")
     parser.add_argument("--grid-size", type=float, help="Original-image pixels per grid square")
     parser.add_argument("--benchmark", type=int, metavar="RUNS", help="Run repeated headless detections")
@@ -31,13 +35,19 @@ def main(argv=None):
     if args.benchmark is not None and args.benchmark < 1:
         parser.error("Benchmark runs must be positive.")
     try:
-        values = json.loads(args.settings.read_text(encoding="utf-8")) if args.settings else {}
+        settings = preset_settings(args.preset)
+        if args.schema:
+            settings = load_settings(args.schema, settings)
+        if args.settings:
+            settings = load_settings(args.settings, settings)
+        values = {}
         if args.resolution is not None:
             values["max_dimension"] = args.resolution
         if args.grid_size is not None:
             values["grid_size"] = args.grid_size
-        settings = FastSettings(**values)
-        settings.validate()
+        if args.geometry:
+            values["wall_geometry"] = args.geometry
+        settings = settings_from_data(values, settings)
         if headless:
             return process(args, settings)
         from PyQt6.QtGui import QColor, QPalette
