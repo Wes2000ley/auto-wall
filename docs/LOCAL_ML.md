@@ -35,6 +35,24 @@ and light range still apply. **Use palette** restores the ordinary detector.
 The three confidence controls select accepted pixels; higher values usually
 accept fewer pixels. They are not calibrated accuracy percentages.
 
+**Recover shaded door jambs** is an optional ML control for missing wall faces
+beside otherwise plausible doors. It accepts lower-confidence wall predictions
+only when they connect to confident walls and lie near the two ends of a
+shape-validated door. It never turns background, door, or transparent-barrier
+classes into walls. Door size, shape, and connection checks still apply. Review
+the added wall edges; this improves the two evaluated camps but does not solve
+unfamiliar door styles or prove accuracy on other layouts.
+
+The option is off in the application defaults. To select it from the CLI:
+
+```shell
+python fast_auto_wall.py "map.png" --settings profiles/ml-jamb-recovery.json --model models/battlemap-dino-v1.safetensors --ml-device auto
+```
+
+The profile uses a 1536 px detection edge, 0.9 class confidence, and the small-light
+area setting. Unchecking the ML control restores strict wall confidence. See
+[the experiment notes](ML_EXPERIMENTS.md) for paired geometry checks and limitations.
+
 `auto` selects CUDA when this Python environment supports it, otherwise CPU.
 Explicit `cuda` reports an error when unavailable. CLI reports include the actual
 `detection_backend`. Selecting a model does not install dependencies or contact a

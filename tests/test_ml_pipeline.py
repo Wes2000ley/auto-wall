@@ -92,7 +92,7 @@ def test_learned_rectangle_next_to_parallel_wall_does_not_protect_noise(monkeypa
 
 @pytest.mark.parametrize("change", [dict(model_path=42), dict(ml_device="magic"),
                                     dict(ml_wall_confidence=.49), dict(ml_door_confidence=float("nan")),
-                                    dict(ml_light_confidence=1.1)])
+                                    dict(ml_light_confidence=1.1), dict(ml_recover_jambs=1)])
 def test_invalid_ml_settings(change):
     with pytest.raises(ValueError):
         replace(FastSettings(), **change).validate()
@@ -102,7 +102,8 @@ def test_model_controls_roundtrip_and_clear(qt_app, monkeypatch):
     from PyQt6.QtWidgets import QFileDialog
     from src.gui.fast_setup import FastSetupDialog
     settings = replace(FastSettings(), model_path="test.safetensors", ml_device="cuda",
-                       ml_wall_confidence=.94, ml_light_confidence=.95, ml_door_confidence=.96)
+                       ml_wall_confidence=.94, ml_light_confidence=.95, ml_door_confidence=.96,
+                       ml_recover_jambs=True)
     dialog = FastSetupDialog()
     dialog.apply_settings(settings)
     assert dialog.settings() == settings
@@ -117,3 +118,42 @@ def test_model_controls_roundtrip_and_clear(qt_app, monkeypatch):
     dialog.view.show_layer("transparent", False)
     assert not dialog.view.layers["transparent"][0].isVisible()
     dialog.close()
+
+
+def test_jamb_recovery_preserves_openings_and_requires_confident_wall_anchors():
+    image = np.zeros((512, 512, 3), np.uint8)
+    labels = np.zeros(image.shape[:2], np.uint8)
+    confidence = np.full(labels.shape, .99, np.float32)
+    cv2.rectangle(labels, (40, 100), (98, 116), 1, -1)
+    cv2.rectangle(labels, (132, 100), (190, 116), 1, -1)
+    cv2.rectangle(labels, (100, 102), (130, 114), 2, -1)
+    confidence[100:117, 92:99] = .6
+    confidence[100:117, 132:139] = .6
+    labels[108, 101] = 1  # unanchored weak speck within the doorway
+    confidence[108, 101] = .6
+    labels[108, 99] = 4  # never turn a transparent class into an opaque jamb
+    labels[180:190, 50:180] = 1  # weak wall elsewhere must not grow
+    confidence[180:190, 50:180] = .6
+    original_labels, original_confidence = labels.copy(), confidence.copy()
+    settings = replace(FastSettings(), lights=False)
+    strict = detect_map(image, settings, prediction=(labels, confidence))
+    assert not strict.doors
+    settings = replace(settings, ml_recover_jambs=True)
+    masks = fast_pipeline._prediction_masks((labels, confidence), labels.shape, settings)
+    assert masks[0][108, 96] and masks[0][108, 135]
+    assert not masks[0][108, 99] and not masks[0][108, 101]
+    assert not masks[0][180:190].any()
+    recovered = detect_map(image, settings, prediction=(labels, confidence))
+    assert len(recovered.doors) == 1
+    from benchmarks.check_geometry import ray_blocked
+    assert not ray_blocked((115, 80), (115, 135), recovered.walls)
+    assert ray_blocked((115, 80), (115, 135), recovered.walls + recovered.doors)
+    np.testing.assert_array_equal(labels, original_labels)
+    np.testing.assert_array_equal(confidence, original_confidence)
+    # Without either confident anchor, a plausible rectangle is insufficient.
+    confidence[100:117, 40:99] = .6
+    unsupported = detect_map(image, settings, prediction=(labels, confidence))
+    assert not unsupported.doors
+    no_doors = replace(settings, doors=False)
+    masks = fast_pipeline._prediction_masks((labels, original_confidence), labels.shape, no_doors)
+    assert not masks[0][108, 96]

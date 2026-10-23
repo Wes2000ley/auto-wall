@@ -111,6 +111,26 @@ def test_clipping_preserves_jambs_and_straight_portal():
     np.testing.assert_allclose(doors, [[[0, 0], [30, 0]]])
 
 
+@pytest.mark.parametrize("degrees", [0, 25, 45, 90])
+def test_clipping_preserves_sloped_jamb_intersections_without_blocking_opening(degrees):
+    theta = np.deg2rad(degrees)
+    rotation = np.array([[np.cos(theta), -np.sin(theta)], [np.sin(theta), np.cos(theta)]])
+    jambs = np.array([[[-2, -2], [1, 1]], [[29, -2], [32, 1]]], dtype=float)
+    # Remove both a central obstruction and a collinear fragment at the end.
+    walls = np.concatenate((jambs, [[[15, -2], [15, 2]], [[0, 0], [2, 0]]])) @ rotation.T
+    footprint = np.array([[-3, -6], [33, -6], [33, 6], [-3, 6]]) @ rotation.T
+    candidate = np.array([[-1, 0], [31, 0]]) @ rotation.T
+    clipped = _clip_doorways(list(walls), [footprint], preserve_jambs=True)
+    np.testing.assert_allclose(clipped, jambs @ rotation.T, atol=1e-6)
+    doors, disconnected = _attach_doors(clipped, [candidate], 1)
+    assert not disconnected
+    np.testing.assert_allclose(doors, np.array([[[0, 0], [31, 0]]]) @ rotation.T, atol=1e-6)
+    from benchmarks.check_geometry import ray_blocked
+    ray = np.array([[15, -10], [15, 10]]) @ rotation.T
+    assert not ray_blocked(*ray, clipped)
+    assert ray_blocked(*ray, clipped + doors)
+
+
 def test_disabling_doors_keeps_highlights_out_of_lights(dungeon):
     settings = FastSettings(doors=False, light_threshold=160, light_max_area=3000)
     result = detect_map(dungeon, settings)

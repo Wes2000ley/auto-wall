@@ -354,6 +354,10 @@ class FastSetupDialog(QDialog):
         ml.addRow("Wall confidence", self.ml_wall)
         ml.addRow("Door confidence", self.ml_door)
         ml.addRow("Light confidence", self.ml_light)
+        self.ml_recover_jambs = QCheckBox("Recover shaded door jambs")
+        self.ml_recover_jambs.setToolTip("Use connected, lower-confidence wall predictions only beside supported doors. Review the result.")
+        self.ml_recover_jambs.toggled.connect(self.settings_changed)
+        ml.addRow(self.ml_recover_jambs)
         ml_note = QLabel("Model selection replaces color detection. Geometry, size limits, and door-jamb checks still apply. Higher confidence accepts fewer candidates.")
         ml_note.setWordWrap(True)
         ml.addRow(ml_note)
@@ -534,7 +538,7 @@ class FastSetupDialog(QDialog):
                             light_saturation=self.saturation.value(), light_range=self.light_range.value(),
                             model_path=self.model_path.text(), ml_device=self.ml_device.currentData(),
                             ml_wall_confidence=self.ml_wall.value(), ml_door_confidence=self.ml_door.value(),
-                            ml_light_confidence=self.ml_light.value())
+                            ml_light_confidence=self.ml_light.value(), ml_recover_jambs=self.ml_recover_jambs.isChecked())
 
     def apply_settings(self, settings):
         """Use the same settings in GUI and headless runs."""
@@ -576,6 +580,7 @@ class FastSetupDialog(QDialog):
         self.enable_doors.setChecked(settings.doors)
         self.enable_lights.setChecked(settings.lights)
         self.support.setChecked(settings.door_wall_support)
+        self.ml_recover_jambs.setChecked(settings.ml_recover_jambs)
         self._update_swatches()
         self.timer.stop()
         match = next((name for name in PRESETS if preset_settings(name) == settings), None)

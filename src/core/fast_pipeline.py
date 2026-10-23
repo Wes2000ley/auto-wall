@@ -56,6 +56,7 @@ class FastSettings:
     ml_wall_confidence: float = 0.9
     ml_door_confidence: float = 0.9
     ml_light_confidence: float = 0.9
+    ml_recover_jambs: bool = False  # opt-in connected wall support beside valid doors
 
     def validate(self):
         integers = (self.max_dimension, self.wall_tolerance, self.door_color_tolerance,
@@ -99,7 +100,7 @@ class FastSettings:
         for color in (self.wall_color, self.door_color, self.void_color, self.light_color):
             if not isinstance(color, (list, tuple)) or len(color) != 3 or any(type(value) is not int or not 0 <= value <= 255 for value in color):
                 raise ValueError("Colors must contain three RGB values between 0 and 255.")
-        if any(type(value) is not bool for value in (self.doors, self.lights, self.door_wall_support)):
+        if any(type(value) is not bool for value in (self.doors, self.lights, self.door_wall_support, self.ml_recover_jambs)):
             raise ValueError("Detection toggles must be true or false.")
         for value in (self.wall_tolerance, self.door_color_tolerance, self.light_threshold, self.light_saturation):
             if not 0 <= value <= 255:
@@ -312,18 +313,27 @@ def _clip_doorways(walls, footprints, preserve_jambs=False):
         outside = (np.any(segments.max(axis=1) < low, axis=1)
                    | np.any(segments.min(axis=1) > high, axis=1))
         if preserve_jambs:
-            # Keep short caps across the wall thickness at either end of a
-            # doorway. Erasing these jambs would force a slanted or leaking door.
+            candidates = np.flatnonzero(~outside)
+            if not len(candidates):
+                continue
+            # Keep caps across the wall thickness at either end of a doorway.
+            # Chamfered or curved jambs can meet the door axis obliquely; cutting
+            # that intersection would disconnect an otherwise valid portal.
             edges = (polygon[1] - polygon[0], polygon[3] - polygon[0])
             long_edge = max(edges, key=np.linalg.norm)
             length = np.linalg.norm(long_edge)
             axis = long_edge / length
-            projections = (segments - polygon.mean(axis=0)) @ axis
+            local_segments = segments[candidates]
+            offset = local_segments - polygon.mean(axis=0)
+            projections = offset @ axis
             near_end = ((projections.min(axis=1) > length * 0.35)
                         | (projections.max(axis=1) < -length * 0.35))
-            vectors = segments[:, 1] - segments[:, 0]
+            vectors = local_segments[:, 1] - local_segments[:, 0]
             perpendicular = abs(vectors @ axis) <= 0.35 * np.linalg.norm(vectors, axis=1)
-            outside |= near_end & perpendicular
+            side = offset @ np.array([-axis[1], axis[0]])
+            crosses_axis = ((side.min(axis=1) <= 1e-6) & (side.max(axis=1) >= -1e-6)
+                            & (np.ptp(side, axis=1) > 1e-6))
+            outside[candidates] |= near_end & (perpendicular | crosses_axis)
         clipped = []
         for start, end in segments[~outside]:
             # A rectangle's two orthogonal axes give four slab inequalities.
@@ -459,8 +469,36 @@ def _prediction_masks(prediction, shape, settings):
             or not np.isfinite(confidence).all() or confidence.min() < 0 or confidence.max() > 1):
         raise ValueError("Predictions must match the working image: uint8 classes 0–4 and finite probabilities 0–1.")
     thresholds = (settings.ml_wall_confidence, settings.ml_door_confidence, settings.ml_light_confidence, .5)
-    return [((labels == cls) & (confidence >= threshold)).astype(np.uint8) * 255
-            for cls, threshold in enumerate(thresholds, 1)]
+    masks = [((labels == cls) & (confidence >= threshold)).astype(np.uint8) * 255
+             for cls, threshold in enumerate(thresholds, 1)]
+    if settings.ml_recover_jambs and settings.doors and settings.ml_wall_confidence > .5:
+        weak = ((labels == 1) & (confidence >= .5)).astype(np.uint8) * 255
+        masks[0] = _recover_door_jambs(masks[0], masks[1], weak, settings, max(shape) / 2048)
+    return masks
+
+
+def _recover_door_jambs(wall_mask, door_mask, weak_wall_mask, settings, reference_scale):
+    """Recover predicted wall pixels at jambs, anchored to confident components.
+
+    A high pixel cutoff can erase shaded inner jamb faces. Only connected wall
+    predictions and two-sided, shape-validated door endpoints can admit those
+    pixels. Background, door and transparent classes never become walls here.
+    """
+    count, regions = cv2.connectedComponents(weak_wall_mask, connectivity=8)
+    anchored = np.zeros(count, np.uint8)
+    anchored[np.unique(regions[wall_mask != 0])] = 255
+    anchored[0] = 0
+    supported = anchored[regions]
+    doors, footprints = _detect_doors(None, supported, replace(settings, door_wall_support=True),
+                                      reference_scale, candidate_mask=door_mask)
+    nearby = np.zeros_like(wall_mask)
+    for door, footprint in zip(doors, footprints):
+        thickness = max(0, min(cv2.minAreaRect(footprint)[1]) - 4 * reference_scale)
+        reach = max(3 * reference_scale, thickness * .7)
+        radius = max(1, round(reach + 2 * reference_scale))
+        for endpoint in door:
+            cv2.circle(nearby, tuple(np.rint(endpoint).astype(int)), radius, 255, -1)
+    return wall_mask | (supported & nearby)
 
 
 def _keep_learned_walls(wall_mask, door_mask, hsv, settings, reference_scale):
@@ -592,6 +630,8 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
     warnings = []
     if learned is not None:
         warnings.append("Experimental ML: review predictions. Confidence scores are not accuracy guarantees.")
+        if settings.ml_recover_jambs and settings.doors:
+            warnings.append("Shaded jamb recovery is enabled; review the wall edges beside doors.")
     if transparent:
         warnings.append("See-through barriers are shown for review and omitted from UVTT vision-blocking walls.")
     if learned is not None and settings.doors and np.any(learned[1]) and not doors:

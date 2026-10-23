@@ -1,0 +1,12 @@
+{
+  "format": "auto-wall-settings",
+  "version": 1,
+  "settings": {
+    "max_dimension": 1536,
+    "light_min_area": 3,
+    "ml_wall_confidence": 0.9,
+    "ml_door_confidence": 0.9,
+    "ml_light_confidence": 0.9,
+    "ml_recover_jambs": true
+  }
+}

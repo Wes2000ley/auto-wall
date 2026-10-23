@@ -63,7 +63,8 @@ against their results.
 
 ## Geometry checks and limits
 
-Checks below use confidence 0.9 and the small-light profile. Door matches require
+The original checks below use confidence 0.9 and the small-light profile, before
+the shaded-jamb option and sloped-jamb clipping fix. Door matches require
 both endpoints to fall within the fixed annotation tolerance. A detected door
 with the wrong span counts as a failed match.
 
@@ -86,9 +87,31 @@ reliably recognized. Boundary continuity, excessive vector segments, open door
 leaves, and light-instance grouping all need further work. Higher confidence
 does not guarantee that an accepted object is real.
 
+### Subsequent geometry improvements
+
+The checkpoint weights are unchanged. The optional **Recover shaded door jambs**
+control now restores connected wall predictions near validated door ends. With
+`profiles/ml-jamb-recovery.json`, all four annotated gates match in each camp,
+including the stone camp's north portal. The paired strict results remain 1/4
+wooden gates and 3/4 stone gate spans. Lights remain 7/9 matched with one extra
+fragment in the wooden camp and 11/13 matched without extras in the stone camp.
+
+The new evaluation also corrects one faulty wooden-pen probe: its original start
+lay inside the solid palisade behind the fence. With the start moved to the visible
+gap, strict detection passes 13/16 rays and recovery passes 16/16; the stone camp
+passes 20/20 in both modes. Original annotations and reports are retained. These
+are still sparse agent-reviewed checks, not full-map or independent ground truth.
+
+Fixing door clipping preserves sloped jamb intersections. This restores three
+previously rejected, visually confirmed spaceship doors and prevents four real
+doors from disappearing when recovery changes their jamb outlines. The source
+spaceship now exports 62 doors with or without recovery. This count is not a
+complete door-accuracy measurement. See [experiment notes](../docs/ML_EXPERIMENTS.md)
+for current paired timings, failed alternatives, and remaining errors.
+
 ## Measured runtime
 
-Windows, RTX 3080, PyTorch 2.11.0+cu128, four CPU threads; five warm runs per map,
+Original benchmark: Windows, RTX 3080, PyTorch 2.11.0+cu128, four CPU threads; five warm runs per map,
 without concurrent model training. These times cover `detect_map`, including
 resizing, inference, and geometry, but exclude image decoding and UVTT writing.
 
