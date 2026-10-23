@@ -12,13 +12,26 @@ from torch.nn import functional as F
 from src.ml.network import BattlemapNet
 
 
+def sample_patch_context(features, target_shape, image_shape):
+    """Align 14-pixel DINO patches with cell centers before the padded edge."""
+    height, width = target_shape
+    gy = (torch.arange(height, device=features.device, dtype=torch.float32) + .5) / height
+    gx = (torch.arange(width, device=features.device, dtype=torch.float32) + .5) / width
+    yy, xx = torch.meshgrid(gy * image_shape[0] / (features.shape[2] * 14) * 2 - 1,
+                           gx * image_shape[1] / (features.shape[3] * 14) * 2 - 1, indexing="ij")
+    grid = torch.stack((xx, yy), -1)[None].expand(features.shape[0], -1, -1, -1)
+    return F.grid_sample(features, grid, mode="bilinear", padding_mode="border", align_corners=False)
+
+
 class DinoBattlemap(nn.Module):
     architecture = "dino"
     width = 16
     context_dilation = 4
 
-    def __init__(self, light_centers=False):
+    def __init__(self, light_centers=False, semantic_light_context=False):
         super().__init__()
+        if semantic_light_context and not light_centers:
+            raise ValueError("Semantic light context requires a light-center head.")
         try:
             from transformers import Dinov2Config, Dinov2Model
         except ImportError as error:
@@ -33,7 +46,7 @@ class DinoBattlemap(nn.Module):
         self.light_head = None
         if light_centers:
             from src.ml.light_centers import LightCenterHead
-            self.light_head = LightCenterHead()
+            self.light_head = LightCenterHead(semantic_context=semantic_light_context)
         self.register_buffer("mean", torch.tensor([.485, .456, .406])[None, :, None, None])
         self.register_buffer("std", torch.tensor([.229, .224, .225])[None, :, None, None])
 
@@ -53,8 +66,8 @@ class DinoBattlemap(nn.Module):
     def forward(self, image):
         return self.local.head(self.forward_features(image))
 
-    def forward_features(self, image):
-        """Full-resolution decoder features shared by segmentation and point heads."""
+    def forward_features(self, image, include_context=False):
+        """Shared decoder features, optionally with the same pass's DINO patches."""
         local = self.local
         a = local.enc1(image)
         b = local.enc2(F.max_pool2d(a, 2))
@@ -67,17 +80,12 @@ class DinoBattlemap(nn.Module):
         train_context = torch.is_grad_enabled() and self.training and self.backbone_training_layers > 0
         with torch.set_grad_enabled(train_context):
             tokens = self.backbone((padded - self.mean) / self.std).last_hidden_state[:, 1:]
-            features = tokens.transpose(1, 2).reshape(image.shape[0], 384, padded.shape[2] // 14, padded.shape[3] // 14)
-        features = self.project(features)
+            context = tokens.transpose(1, 2).reshape(image.shape[0], 384, padded.shape[2] // 14, padded.shape[3] // 14)
+        features = self.project(context)
         # Sample context at decoder cell centers, preserving padding alignment.
         # Expanding all 128 channels to full resolution first wastes GPU memory.
-        gy = (torch.arange(x.shape[2], device=x.device, dtype=torch.float32) + .5) / x.shape[2]
-        gx = (torch.arange(x.shape[3], device=x.device, dtype=torch.float32) + .5) / x.shape[3]
-        yy, xx = torch.meshgrid(gy * image.shape[2] / padded.shape[2] * 2 - 1,
-                               gx * image.shape[3] / padded.shape[3] * 2 - 1, indexing="ij")
-        grid = torch.stack((xx, yy), -1)[None].expand(image.shape[0], -1, -1, -1)
-        x = x + F.grid_sample(features, grid, mode="bilinear", padding_mode="border", align_corners=False)
+        x = x + sample_patch_context(features, x.shape[-2:], image.shape[-2:])
         for skip, decoder in ((c, local.dec3), (b, local.dec2), (a, local.dec1)):
             x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
             x = decoder(torch.cat((x, skip), 1))
-        return x
+        return (x, context) if include_context else x

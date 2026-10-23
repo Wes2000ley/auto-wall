@@ -1,12 +1,13 @@
 # Local battlemap models
 
-Three optional checkpoints are available. Palette detection remains the default.
+Four optional checkpoints are available. Palette detection remains the default.
 
 | Model | File size | Role |
 | --- | ---: | --- |
 | `battlemap-v1.safetensors` | 1.97 MB | Fast compact baseline, trained from scratch |
 | `battlemap-dino-v1.safetensors` | 90.43 MB | Pretrained context with a local decoder; broader style coverage but unresolved structural errors |
 | `battlemap-dino-lights-v1.safetensors` | 90.52 MB | Identical DINO walls/doors plus an independently trained light-center head; optional comparison |
+| `battlemap-dino-lights-v2.safetensors` | 90.58 MB | Direct DINO features for light centers; stronger cool-emitter results with remaining flower/ink false positives |
 
 Read the [DINO model card](DINO_MODEL_CARD.md) for its exact training history,
 timings, geometry checks, licensing, and known failures. It uses the existing
@@ -14,6 +15,9 @@ model picker and requires the optional `requirements-ml-dino.txt` dependencies.
 The [light-center model card](DINO_LIGHTS_MODEL_CARD.md) records improvements to
 campfires and small sources, along with flower/star false positives and missed
 cool emitters. It shares the base model's backbone license and attribution.
+The [semantic v2 research notes](../docs/SEMANTIC_LIGHT_RESEARCH.md) describe the
+new head, its selected checkpoint, failed refinements, and practical limits.
+V2 is a separate comparison option; it does not replace v1 or change defaults.
 
 ## Battlemap v1: experimental baseline
 

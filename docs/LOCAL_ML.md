@@ -52,6 +52,11 @@ This model improves the two checked camps but also mistakes some flowers and
 decorative stars for lights and misses cool machinery emitters. It remains an
 optional comparison. See the [light-center model card](../models/DINO_LIGHTS_MODEL_CARD.md).
 
+`models/battlemap-dino-lights-v2.safetensors` is a separate research option using
+direct DINO features in its light head. It improves the checked cool emitters,
+but retains flower/ink false positives. Use the same profile and score control;
+see [the semantic model notes](SEMANTIC_LIGHT_RESEARCH.md) before choosing it.
+
 **Recover shaded door jambs** is an optional ML control for missing wall faces
 beside otherwise plausible doors. It accepts lower-confidence wall predictions
 only when they connect to confident walls and lie near the two ends of a
@@ -284,6 +289,29 @@ Each new output directory receives raw, uncompressed `best.safetensors` and
 Both model files load directly in Fast Setup. Supplying a point model as
 `--init-model` continues from its light-head weights with a fresh optimizer and
 schedule. CPU works as well as CUDA; no cloud service or download is required.
+
+Add `--semantic-context` to train a light head that also reads the frozen
+DINO patch features directly. A small 384-to-16 channel projection supplements
+the existing decoder features and RGB input. This uses the same backbone pass
+as segmentation; it does not run another image encoder. The head has 24,185
+parameters, compared with 14,569 for the original head. Wall, door, and
+transparent-barrier tensors remain frozen and checked exactly.
+
+When upgrading an existing v1 light head, its learned weights are copied and
+the new input channels start with zero influence. Supplying a semantic checkpoint
+continues training that architecture even without repeating the flag. Semantic
+checkpoints use `auto-wall-dino-lights-v2`; this application accepts both versions,
+while earlier application versions cannot load v2. The original checkpoint and
+default model choice remain available.
+
+```shell
+python scripts/train_light_centers.py dataset/lights.json training/semantic-lights-1 --init-model models/battlemap-dino-lights-v1.safetensors --semantic-context --loss-normalization sample --synthetic-per-batch 2 --lr 0.0002 --steps 4800 --device cuda
+```
+
+The semantic experiments improve recognition of cool emitters on the checked
+maps, but still require review for non-emissive details. See the
+[semantic light research notes](SEMANTIC_LIGHT_RESEARCH.md) for selection,
+failed refinements, performance, and evaluation limits.
 
 ### Generate procedural fixture and lookalike examples
 

@@ -18,6 +18,7 @@ from src.ml.network import BattlemapNet, CLASSES
 FORMAT = "auto-wall-unet-v1"
 DINO_FORMAT = "auto-wall-dino-v1"
 DINO_LIGHTS_FORMAT = "auto-wall-dino-lights-v1"
+DINO_SEMANTIC_LIGHTS_FORMAT = "auto-wall-dino-lights-v2"
 
 
 def save_model(path, model, details):
@@ -26,7 +27,7 @@ def save_model(path, model, details):
     path.parent.mkdir(parents=True, exist_ok=True)
     model_format = DINO_FORMAT if model.architecture == "dino" else FORMAT
     if model.architecture == "dino" and model.light_head is not None:
-        model_format = DINO_LIGHTS_FORMAT
+        model_format = DINO_SEMANTIC_LIGHTS_FORMAT if model.light_head.semantic_context else DINO_LIGHTS_FORMAT
     metadata = {"format": model_format, "classes": json.dumps(CLASSES),
                 "width": str(model.width), "context_dilation": str(model.context_dilation),
                 "details": json.dumps(details, allow_nan=False)}
@@ -62,7 +63,8 @@ def _cached_model(path, modified, size, device):
     with safe_open(path, framework="pt", device="cpu") as source:
         metadata = source.metadata() or {}
         model_format = metadata.get("format")
-        if model_format not in (FORMAT, DINO_FORMAT, DINO_LIGHTS_FORMAT) or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
+        if (model_format not in (FORMAT, DINO_FORMAT, DINO_LIGHTS_FORMAT, DINO_SEMANTIC_LIGHTS_FORMAT)
+                or json.loads(metadata.get("classes", "[]")) != list(CLASSES)):
             raise ValueError("This is not a compatible Auto-Wall segmentation model.")
         width = int(metadata.get("width", "0"))
         if width not in (8, 16, 24, 32):
@@ -70,11 +72,12 @@ def _cached_model(path, modified, size, device):
         dilation = int(metadata.get("context_dilation", "1"))
         if dilation not in (1, 2, 4):
             raise ValueError("Unsupported model context dilation.")
-        if model_format in (DINO_FORMAT, DINO_LIGHTS_FORMAT):
+        if model_format in (DINO_FORMAT, DINO_LIGHTS_FORMAT, DINO_SEMANTIC_LIGHTS_FORMAT):
             if width != 16 or dilation != 4:
                 raise ValueError("Unsupported DINO decoder configuration.")
             from src.ml.dino import DinoBattlemap
-            model = DinoBattlemap(light_centers=model_format == DINO_LIGHTS_FORMAT)
+            model = DinoBattlemap(light_centers=model_format != DINO_FORMAT,
+                                 semantic_light_context=model_format == DINO_SEMANTIC_LIGHTS_FORMAT)
         else:
             model = BattlemapNet(width, dilation)
         state = {key: source.get_tensor(key) for key in source.keys()}
@@ -123,9 +126,9 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384, include_
                     if light_head is None:
                         logits = model(tensor)
                     else:
-                        features = model.forward_features(tensor)
+                        features, context = model.forward_features(tensor, include_context=True)
                         logits = model.local.head(features)
-                        light_scores = light_head(features, tensor).float().sigmoid()
+                        light_scores = light_head(features, tensor, context).float().sigmoid()
                         light_scores = F.interpolate(light_scores, size=tensor.shape[-2:],
                                                      mode="bilinear", align_corners=False)[0, 0]
                 probabilities, labels = logits[0].float().softmax(0).max(0)

@@ -93,7 +93,9 @@ def train(args):
     device = next(model.parameters()).device
     model.requires_grad_(False).eval()
     if model.light_head is None:
-        model.light_head = LightCenterHead().to(device)
+        model.light_head = LightCenterHead(semantic_context=args.semantic_context).to(device)
+    elif args.semantic_context and not model.light_head.semantic_context:
+        model.light_head = model.light_head.with_semantic_context()
     model.light_head.requires_grad_(True)
     before = segmentation_hashes(model)
     optimizer = torch.optim.AdamW(model.light_head.parameters(), lr=args.lr, weight_decay=.0001)
@@ -109,6 +111,7 @@ def train(args):
                "steps": args.steps, "batch_size": args.batch_size, "real_crops": counts[0],
                "synthetic_crops": counts[1], "crop_size": args.crop_size, "lr": args.lr,
                "threshold": args.threshold, "loss_normalization": args.loss_normalization,
+               "semantic_context": model.light_head.semantic_context,
                "torch": torch.__version__, "device": str(device),
                "source_sha256": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources},
                "samples": [{key: s[key] for key in ("id", "group", "split", "synthetic", "pixels_sha256",
@@ -122,9 +125,9 @@ def train(args):
             image, target, valid = [torch.from_numpy(array).to(device) for array in arrays]
             optimizer.zero_grad(set_to_none=True)
             with torch.no_grad(), torch.autocast(device.type, enabled=device.type == "cuda"):
-                features = model.forward_features(image)
+                features, context = model.forward_features(image, include_context=True)
             with torch.autocast(device.type, enabled=device.type == "cuda"):
-                loss = center_focal_loss(model.light_head(features, image), target, valid, args.loss_normalization)
+                loss = center_focal_loss(model.light_head(features, image, context), target, valid, args.loss_normalization)
             if not torch.isfinite(loss):
                 raise RuntimeError(f"Nonfinite light loss at step {step}.")
             scaler.scale(loss).backward()
@@ -171,6 +174,8 @@ def main():
     parser.add_argument("--threshold", type=float, default=.35)
     parser.add_argument("--loss-normalization", choices=("batch", "sample"), default="batch",
                         help="Normalize by all centers in a batch, or weight each crop equally")
+    parser.add_argument("--semantic-context", action="store_true",
+                        help="Give the light head direct access to shared frozen DINO features")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     train(parser.parse_args())
 

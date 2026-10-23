@@ -1,0 +1,2621 @@
+{
+  "purpose": "Direct frozen DINO context for physical-light detection; research candidates, no automatic model switch.",
+  "architecture": {
+    "light_head_parameters": 24185,
+    "old_light_head_parameters": 14569,
+    "context_projection_channels": [
+      384,
+      16
+    ],
+    "extra_backbone_passes": 0,
+    "format": "auto-wall-dino-lights-v2"
+  },
+  "dataset": {
+    "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+    "real_train": [
+      "temple",
+      "wood",
+      "dyson-13",
+      "ship-lights"
+    ],
+    "real_validation": [
+      "stone",
+      "dyson-14"
+    ],
+    "real_test": [
+      "new-camp",
+      "astral",
+      "dyson-15"
+    ],
+    "procedural_train": 128,
+    "procedural_test": 8,
+    "negative_crop_anchors": 533,
+    "ship_reviewed_fraction": 0.11177953084309895,
+    "unchanged_from_trial_17": true
+  },
+  "selection": "Highest validation F0.5 at 0.35; first checkpoint wins a tie. Test layouts never select a checkpoint.",
+  "published_checkpoint": {
+    "file": "battlemap-dino-lights-v2.safetensors",
+    "bytes": 90583912,
+    "sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+    "trial": 18,
+    "step": 2250,
+    "optional_comparison": true,
+    "application_default_changed": false,
+    "v1_preserved": true
+  },
+  "trials": [
+    {
+      "method": "frozen segmentation with physical light centers",
+      "seed": 73113,
+      "base_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+      "steps": 4800,
+      "batch_size": 4,
+      "real_crops": 2,
+      "synthetic_crops": 2,
+      "crop_size": 384,
+      "lr": 0.0002,
+      "threshold": 0.35,
+      "loss_normalization": "sample",
+      "semantic_context": true,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "9e06ea6c57fc7d2e812a8f26075d8d31ee1a472abd53340282e4babef0e43537",
+        "src\\ml\\light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0",
+        "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+        "src\\ml\\dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+        "src\\ml\\model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 18,
+      "name": "semantic-light-context",
+      "best_step": 2250,
+      "best_validation": {
+        "score": 0.9836065573770492,
+        "matched": 12,
+        "false": 0,
+        "missed": 1
+      },
+      "maximum_validation_false": 2,
+      "completed": {
+        "seconds": 297.8984799000318,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 608052224
+      },
+      "source_snapshot_verified": true,
+      "checkpoint_sha256": {
+        "best": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+        "last": "d72eb2e02f4fdb5c4c6157bf9e9eb332d42bb74df63dc5bb8e389cf7d48510c7"
+      }
+    },
+    {
+      "method": "frozen segmentation with physical light centers",
+      "seed": 73113,
+      "base_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+      "steps": 2400,
+      "batch_size": 4,
+      "real_crops": 2,
+      "synthetic_crops": 2,
+      "crop_size": 384,
+      "lr": 5e-05,
+      "threshold": 0.35,
+      "loss_normalization": "sample",
+      "semantic_context": true,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "9e06ea6c57fc7d2e812a8f26075d8d31ee1a472abd53340282e4babef0e43537",
+        "src\\ml\\light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0",
+        "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+        "src\\ml\\dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+        "src\\ml\\model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 19,
+      "name": "semantic-light-refinement",
+      "best_step": 150,
+      "best_validation": {
+        "score": 0.9433962264150944,
+        "matched": 10,
+        "false": 0,
+        "missed": 3
+      },
+      "maximum_validation_false": 1,
+      "completed": {
+        "seconds": 172.7710205000476,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 608091136
+      },
+      "source_snapshot_verified": true,
+      "checkpoint_sha256": {
+        "best": "94030f88e41ec8343ff2e4e8a7df56f52a910682201020e9e179f45cc71a9916",
+        "last": "d11753ce04a3edc9e9fa1b6d1611bd2d48e835193edca14146cf60bdb58d751c"
+      }
+    },
+    {
+      "method": "frozen segmentation with physical light centers",
+      "seed": 73113,
+      "base_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+      "steps": 2400,
+      "batch_size": 4,
+      "real_crops": 2,
+      "synthetic_crops": 2,
+      "crop_size": 640,
+      "lr": 5e-05,
+      "threshold": 0.35,
+      "loss_normalization": "sample",
+      "semantic_context": true,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "9e06ea6c57fc7d2e812a8f26075d8d31ee1a472abd53340282e4babef0e43537",
+        "src\\ml\\light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0",
+        "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+        "src\\ml\\dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+        "src\\ml\\model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 20,
+      "name": "semantic-light-large-context",
+      "best_step": 300,
+      "best_validation": {
+        "score": 0.9649122807017544,
+        "matched": 11,
+        "false": 0,
+        "missed": 2
+      },
+      "maximum_validation_false": 1,
+      "completed": {
+        "seconds": 382.0012858999544,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 1348270080
+      },
+      "source_snapshot_verified": true,
+      "checkpoint_sha256": {
+        "best": "0bebe872005f0ca11ba0e21979ccd616aecc06f75d384ca324545fbc375dc474",
+        "last": "063a85f2b7f5b374a44884c9f7967212aece5b519d69d840faa23b732f9fa2ae"
+      }
+    }
+  ],
+  "comparison": [
+    {
+      "model": "bundled-v1",
+      "sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "step": null,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 12,
+          "truth": 13,
+          "false": 0,
+          "missed": 1
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 0,
+          "truth": 39,
+          "false": 0,
+          "missed": 39
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 42,
+        "truth": 63,
+        "false": 76,
+        "missed": 21
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 1,
+          "missed": 0,
+          "all_peaks": 7,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 16,
+          "truth": 20,
+          "false": 8,
+          "missed": 4,
+          "all_peaks": 24,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "model": "trial-18-best",
+      "sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "step": 2250,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 12,
+          "truth": 13,
+          "false": 0,
+          "missed": 1
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 38,
+          "truth": 39,
+          "false": 1,
+          "missed": 1
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 8,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 8,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 20,
+          "truth": 20,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 28,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 1
+    },
+    {
+      "model": "trial-18-final",
+      "sha256": "d72eb2e02f4fdb5c4c6157bf9e9eb332d42bb74df63dc5bb8e389cf7d48510c7",
+      "step": 4800,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 11,
+          "truth": 13,
+          "false": 1,
+          "missed": 2
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 39,
+          "truth": 39,
+          "false": 1,
+          "missed": 0
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 3,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 8,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 18,
+          "truth": 20,
+          "false": 0,
+          "missed": 2,
+          "all_peaks": 22,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "model": "trial-19-best",
+      "sha256": "94030f88e41ec8343ff2e4e8a7df56f52a910682201020e9e179f45cc71a9916",
+      "step": 150,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 0,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 37,
+          "truth": 39,
+          "false": 1,
+          "missed": 2
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 4,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 8,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 18,
+          "truth": 20,
+          "false": 0,
+          "missed": 2,
+          "all_peaks": 21,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "model": "trial-19-final",
+      "sha256": "d11753ce04a3edc9e9fa1b6d1611bd2d48e835193edca14146cf60bdb58d751c",
+      "step": 2400,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 0,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 38,
+          "truth": 39,
+          "false": 1,
+          "missed": 1
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 5,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 1,
+          "missed": 0,
+          "all_peaks": 7,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 18,
+          "truth": 20,
+          "false": 0,
+          "missed": 2,
+          "all_peaks": 22,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "model": "trial-20-best",
+      "sha256": "0bebe872005f0ca11ba0e21979ccd616aecc06f75d384ca324545fbc375dc474",
+      "step": 300,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 11,
+          "truth": 13,
+          "false": 0,
+          "missed": 2
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 38,
+          "truth": 39,
+          "false": 1,
+          "missed": 1
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 3,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 8,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 18,
+          "truth": 20,
+          "false": 1,
+          "missed": 2,
+          "all_peaks": 22,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "model": "trial-20-final",
+      "sha256": "063a85f2b7f5b374a44884c9f7967212aece5b519d69d840faa23b732f9fa2ae",
+      "step": 2400,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 1,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 39,
+          "truth": 39,
+          "false": 1,
+          "missed": 0
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 63,
+        "truth": 63,
+        "false": 3,
+        "missed": 0
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 1,
+          "missed": 0,
+          "all_peaks": 7,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 17,
+          "truth": 20,
+          "false": 0,
+          "missed": 3,
+          "all_peaks": 20,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    }
+  ],
+  "threshold_diagnostic": [
+    {
+      "model": "bundled-v1",
+      "selection_rule": "Maximize F0.5 on stone and reviewed ink14; ties choose highest threshold. Fixed grid 0.05..0.95 by 0.05.",
+      "selected": {
+        "threshold": 0.35,
+        "f0_5": 0.9836065573770492,
+        "matched": 12,
+        "false": 0,
+        "missed": 1
+      },
+      "grid": [
+        {
+          "threshold": 0.05,
+          "f0_5": 0.48872180451127817,
+          "matched": 13,
+          "false": 17,
+          "missed": 0
+        },
+        {
+          "threshold": 0.1,
+          "f0_5": 0.6989247311827957,
+          "matched": 13,
+          "false": 7,
+          "missed": 0
+        },
+        {
+          "threshold": 0.15,
+          "f0_5": 0.7647058823529411,
+          "matched": 13,
+          "false": 5,
+          "missed": 0
+        },
+        {
+          "threshold": 0.2,
+          "f0_5": 0.8695652173913043,
+          "matched": 12,
+          "false": 2,
+          "missed": 1
+        },
+        {
+          "threshold": 0.25,
+          "f0_5": 0.8695652173913043,
+          "matched": 12,
+          "false": 2,
+          "missed": 1
+        },
+        {
+          "threshold": 0.3,
+          "f0_5": 0.9836065573770492,
+          "matched": 12,
+          "false": 0,
+          "missed": 1
+        },
+        {
+          "threshold": 0.35,
+          "f0_5": 0.9836065573770492,
+          "matched": 12,
+          "false": 0,
+          "missed": 1
+        },
+        {
+          "threshold": 0.4,
+          "f0_5": 0.9649122807017544,
+          "matched": 11,
+          "false": 0,
+          "missed": 2
+        },
+        {
+          "threshold": 0.45,
+          "f0_5": 0.9649122807017544,
+          "matched": 11,
+          "false": 0,
+          "missed": 2
+        },
+        {
+          "threshold": 0.5,
+          "f0_5": 0.9649122807017544,
+          "matched": 11,
+          "false": 0,
+          "missed": 2
+        },
+        {
+          "threshold": 0.55,
+          "f0_5": 0.9649122807017544,
+          "matched": 11,
+          "false": 0,
+          "missed": 2
+        },
+        {
+          "threshold": 0.6,
+          "f0_5": 0.9649122807017544,
+          "matched": 11,
+          "false": 0,
+          "missed": 2
+        },
+        {
+          "threshold": 0.65,
+          "f0_5": 0.9183673469387755,
+          "matched": 9,
+          "false": 0,
+          "missed": 4
+        },
+        {
+          "threshold": 0.7,
+          "f0_5": 0.9183673469387755,
+          "matched": 9,
+          "false": 0,
+          "missed": 4
+        },
+        {
+          "threshold": 0.75,
+          "f0_5": 0.9183673469387755,
+          "matched": 9,
+          "false": 0,
+          "missed": 4
+        },
+        {
+          "threshold": 0.8,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.85,
+          "f0_5": 0.7575757575757576,
+          "matched": 5,
+          "false": 0,
+          "missed": 8
+        },
+        {
+          "threshold": 0.9,
+          "f0_5": 0.0,
+          "matched": 0,
+          "false": 0,
+          "missed": 13
+        },
+        {
+          "threshold": 0.95,
+          "f0_5": 0.0,
+          "matched": 0,
+          "false": 0,
+          "missed": 13
+        }
+      ]
+    },
+    {
+      "model": "trial-18-best",
+      "selection_rule": "Maximize F0.5 on stone and reviewed ink14; ties choose highest threshold. Fixed grid 0.05..0.95 by 0.05.",
+      "selected": {
+        "threshold": 0.35,
+        "f0_5": 0.9836065573770492,
+        "matched": 12,
+        "false": 0,
+        "missed": 1
+      },
+      "grid": [
+        {
+          "threshold": 0.05,
+          "f0_5": 0.35135135135135137,
+          "matched": 13,
+          "false": 30,
+          "missed": 0
+        },
+        {
+          "threshold": 0.1,
+          "f0_5": 0.5371900826446281,
+          "matched": 13,
+          "false": 14,
+          "missed": 0
+        },
+        {
+          "threshold": 0.15,
+          "f0_5": 0.6989247311827957,
+          "matched": 13,
+          "false": 7,
+          "missed": 0
+        },
+        {
+          "threshold": 0.2,
+          "f0_5": 0.7407407407407407,
+          "matched": 12,
+          "false": 5,
+          "missed": 1
+        },
+        {
+          "threshold": 0.25,
+          "f0_5": 0.821917808219178,
+          "matched": 12,
+          "false": 3,
+          "missed": 1
+        },
+        {
+          "threshold": 0.3,
+          "f0_5": 0.9230769230769231,
+          "matched": 12,
+          "false": 1,
+          "missed": 1
+        },
+        {
+          "threshold": 0.35,
+          "f0_5": 0.9836065573770492,
+          "matched": 12,
+          "false": 0,
+          "missed": 1
+        },
+        {
+          "threshold": 0.4,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.45,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.5,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.55,
+          "f0_5": 0.9183673469387755,
+          "matched": 9,
+          "false": 0,
+          "missed": 4
+        },
+        {
+          "threshold": 0.6,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.65,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.7,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.75,
+          "f0_5": 0.8536585365853658,
+          "matched": 7,
+          "false": 0,
+          "missed": 6
+        },
+        {
+          "threshold": 0.8,
+          "f0_5": 0.6,
+          "matched": 3,
+          "false": 0,
+          "missed": 10
+        },
+        {
+          "threshold": 0.85,
+          "f0_5": 0.47619047619047616,
+          "matched": 2,
+          "false": 0,
+          "missed": 11
+        },
+        {
+          "threshold": 0.9,
+          "f0_5": 0.47619047619047616,
+          "matched": 2,
+          "false": 0,
+          "missed": 11
+        },
+        {
+          "threshold": 0.95,
+          "f0_5": 0.0,
+          "matched": 0,
+          "false": 0,
+          "missed": 13
+        }
+      ]
+    },
+    {
+      "model": "trial-18-final",
+      "selection_rule": "Maximize F0.5 on stone and reviewed ink14; ties choose highest threshold. Fixed grid 0.05..0.95 by 0.05.",
+      "selected": {
+        "threshold": 0.5,
+        "f0_5": 0.9433962264150944,
+        "matched": 10,
+        "false": 0,
+        "missed": 3
+      },
+      "grid": [
+        {
+          "threshold": 0.05,
+          "f0_5": 0.37572254335260113,
+          "matched": 13,
+          "false": 27,
+          "missed": 0
+        },
+        {
+          "threshold": 0.1,
+          "f0_5": 0.5555555555555556,
+          "matched": 13,
+          "false": 13,
+          "missed": 0
+        },
+        {
+          "threshold": 0.15,
+          "f0_5": 0.7058823529411765,
+          "matched": 12,
+          "false": 6,
+          "missed": 1
+        },
+        {
+          "threshold": 0.2,
+          "f0_5": 0.7407407407407407,
+          "matched": 12,
+          "false": 5,
+          "missed": 1
+        },
+        {
+          "threshold": 0.25,
+          "f0_5": 0.821917808219178,
+          "matched": 12,
+          "false": 3,
+          "missed": 1
+        },
+        {
+          "threshold": 0.3,
+          "f0_5": 0.9016393442622951,
+          "matched": 11,
+          "false": 1,
+          "missed": 2
+        },
+        {
+          "threshold": 0.35,
+          "f0_5": 0.9016393442622951,
+          "matched": 11,
+          "false": 1,
+          "missed": 2
+        },
+        {
+          "threshold": 0.4,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.45,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.5,
+          "f0_5": 0.9433962264150944,
+          "matched": 10,
+          "false": 0,
+          "missed": 3
+        },
+        {
+          "threshold": 0.55,
+          "f0_5": 0.9183673469387755,
+          "matched": 9,
+          "false": 0,
+          "missed": 4
+        },
+        {
+          "threshold": 0.6,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.65,
+          "f0_5": 0.8888888888888888,
+          "matched": 8,
+          "false": 0,
+          "missed": 5
+        },
+        {
+          "threshold": 0.7,
+          "f0_5": 0.8536585365853658,
+          "matched": 7,
+          "false": 0,
+          "missed": 6
+        },
+        {
+          "threshold": 0.75,
+          "f0_5": 0.8536585365853658,
+          "matched": 7,
+          "false": 0,
+          "missed": 6
+        },
+        {
+          "threshold": 0.8,
+          "f0_5": 0.47619047619047616,
+          "matched": 2,
+          "false": 0,
+          "missed": 11
+        },
+        {
+          "threshold": 0.85,
+          "f0_5": 0.47619047619047616,
+          "matched": 2,
+          "false": 0,
+          "missed": 11
+        },
+        {
+          "threshold": 0.9,
+          "f0_5": 0.0,
+          "matched": 0,
+          "false": 0,
+          "missed": 13
+        },
+        {
+          "threshold": 0.95,
+          "f0_5": 0.0,
+          "matched": 0,
+          "false": 0,
+          "missed": 13
+        }
+      ]
+    }
+  ],
+  "compatibility": [
+    {
+      "device": "cpu",
+      "height": 35,
+      "width": 43,
+      "arrays": 3
+    },
+    {
+      "device": "cpu",
+      "height": 384,
+      "width": 384,
+      "arrays": 3
+    },
+    {
+      "device": "cpu",
+      "height": 385,
+      "width": 511,
+      "arrays": 3
+    },
+    {
+      "device": "cuda",
+      "height": 35,
+      "width": 43,
+      "arrays": 3
+    },
+    {
+      "device": "cuda",
+      "height": 384,
+      "width": 384,
+      "arrays": 3
+    },
+    {
+      "device": "cuda",
+      "height": 385,
+      "width": 511,
+      "arrays": 3
+    }
+  ],
+  "application": {
+    "warm_runs_per_model_per_map": 5,
+    "torch_threads": 4,
+    "device": "cuda",
+    "working_max_dimension": 1536,
+    "timing_boundary": "Resize, model inference, and geometry. Excludes model loading, decode, painting, and export writing.",
+    "samples": [
+      {
+        "id": "wood",
+        "split": "train",
+        "source_sha256": "201e6ef77b440a424f75331c695ec03f5739c8053632e561197426b15bdce65e",
+        "original_size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": true,
+        "v1": {
+          "median_seconds": 0.2477216999977827,
+          "walls": 1000,
+          "doors": 4,
+          "lights": 9
+        },
+        "v2": {
+          "median_seconds": 0.23670860001584515,
+          "walls": 1000,
+          "doors": 4,
+          "lights": 9
+        },
+        "geometry": {
+          "annotation": "Agent manually marked visible gates, physical light sources, and selected sight-line probes. Full gate/light instance lists; sparse ray coverage. Not independently human-verified. Protocol v2: north-pen probe starts at y=107 in the visible gap below the opaque palisade; previous y=98 incorrectly began inside the palisade. Original annotation retained.",
+          "units": "annotation reference pixels",
+          "doors": {
+            "matched": 4,
+            "truth_count": 4,
+            "prediction_count": 4,
+            "precision": 1.0,
+            "recall": 1.0,
+            "mean_error": 1.7918223698240618,
+            "matches": [
+              [
+                0,
+                3,
+                0.3367175148507448
+              ],
+              [
+                1,
+                2,
+                3.011734688303461
+              ],
+              [
+                2,
+                1,
+                3.4021706094754127
+              ],
+              [
+                3,
+                0,
+                0.41666666666662877
+              ]
+            ],
+            "missed": [],
+            "extra": [],
+            "complete_annotation": true
+          },
+          "lights": {
+            "matched": 9,
+            "truth_count": 9,
+            "prediction_count": 9,
+            "precision": 1.0,
+            "recall": 1.0,
+            "mean_error": 1.8792018149118899,
+            "matches": [
+              [
+                0,
+                0,
+                1.0540925533894359
+              ],
+              [
+                1,
+                1,
+                0.6666666666666288
+              ],
+              [
+                2,
+                2,
+                1.666666666666697
+              ],
+              [
+                3,
+                5,
+                0.7453559924999003
+              ],
+              [
+                4,
+                3,
+                1.0540925533895797
+              ],
+              [
+                5,
+                6,
+                2.7487370837450613
+              ],
+              [
+                6,
+                7,
+                1.943650631615097
+              ],
+              [
+                7,
+                8,
+                2.687419249432803
+              ],
+              [
+                8,
+                4,
+                4.346134936801806
+              ]
+            ],
+            "missed": [],
+            "extra": [],
+            "complete_annotation": true
+          },
+          "rays": [
+            {
+              "name": "north gate open",
+              "from": [
+                512.5,
+                40.0
+              ],
+              "to": [
+                512.5,
+                90.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "north gate closed",
+              "from": [
+                512.5,
+                40.0
+              ],
+              "to": [
+                512.5,
+                90.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west gate open",
+              "from": [
+                102.0,
+                350.5
+              ],
+              "to": [
+                152.0,
+                350.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "west gate closed",
+              "from": [
+                102.0,
+                350.5
+              ],
+              "to": [
+                152.0,
+                350.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east gate open",
+              "from": [
+                911.0,
+                350.5
+              ],
+              "to": [
+                961.0,
+                350.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "east gate closed",
+              "from": [
+                911.0,
+                350.5
+              ],
+              "to": [
+                961.0,
+                350.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south gate open",
+              "from": [
+                512.5,
+                556.0
+              ],
+              "to": [
+                512.5,
+                606.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south gate closed",
+              "from": [
+                512.5,
+                556.0
+              ],
+              "to": [
+                512.5,
+                606.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north palisade",
+              "from": [
+                320,
+                65
+              ],
+              "to": [
+                320,
+                120
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west palisade",
+              "from": [
+                115,
+                200
+              ],
+              "to": [
+                165,
+                200
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east palisade",
+              "from": [
+                900,
+                470
+              ],
+              "to": [
+                944,
+                470
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south palisade",
+              "from": [
+                330,
+                545
+              ],
+              "to": [
+                330,
+                607
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "open camp floor",
+              "from": [
+                580,
+                350
+              ],
+              "to": [
+                620,
+                350
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen north rail",
+              "from": [
+                830,
+                107
+              ],
+              "to": [
+                830,
+                132
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen south rail",
+              "from": [
+                830,
+                199
+              ],
+              "to": [
+                830,
+                233
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen west rail",
+              "from": [
+                701,
+                165
+              ],
+              "to": [
+                734,
+                165
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            }
+          ],
+          "rays_passed": 16,
+          "rays_total": 16,
+          "wall_segments": 1000
+        }
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "source_sha256": "e21098db4e48f31eb773d45ad276af7d52757322d9b5ad8362c84a0f548aeccb",
+        "original_size": [
+          1448,
+          1086
+        ],
+        "working_size": [
+          1448,
+          1086
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": true,
+        "v1": {
+          "median_seconds": 0.23296930000651628,
+          "walls": 1673,
+          "doors": 4,
+          "lights": 12
+        },
+        "v2": {
+          "median_seconds": 0.24741159996483475,
+          "walls": 1673,
+          "doors": 4,
+          "lights": 12
+        },
+        "geometry": {
+          "annotation": "Agent manually marked visible gates, physical light sources, and selected sight-line probes. Full gate/light instance lists; sparse ray coverage. Not independently human-verified.",
+          "units": "annotation reference pixels",
+          "doors": {
+            "matched": 4,
+            "truth_count": 4,
+            "prediction_count": 4,
+            "precision": 1.0,
+            "recall": 1.0,
+            "mean_error": 3.1421135393016524,
+            "matches": [
+              [
+                0,
+                3,
+                1.2630740870521233
+              ],
+              [
+                1,
+                1,
+                4.4606531415458885
+              ],
+              [
+                2,
+                2,
+                5.002502349924124
+              ],
+              [
+                3,
+                0,
+                1.8422245786844729
+              ]
+            ],
+            "missed": [],
+            "extra": [],
+            "complete_annotation": true
+          },
+          "lights": {
+            "matched": 12,
+            "truth_count": 13,
+            "prediction_count": 12,
+            "precision": 1.0,
+            "recall": 0.9230769230769231,
+            "mean_error": 1.9476787301416592,
+            "matches": [
+              [
+                0,
+                2,
+                2.4800784358470147
+              ],
+              [
+                1,
+                3,
+                2.6100747999279608
+              ],
+              [
+                2,
+                0,
+                1.997533658313479
+              ],
+              [
+                3,
+                1,
+                4.862584705107628
+              ],
+              [
+                4,
+                4,
+                1.094898833375967
+              ],
+              [
+                5,
+                5,
+                1.5042241834467915
+              ],
+              [
+                6,
+                6,
+                1.9237074006469403
+              ],
+              [
+                7,
+                8,
+                1.599502379806847
+              ],
+              [
+                8,
+                10,
+                0.8213297650451601
+              ],
+              [
+                9,
+                11,
+                1.2342719496977252
+              ],
+              [
+                10,
+                9,
+                1.8733274236701176
+              ],
+              [
+                12,
+                7,
+                1.37061122681428
+              ]
+            ],
+            "missed": [
+              11
+            ],
+            "extra": [],
+            "complete_annotation": true
+          },
+          "rays": [
+            {
+              "name": "north gate open",
+              "from": [
+                536.5,
+                23.0
+              ],
+              "to": [
+                536.5,
+                73.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "north gate closed",
+              "from": [
+                536.5,
+                23.0
+              ],
+              "to": [
+                536.5,
+                73.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west gate open",
+              "from": [
+                26.0,
+                324.5
+              ],
+              "to": [
+                76.0,
+                324.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "west gate closed",
+              "from": [
+                26.0,
+                324.5
+              ],
+              "to": [
+                76.0,
+                324.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east gate open",
+              "from": [
+                948.0,
+                275.5
+              ],
+              "to": [
+                998.0,
+                275.5
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "east gate closed",
+              "from": [
+                948.0,
+                275.5
+              ],
+              "to": [
+                998.0,
+                275.5
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south gate open",
+              "from": [
+                513.5,
+                627.0
+              ],
+              "to": [
+                513.5,
+                677.0
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south gate closed",
+              "from": [
+                513.5,
+                627.0
+              ],
+              "to": [
+                513.5,
+                677.0
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north wall",
+              "from": [
+                730,
+                65
+              ],
+              "to": [
+                730,
+                114
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west wall",
+              "from": [
+                53,
+                405
+              ],
+              "to": [
+                104,
+                405
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east wall",
+              "from": [
+                951,
+                420
+              ],
+              "to": [
+                1003,
+                420
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "south wall",
+              "from": [
+                720,
+                687
+              ],
+              "to": [
+                720,
+                745
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "northwest shade",
+              "from": [
+                342,
+                92
+              ],
+              "to": [
+                342,
+                137
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "southwest curve",
+              "from": [
+                180,
+                480
+              ],
+              "to": [
+                180,
+                535
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "open floor west",
+              "from": [
+                280,
+                304
+              ],
+              "to": [
+                375,
+                305
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "open floor east",
+              "from": [
+                624,
+                325
+              ],
+              "to": [
+                700,
+                325
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen north rail",
+              "from": [
+                840,
+                382
+              ],
+              "to": [
+                840,
+                420
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen west rail",
+              "from": [
+                770,
+                450
+              ],
+              "to": [
+                808,
+                450
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "pen south rail",
+              "from": [
+                849,
+                489
+              ],
+              "to": [
+                849,
+                523
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south pickets",
+              "from": [
+                430,
+                597
+              ],
+              "to": [
+                430,
+                639
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            }
+          ],
+          "rays_passed": 20,
+          "rays_total": 20,
+          "wall_segments": 1673
+        }
+      },
+      {
+        "id": "temple",
+        "split": "train",
+        "source_sha256": "2b21e436191cb09918c04356ac5287e4bf5425b66a57266aafbc02f52a5ae48c",
+        "original_size": [
+          1448,
+          1086
+        ],
+        "working_size": [
+          1448,
+          1086
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.30533280002418905,
+          "walls": 2302,
+          "doors": 68,
+          "lights": 30
+        },
+        "v2": {
+          "median_seconds": 0.30119600001489744,
+          "walls": 2302,
+          "doors": 68,
+          "lights": 30
+        },
+        "geometry": null
+      },
+      {
+        "id": "ship",
+        "split": "partial light training",
+        "source_sha256": "c5c5288dc4b8f2251b28738317a54b79e1ba7a24722de8426a70f3d2a72577d6",
+        "original_size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.29639690002659336,
+          "walls": 1894,
+          "doors": 62,
+          "lights": 0
+        },
+        "v2": {
+          "median_seconds": 0.29142540000611916,
+          "walls": 1894,
+          "doors": 62,
+          "lights": 63
+        },
+        "geometry": null
+      },
+      {
+        "id": "demon",
+        "split": "related train",
+        "source_sha256": "75d5b8cc425a46841b63dd32090a54f48c3d66f5dbc4de7ca19624a2c275cbf0",
+        "original_size": [
+          5792,
+          4344
+        ],
+        "working_size": [
+          1536,
+          1152
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.32351940002990887,
+          "walls": 2379,
+          "doors": 66,
+          "lights": 30
+        },
+        "v2": {
+          "median_seconds": 0.3212039000354707,
+          "walls": 2379,
+          "doors": 66,
+          "lights": 30
+        },
+        "geometry": null
+      },
+      {
+        "id": "dyson-14",
+        "split": "partial validation",
+        "source_sha256": "0b8f498e81d0b3403924edd4d4eaab45ac282c9642edd8d484f2845f38921c55",
+        "original_size": [
+          9000,
+          5400
+        ],
+        "working_size": [
+          1536,
+          922
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.2597719000186771,
+          "walls": 3237,
+          "doors": 1,
+          "lights": 0
+        },
+        "v2": {
+          "median_seconds": 0.26249360002111644,
+          "walls": 3237,
+          "doors": 1,
+          "lights": 0
+        },
+        "geometry": {
+          "annotation": "Agent-reviewed partial door spans and sparse rays on the validation drawing; not independent human ground truth. Cartography by Dyson Logos.",
+          "units": "annotation reference pixels",
+          "doors": {
+            "matched": 1,
+            "truth_count": 3,
+            "prediction_count": 1,
+            "precision": null,
+            "recall": 0.3333333333333333,
+            "mean_error": 5.099019513592896,
+            "matches": [
+              [
+                2,
+                0,
+                5.099019513592896
+              ]
+            ],
+            "missed": [
+              0,
+              1
+            ],
+            "extra": [],
+            "complete_annotation": false
+          },
+          "lights": {
+            "matched": 0,
+            "truth_count": 0,
+            "prediction_count": 0,
+            "precision": null,
+            "recall": null,
+            "mean_error": null,
+            "matches": [],
+            "missed": [],
+            "extra": [],
+            "complete_annotation": false
+          },
+          "rays": [
+            {
+              "name": "west door open",
+              "from": [
+                538,
+                283
+              ],
+              "to": [
+                587,
+                283
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "west door closed",
+              "from": [
+                538,
+                283
+              ],
+              "to": [
+                587,
+                283
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": false,
+              "passed": false
+            },
+            {
+              "name": "east door open",
+              "from": [
+                820,
+                283
+              ],
+              "to": [
+                868,
+                283
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "east door closed",
+              "from": [
+                820,
+                283
+              ],
+              "to": [
+                868,
+                283
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": false,
+              "passed": false
+            },
+            {
+              "name": "south door open",
+              "from": [
+                691,
+                317
+              ],
+              "to": [
+                691,
+                357
+              ],
+              "closed_doors": false,
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "south door closed",
+              "from": [
+                691,
+                317
+              ],
+              "to": [
+                691,
+                357
+              ],
+              "closed_doors": true,
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north west wall",
+              "from": [
+                425,
+                75
+              ],
+              "to": [
+                425,
+                120
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west room wall",
+              "from": [
+                330,
+                190
+              ],
+              "to": [
+                385,
+                190
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "east room wall",
+              "from": [
+                792,
+                220
+              ],
+              "to": [
+                843,
+                220
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "north east wall",
+              "from": [
+                700,
+                85
+              ],
+              "to": [
+                700,
+                130
+              ],
+              "blocked": true,
+              "actual_blocked": true,
+              "passed": true
+            },
+            {
+              "name": "west room floor",
+              "from": [
+                405,
+                180
+              ],
+              "to": [
+                480,
+                180
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "middle room floor",
+              "from": [
+                650,
+                200
+              ],
+              "to": [
+                750,
+                200
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "small room floor",
+              "from": [
+                1060,
+                270
+              ],
+              "to": [
+                1100,
+                270
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            },
+            {
+              "name": "blank margin",
+              "from": [
+                50,
+                60
+              ],
+              "to": [
+                200,
+                60
+              ],
+              "blocked": false,
+              "actual_blocked": false,
+              "passed": true
+            }
+          ],
+          "rays_passed": 12,
+          "rays_total": 14,
+          "wall_segments": 3237
+        }
+      },
+      {
+        "id": "astral",
+        "split": "observed test",
+        "source_sha256": "89460a0a6d08c11fc0c355275279ab7375c06886f06425935cd4de53e0f0bed0",
+        "original_size": [
+          5792,
+          4344
+        ],
+        "working_size": [
+          1536,
+          1152
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.3652005000039935,
+          "walls": 2496,
+          "doors": 42,
+          "lights": 24
+        },
+        "v2": {
+          "median_seconds": 0.3371558000217192,
+          "walls": 2496,
+          "doors": 42,
+          "lights": 28
+        },
+        "geometry": null
+      },
+      {
+        "id": "dyson-15",
+        "split": "observed test",
+        "source_sha256": "d015faf8551b61d6dfde10cd25295f60153c19be85a45cc361feeedfb193f6ab",
+        "original_size": [
+          9000,
+          5400
+        ],
+        "working_size": [
+          1536,
+          922
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.26559060002909973,
+          "walls": 1576,
+          "doors": 0,
+          "lights": 0
+        },
+        "v2": {
+          "median_seconds": 0.2559672000352293,
+          "walls": 1576,
+          "doors": 0,
+          "lights": 1
+        },
+        "geometry": null
+      },
+      {
+        "id": "new-camp",
+        "split": "observed held-out layout",
+        "source_sha256": "63311d2c4a7c434ffba532cf7f15ca0f25327368134e49589a54293fd7a4de34",
+        "original_size": [
+          1536,
+          1024
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.22593630000483245,
+          "walls": 1032,
+          "doors": 1,
+          "lights": 7
+        },
+        "v2": {
+          "median_seconds": 0.22410679998574778,
+          "walls": 1032,
+          "doors": 1,
+          "lights": 8
+        },
+        "geometry": null
+      },
+      {
+        "id": "ship-upscaled",
+        "split": "related geometry train",
+        "source_sha256": "b2163e315da78c2ab5267fe6c40d35ef0968e84b0d26bfa2b71844bd325d4444",
+        "original_size": [
+          6144,
+          4096
+        ],
+        "working_size": [
+          1536,
+          1024
+        ],
+        "source_png_identical": true,
+        "geometry_identical": true,
+        "raw_segmentation_identical_checked": false,
+        "v1": {
+          "median_seconds": 0.2746081000077538,
+          "walls": 1851,
+          "doors": 60,
+          "lights": 0
+        },
+        "v2": {
+          "median_seconds": 0.29040009999880567,
+          "walls": 1851,
+          "doors": 60,
+          "lights": 75
+        },
+        "geometry": null
+      }
+    ],
+    "serialized_export": {
+      "note": "V2 positions read from serialized UVTT; v1 positions from the paired normal pipeline. Partial labels exclude unreviewed regions.",
+      "roundtrip_checked_maps": 10,
+      "maps": [
+        {
+          "id": "wood",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": true,
+          "models": {
+            "v1": {
+              "matched": 9,
+              "truth": 9,
+              "false": 0,
+              "missed": 0,
+              "total": 9
+            },
+            "v2": {
+              "matched": 9,
+              "truth": 9,
+              "false": 0,
+              "missed": 0,
+              "total": 9
+            }
+          }
+        },
+        {
+          "id": "stone",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": true,
+          "models": {
+            "v1": {
+              "matched": 12,
+              "truth": 13,
+              "false": 0,
+              "missed": 1,
+              "total": 12
+            },
+            "v2": {
+              "matched": 12,
+              "truth": 13,
+              "false": 0,
+              "missed": 1,
+              "total": 12
+            }
+          }
+        },
+        {
+          "id": "temple",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": true,
+          "models": {
+            "v1": {
+              "matched": 30,
+              "truth": 30,
+              "false": 0,
+              "missed": 0,
+              "total": 30
+            },
+            "v2": {
+              "matched": 30,
+              "truth": 30,
+              "false": 0,
+              "missed": 0,
+              "total": 30
+            }
+          }
+        },
+        {
+          "id": "ship",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": false,
+          "models": {
+            "v1": {
+              "matched": 0,
+              "truth": 39,
+              "false": 0,
+              "missed": 39,
+              "total": 0
+            },
+            "v2": {
+              "matched": 38,
+              "truth": 39,
+              "false": 1,
+              "missed": 1,
+              "total": 63
+            }
+          }
+        },
+        {
+          "id": "dyson-14",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": false,
+          "models": {
+            "v1": {
+              "matched": 0,
+              "truth": 0,
+              "false": 0,
+              "missed": 0,
+              "total": 0
+            },
+            "v2": {
+              "matched": 0,
+              "truth": 0,
+              "false": 0,
+              "missed": 0,
+              "total": 0
+            }
+          }
+        },
+        {
+          "id": "astral",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": false,
+          "models": {
+            "v1": {
+              "matched": 16,
+              "truth": 20,
+              "false": 8,
+              "missed": 4,
+              "total": 24
+            },
+            "v2": {
+              "matched": 20,
+              "truth": 20,
+              "false": 2,
+              "missed": 0,
+              "total": 28
+            }
+          }
+        },
+        {
+          "id": "new-camp",
+          "uvtt_position_roundtrip": true,
+          "objects_los_empty": true,
+          "complete_annotation": true,
+          "models": {
+            "v1": {
+              "matched": 6,
+              "truth": 6,
+              "false": 1,
+              "missed": 0,
+              "total": 7
+            },
+            "v2": {
+              "matched": 6,
+              "truth": 6,
+              "false": 2,
+              "missed": 0,
+              "total": 8
+            }
+          }
+        }
+      ]
+    },
+    "qt_worker_checks": [
+      {
+        "map": "wood",
+        "first_detection_seconds": 20.451964400010183,
+        "warm_detection_seconds": 0.45228609995683655,
+        "lights": 9,
+        "doors": 4,
+        "geometry_unchanged_on_score_change": true,
+        "score_control_invalidated_export_and_recomputed": true,
+        "source_png_identical": true,
+        "export_worker_completed": true
+      },
+      {
+        "map": "stone",
+        "first_detection_seconds": 0.5184565999661572,
+        "warm_detection_seconds": 0.6204485999769531,
+        "lights": 12,
+        "doors": 4,
+        "geometry_unchanged_on_score_change": true,
+        "score_control_invalidated_export_and_recomputed": true,
+        "source_png_identical": true,
+        "export_worker_completed": true
+      }
+    ],
+    "live_foundry_import_run": false
+  },
+  "limitations": [
+    "Labels are agent-reviewed, not independent ground truth. Repeatedly used validation layouts can overfit research choices.",
+    "Ship results are partial training accuracy. Other ship pixels are unreviewed.",
+    "Astral and new-camp diagnostic regions were reviewed after earlier predictions; these are observed test layouts, not fresh unseen validation.",
+    "Partial-region false counts exclude predictions outside reviewed areas; total peaks are reported separately.",
+    "Procedural test seeds measure the generator task, not real-world art accuracy.",
+    "Counts use raw point decoding before the normal export pipeline rejects doorway highlights.",
+    "Training durations include variable desktop load and validation; they are not controlled performance comparisons."
+  ]
+}
