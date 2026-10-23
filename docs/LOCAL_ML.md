@@ -30,10 +30,27 @@ python fast_auto_wall.py "map.png" --model "models/battlemap-v1.safetensors" --m
 ```
 
 In the desktop app, open **ML → Choose model**. This replaces color detection for
-all three output layers. Shape/size limits, door-jamb validation, geometry mode,
-and light range still apply. **Use palette** restores the ordinary detector.
+all three output layers. Door shape/size limits, door-jamb validation, geometry
+mode, and light range still apply. **Use palette** restores the ordinary detector.
 The three confidence controls select accepted pixels; higher values usually
 accept fewer pixels. They are not calibrated accuracy percentages.
+
+The optional `models/battlemap-dino-lights-v1.safetensors` adds a separate learned
+light-center head to exactly the same segmentation tensors. It predicts one
+location per physical source, so disconnected flame pixels need not become
+separate lights. Set **Light center score** to adjust acceptance (the tested
+profile uses 0.35). This score is not a calibrated probability of correctness.
+For this model, light pixel confidence, area, fill, and brightness limits are
+replaced by the point score; source range and door-highlight rejection still
+apply. Wall and door confidence controls keep their existing meaning.
+
+```shell
+python fast_auto_wall.py "map.png" --settings profiles/ml-light-centers.json --model models/battlemap-dino-lights-v1.safetensors --ml-device auto
+```
+
+This model improves the two checked camps but also mistakes some flowers and
+decorative stars for lights and misses cool machinery emitters. It remains an
+optional comparison. See the [light-center model card](../models/DINO_LIGHTS_MODEL_CARD.md).
 
 **Recover shaded door jambs** is an optional ML control for missing wall faces
 beside otherwise plausible doors. It accepts lower-confidence wall predictions
@@ -197,6 +214,60 @@ and first/warm inference times. Green is opaque wall, magenta door, yellow light
 and blue transparent barrier. `benchmarks/check_ml_probes.py` also checks manually
 specified reference regions against saved class IDs. These sparse checks do not
 replace complete independent annotations.
+
+## Train light centers without changing walls or doors
+
+`scripts/train_light_centers.py` adds or updates the small light head on a local
+DINO model. It freezes all segmentation parameters and normalization buffers,
+and checks their hashes before saving each checkpoint. It uses center heatmaps
+and the penalty-reduced focal loss described in [Objects as Points](https://arxiv.org/abs/1904.07850).
+Training the segmentation decoder underneath a trained light head would change
+its input features, so the segmentation trainer requires the segmentation-only
+base checkpoint instead.
+
+Use a separate point manifest. Each `points` entry is one physical source's XY
+center in the stored image's pixels. Include all sources in every labelled
+region; an empty list marks reviewed regions with no light sources. An optional
+single-channel uint8 `valid_mask` uses zero for unreviewed pixels and any nonzero
+value for reviewed pixels. Without it, the entire image is treated as reviewed.
+Unmarked emitters in reviewed regions would become incorrect negative labels.
+
+```json
+{
+  "format": "auto-wall-light-centers-v1",
+  "samples": [
+    {"id": "camp-a", "group": "camp-a", "split": "train", "image": "a.bmp", "points": [[120, 80], [300, 220]]},
+    {"id": "ink-a", "group": "ink-a", "split": "train", "image": "ink.bmp", "points": [], "valid_mask": "ink-reviewed.bmp"},
+    {"id": "camp-b", "group": "camp-b", "split": "validation", "image": "b.bmp", "points": [[96, 144]]}
+  ]
+}
+```
+
+```shell
+python scripts/train_light_centers.py dataset/lights.json training/lights-1 --init-model models/battlemap-dino-v1.safetensors --device cuda --steps 2400
+```
+
+The default batch has four 384 px crops. If samples have `synthetic: true`, one
+crop per batch comes from that group and three come from real maps; adjust
+`--synthetic-per-batch` when needed. If only one group exists, it supplies the
+whole batch. The sampler transforms coordinates before rendering targets so tiny
+lights survive scaling. Rotations, flips, varied hue/saturation, exposure, and
+illumination preserve physical source identities.
+
+Validation uses separate layouts and a fixed score threshold (`--threshold`,
+default 0.35). Checkpoint selection maximizes light-instance F0.5, which penalizes
+extra detections more than misses. Predictions outside reviewed regions do not
+count as false positives; each report also includes their total count. Matching
+tolerance is six pixels at a 1024 px longest edge. Use bounded-resolution dataset
+images matching intended inference quality. The test split is not used for training
+or selection. Review exported geometry and additional layouts before choosing a
+new model; this score does not establish general semantic accuracy.
+
+Each new output directory receives raw, uncompressed `best.safetensors` and
+`last.safetensors`, recipe/source hashes, validation history, and completion timing.
+Both model files load directly in Fast Setup. Supplying a point model as
+`--init-model` continues from its light-head weights with a fresh optimizer and
+schedule. CPU works as well as CUDA; no cloud service or download is required.
 
 ## Limits of the initial training set
 

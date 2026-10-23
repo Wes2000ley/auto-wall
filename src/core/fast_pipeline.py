@@ -56,6 +56,7 @@ class FastSettings:
     ml_wall_confidence: float = 0.9
     ml_door_confidence: float = 0.9
     ml_light_confidence: float = 0.9
+    ml_light_center_threshold: float = 0.35  # models with a physical-light point head
     ml_recover_jambs: bool = False  # opt-in connected wall support beside valid doors
 
     def validate(self):
@@ -69,7 +70,7 @@ class FastSettings:
                    self.door_min_length, self.door_max_length, self.door_gap_close, self.door_rectangularity,
                    self.light_min_area, self.light_max_area, self.light_core_fraction,
                    self.light_min_fill, self.light_range, self.ml_wall_confidence,
-                   self.ml_door_confidence, self.ml_light_confidence)
+                   self.ml_door_confidence, self.ml_light_confidence, self.ml_light_center_threshold)
         if not all(type(value) in (int, float) and math.isfinite(value) for value in numeric):
             raise ValueError("Detection settings must be finite numbers.")
         if self.grid_size <= 0 or self.light_range <= 0:
@@ -85,6 +86,8 @@ class FastSettings:
         if any(not .5 <= value <= 1 for value in
                (self.ml_wall_confidence, self.ml_door_confidence, self.ml_light_confidence)):
             raise ValueError("ML confidence thresholds must be between 0.5 and 1.")
+        if not .05 <= self.ml_light_center_threshold <= 1:
+            raise ValueError("ML light center threshold must be between 0.05 and 1.")
         if self.min_wall_area < 0 or self.simplify < 0 or self.wall_gap_close < 0:
             raise ValueError("Wall area, simplification, and gap repair cannot be negative.")
         if not 0 < self.door_min_length <= self.door_max_length:
@@ -296,6 +299,25 @@ def _detect_lights(image, hsv, door_footprints, settings, reference_scale, candi
     return lights
 
 
+def _detect_light_centers(image, heatmap, door_footprints, settings):
+    from src.core.light_geometry import light_center_points
+
+    lights = []
+    for x, y in light_center_points(heatmap, settings.ml_light_center_threshold):
+        # Reject after peak extraction so masking a door cannot create a new peak
+        # along the cut edge of its highlight.
+        if any(cv2.pointPolygonTest(np.asarray(box, np.float32), (x, y), False) >= 0
+               for box in door_footprints):
+            continue
+        ix, iy = round(x), round(y)
+        patch = image[max(0, iy - 2):iy + 3, max(0, ix - 2):ix + 3]
+        b, g, r, _ = cv2.mean(patch)
+        lights.append({"position": {"x": float(x), "y": float(y)},
+                       "range": settings.light_range, "intensity": 1.0,
+                       "color": f"ff{round(r):02x}{round(g):02x}{round(b):02x}", "shadows": True})
+    return lights
+
+
 def _clip_doorways(walls, footprints, preserve_jambs=False):
     """Remove wall fragments inside door footprints so an opened portal is clear.
 
@@ -458,12 +480,14 @@ def _learned_masks(image, settings, progress, cancelled):
     except ImportError as error:
         raise RuntimeError("ML needs PyTorch and safetensors. Install requirements-ml.txt in this Python environment.") from error
     model, _ = load_model(settings.model_path, settings.ml_device)
-    labels, confidence = predict(model, image, cancelled, progress)
-    return _prediction_masks((labels, confidence), image.shape[:2], settings), "torch-" + next(model.parameters()).device.type
+    prediction = predict(model, image, cancelled, progress, include_light_centers=settings.lights)
+    return _prediction_masks(prediction, image.shape[:2], settings), "torch-" + next(model.parameters()).device.type
 
 
 def _prediction_masks(prediction, shape, settings):
-    labels, confidence = prediction
+    if len(prediction) not in (2, 3):
+        raise ValueError("Predictions need classes, confidence, and optionally a light heatmap.")
+    labels, confidence = prediction[:2]
     if (labels.shape != shape or confidence.shape != shape or labels.dtype != np.uint8
             or not np.issubdtype(confidence.dtype, np.floating) or labels.max() > 4
             or not np.isfinite(confidence).all() or confidence.min() < 0 or confidence.max() > 1):
@@ -474,6 +498,12 @@ def _prediction_masks(prediction, shape, settings):
     if settings.ml_recover_jambs and settings.doors and settings.ml_wall_confidence > .5:
         weak = ((labels == 1) & (confidence >= .5)).astype(np.uint8) * 255
         masks[0] = _recover_door_jambs(masks[0], masks[1], weak, settings, max(shape) / 2048)
+    if len(prediction) == 3 and prediction[2] is not None:
+        heatmap = prediction[2]
+        if (heatmap.shape != shape or not np.issubdtype(heatmap.dtype, np.floating)
+                or not np.isfinite(heatmap).all() or heatmap.min() < 0 or heatmap.max() > 1):
+            raise ValueError("Light heatmaps must match the working image with finite scores between zero and one.")
+        masks.append(heatmap)
     return masks
 
 
@@ -583,7 +613,12 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
     _stage("Detecting lights", progress, cancelled)
     tick = time.perf_counter()
     arguments = {} if learned is None else {"candidate_mask": learned[2]}
-    lights = _detect_lights(working, hsv, footprints, settings, reference_scale, **arguments) if settings.lights else []
+    if not settings.lights:
+        lights = []
+    elif learned is not None and len(learned) == 5:
+        lights = _detect_light_centers(working, learned[4], footprints, settings)
+    else:
+        lights = _detect_lights(working, hsv, footprints, settings, reference_scale, **arguments)
     timings["lights"] = time.perf_counter() - tick
     _stage("Building geometry", progress, cancelled)
     tick = time.perf_counter()

@@ -5,6 +5,11 @@ trainable U-Net decoder. It is available in the existing ML model picker and CLI
 It improves some cross-style boundaries and gate detection, but still misses
 doors and produces false lights. **It is not the default detector.**
 
+The optional [light-center model](DINO_LIGHTS_MODEL_CARD.md) retains this model's
+exact segmentation tensors and adds a separately trained light head. It improves
+some source counts/grouping but has its own false-positive limits; choose it
+explicitly to compare.
+
 The checkpoint has 22,593,925 parameters, of which 537,349 were trained. The raw,
 uncompressed file is 90,429,548 bytes. SHA-256:
 `02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c`.

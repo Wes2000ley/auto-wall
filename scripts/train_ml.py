@@ -124,6 +124,8 @@ def train(args):
         if args.backbone:
             raise ValueError("Choose --init-model or --backbone, not both.")
         model, _ = load_model(args.init_model, "cpu")
+        if getattr(model, "light_head", None) is not None:
+            raise ValueError("Use the segmentation-only base for segmentation training; changing its features would invalidate the trained light head.")
         if (model.architecture, model.width, model.context_dilation) != (args.architecture, args.width, args.context_dilation):
             raise ValueError("Initial model does not match the requested architecture, width, and context dilation.")
         initial_hash = hashlib.sha256(args.init_model.read_bytes()).hexdigest()

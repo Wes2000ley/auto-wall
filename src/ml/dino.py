@@ -17,7 +17,7 @@ class DinoBattlemap(nn.Module):
     width = 16
     context_dilation = 4
 
-    def __init__(self):
+    def __init__(self, light_centers=False):
         super().__init__()
         try:
             from transformers import Dinov2Config, Dinov2Model
@@ -30,6 +30,10 @@ class DinoBattlemap(nn.Module):
         self.backbone_training_layers = 0
         self.local = BattlemapNet(self.width, self.context_dilation)
         self.project = nn.Conv2d(384, 128, 1)
+        self.light_head = None
+        if light_centers:
+            from src.ml.light_centers import LightCenterHead
+            self.light_head = LightCenterHead()
         self.register_buffer("mean", torch.tensor([.485, .456, .406])[None, :, None, None])
         self.register_buffer("std", torch.tensor([.229, .224, .225])[None, :, None, None])
 
@@ -47,6 +51,10 @@ class DinoBattlemap(nn.Module):
         self.backbone_training_layers = count
 
     def forward(self, image):
+        return self.local.head(self.forward_features(image))
+
+    def forward_features(self, image):
+        """Full-resolution decoder features shared by segmentation and point heads."""
         local = self.local
         a = local.enc1(image)
         b = local.enc2(F.max_pool2d(a, 2))
@@ -72,4 +80,4 @@ class DinoBattlemap(nn.Module):
         for skip, decoder in ((c, local.dec3), (b, local.dec2), (a, local.dec1)):
             x = F.interpolate(x, size=skip.shape[-2:], mode="bilinear", align_corners=False)
             x = decoder(torch.cat((x, skip), 1))
-        return local.head(x)
+        return x

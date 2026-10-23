@@ -1,10 +1,55 @@
 # ML experiments and geometry checkpoint — 2026-10-22
 
-The bundled DINO model remains the selected comparison checkpoint. Two additional
-3000-step training runs improved individual cases but did not consistently improve
-structural accuracy. The successful application changes are optional shaded-jamb
-recovery, preservation of sloped jamb intersections, and less work in door clipping.
-The palette detector and compact model remain available. ML is not the default.
+The selected DINO segmentation tensors are retained. A new optional light-center
+model shares those exact features and learns only a small additional head. Earlier
+3000-step full-decoder/adaptation trials improved individual cases but regressed
+some walls and gates. Palette detection remains the default.
+
+## Light-center checkpoint
+
+Trials 13–14 each completed 2400 steps on the RTX 3080. Both trained 14,569 new
+parameters while freezing all 313 base tensors. The first, full-resolution head
+still split the training campfire into three lights and missed three stone-camp
+sources. The second pooled to quarter resolution to widen its local context.
+It found all nine wooden-camp sources with no extras and 12/13 stone-camp sources
+with no extras, including one center per fire. Temple output remained 30 sources.
+The normal pipeline removed the three observed ink pool-light false positives.
+
+Selection used only the stone layout and reviewed regions of the ink validation
+layout, at a fixed point score of 0.35. Trial 14 selected step 1350. The two runs
+took 287.01 s and 268.42 s including final review. Initial nearest-neighbor heatmap
+upsampling created spurious plateau peaks in the coarse prototype; a synthetic
+adjacent-source check exposed it, and bilinear interpolation corrected it before
+trial 14 began. The failed prototype and first training run are preserved.
+
+The optional model is `battlemap-dino-lights-v1.safetensors`. It has its own
+**Light center score** control and `ml-light-centers.json` profile. The public
+`scripts/train_light_centers.py` accepts point annotations and reviewed-region
+masks, checks whole-layout separation, and verifies unchanged segmentation hashes
+before saving. Both CPU toy training and a two-step CUDA run on the actual data
+completed and saved app-loadable checkpoints; that short integration run is not
+an accuracy experiment.
+
+Normal loader/detector/export checks on ten maps kept all wall, door, and
+transparent geometry exactly identical. Source PNG bytes also matched on all ten.
+Both camps' raw segmentation labels and probabilities were bitwise identical.
+Five-run warm detection medians were 0.287–0.405 s for the new model, compared
+with 0.264–0.398 s for the original in the paired run. Startup, decoding, drawing,
+and writing are excluded. Sharing features keeps the additional light-head cost
+small, but it does not make the base model faster.
+
+The new palisade map now has one fire center instead of four, but also gains a
+false flower-cluster light. Astral decorative stars remain false candidates and
+spaceship cool emitters remain missed. These observed test layouts expose limits;
+they are not used to claim general improvement. The model stays optional. See
+its [model card](../models/DINO_LIGHTS_MODEL_CARD.md) for the full paired table,
+training provenance, and failure details.
+
+Current validation: **147 tests passed**, three dependency warnings. Actual Qt
+workers detected and exported both camps, the score control invalidated stale
+exports and recomputed, and PNG bytes matched. A clipped ML-tab explanation was
+shortened after inspecting the actual preview. Live Foundry import, other GPUs,
+other operating systems, and release packaging remain untested in this checkpoint.
 
 ## What changed in the application
 
@@ -115,6 +160,8 @@ The default remains the simpler frozen-backbone training path.
 | 10 | Frozen MobileNetV4-small multiscale features | 1050 | Score 0.6705; fewer useful gates than DINO |
 | 11 | Add procedural structures, varied materials/colors and light types | 2250 | Score 0.8420; improved lights but missed a stone gate and wall probes |
 | 12 | Same mixture; train the final two DINO blocks and final normalization | 2550 | Score 0.8160; improved ink doors after recovery, with stone-wall regressions |
+| 13 | Frozen base; full-resolution light-center head | 1800 | Light F0.5 0.9434; misses and fragmented campfire, not selected |
+| 14 | Frozen base; wider context for light centers | 1350 | Light F0.5 0.9836; optional point-light model, unchanged base geometry |
 
 Scores are **not comparable across changed annotations and selection protocols**.
 Trials 6–7 selected geometry using the stone map; trials 8 onward use both observed
@@ -155,7 +202,7 @@ incorrect/missing gate span for this checkpoint choice. Raw runs, source snapsho
 labels, and failed alternatives remain local and uncompressed; private map artwork
 is not redistributed in Git.
 
-## Validation and remaining work
+## Validation of the preceding jamb checkpoint
 
 The full suite passed: **138 tests**, with three dependency deprecation warnings.
 Focused sloped-jamb, opening-clearance, confidence-anchor, transparency, settings,

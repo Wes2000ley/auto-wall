@@ -328,7 +328,7 @@ class FastSetupDialog(QDialog):
         lights.addRow("Range (squares)", self.light_range)
         self._add_tab("Lights", lights)
         ml = QFormLayout()
-        explanation = QLabel("Optional learned detection for all three layers. Models are experimental; review the preview. See-through barriers are omitted from UVTT walls.")
+        explanation = QLabel("Local models are experimental. Review the preview before export.")
         explanation.setWordWrap(True)
         ml.addRow(explanation)
         self.model_path = QLineEdit()
@@ -351,14 +351,18 @@ class FastSetupDialog(QDialog):
         self.ml_wall = self._number(.5, 1, .9, decimals=2)
         self.ml_door = self._number(.5, 1, .9, decimals=2)
         self.ml_light = self._number(.5, 1, .9, decimals=2)
+        self.ml_light.setToolTip("Light-pixel threshold for models without light-center prediction.")
+        self.ml_light_center = self._number(.05, 1, .35, decimals=2)
+        self.ml_light_center.setToolTip("For models that find whole light sources. Higher scores accept fewer sources; this is not a measured accuracy percentage.")
         ml.addRow("Wall confidence", self.ml_wall)
         ml.addRow("Door confidence", self.ml_door)
         ml.addRow("Light confidence", self.ml_light)
+        ml.addRow("Light center score", self.ml_light_center)
         self.ml_recover_jambs = QCheckBox("Recover shaded door jambs")
         self.ml_recover_jambs.setToolTip("Use connected, lower-confidence wall predictions only beside supported doors. Review the result.")
         self.ml_recover_jambs.toggled.connect(self.settings_changed)
         ml.addRow(self.ml_recover_jambs)
-        ml_note = QLabel("Model selection replaces color detection. Geometry, size limits, and door-jamb checks still apply. Higher confidence accepts fewer candidates.")
+        ml_note = QLabel("Point models use Light center score. Other models use Light confidence and the Lights tab's area limits.")
         ml_note.setWordWrap(True)
         ml.addRow(ml_note)
         self._add_tab("ML", ml)
@@ -538,7 +542,8 @@ class FastSetupDialog(QDialog):
                             light_saturation=self.saturation.value(), light_range=self.light_range.value(),
                             model_path=self.model_path.text(), ml_device=self.ml_device.currentData(),
                             ml_wall_confidence=self.ml_wall.value(), ml_door_confidence=self.ml_door.value(),
-                            ml_light_confidence=self.ml_light.value(), ml_recover_jambs=self.ml_recover_jambs.isChecked())
+                            ml_light_confidence=self.ml_light.value(), ml_light_center_threshold=self.ml_light_center.value(),
+                            ml_recover_jambs=self.ml_recover_jambs.isChecked())
 
     def apply_settings(self, settings):
         """Use the same settings in GUI and headless runs."""
@@ -569,7 +574,8 @@ class FastSetupDialog(QDialog):
                               (self.min_light, settings.light_min_area), (self.max_light, settings.light_max_area),
                               (self.light_core, settings.light_core_fraction), (self.light_fill, settings.light_min_fill),
                               (self.light_range, settings.light_range), (self.ml_wall, settings.ml_wall_confidence),
-                              (self.ml_door, settings.ml_door_confidence), (self.ml_light, settings.ml_light_confidence)):
+                              (self.ml_door, settings.ml_door_confidence), (self.ml_light, settings.ml_light_confidence),
+                              (self.ml_light_center, settings.ml_light_center_threshold)):
             # Imported profiles may exceed a control's convenient initial range.
             # Expand it instead of silently changing a valid detector setting.
             widget.setRange(min(widget.minimum(), value), max(widget.maximum(), value))

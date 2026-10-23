@@ -17,6 +17,7 @@ from src.ml.network import BattlemapNet, CLASSES
 
 FORMAT = "auto-wall-unet-v1"
 DINO_FORMAT = "auto-wall-dino-v1"
+DINO_LIGHTS_FORMAT = "auto-wall-dino-lights-v1"
 
 
 def save_model(path, model, details):
@@ -24,6 +25,8 @@ def save_model(path, model, details):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     model_format = DINO_FORMAT if model.architecture == "dino" else FORMAT
+    if model.architecture == "dino" and model.light_head is not None:
+        model_format = DINO_LIGHTS_FORMAT
     metadata = {"format": model_format, "classes": json.dumps(CLASSES),
                 "width": str(model.width), "context_dilation": str(model.context_dilation),
                 "details": json.dumps(details, allow_nan=False)}
@@ -59,7 +62,7 @@ def _cached_model(path, modified, size, device):
     with safe_open(path, framework="pt", device="cpu") as source:
         metadata = source.metadata() or {}
         model_format = metadata.get("format")
-        if model_format not in (FORMAT, DINO_FORMAT) or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
+        if model_format not in (FORMAT, DINO_FORMAT, DINO_LIGHTS_FORMAT) or json.loads(metadata.get("classes", "[]")) != list(CLASSES):
             raise ValueError("This is not a compatible Auto-Wall segmentation model.")
         width = int(metadata.get("width", "0"))
         if width not in (8, 16, 24, 32):
@@ -67,11 +70,11 @@ def _cached_model(path, modified, size, device):
         dilation = int(metadata.get("context_dilation", "1"))
         if dilation not in (1, 2, 4):
             raise ValueError("Unsupported model context dilation.")
-        if model_format == DINO_FORMAT:
+        if model_format in (DINO_FORMAT, DINO_LIGHTS_FORMAT):
             if width != 16 or dilation != 4:
                 raise ValueError("Unsupported DINO decoder configuration.")
             from src.ml.dino import DinoBattlemap
-            model = DinoBattlemap()
+            model = DinoBattlemap(light_centers=model_format == DINO_LIGHTS_FORMAT)
         else:
             model = BattlemapNet(width, dilation)
         state = {key: source.get_tensor(key) for key in source.keys()}
@@ -82,10 +85,12 @@ def _cached_model(path, modified, size, device):
     return model.to(device).eval(), details
 
 
-def predict(model, image, cancelled=None, progress=None, tile_size=384):
+def predict(model, image, cancelled=None, progress=None, tile_size=384, include_light_centers=False):
     """Predict BGR uint8 pixels with a context halo and bounded GPU memory.
 
     Output is (class IDs, winning probabilities); the caller decides thresholds.
+    With include_light_centers, append a heatmap, or None for older models.
+    Segmentation uses the same features and tiles regardless of this option.
     Compact CNN halos exceed its receptive radius and are discarded. DINO uses
     bounded attention windows with this overlap; its predictions can vary with
     tile context and are not identical to whole-image transformer inference.
@@ -97,6 +102,8 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384):
     height, width = image.shape[:2]
     classes = np.empty((height, width), np.uint8)
     confidence = np.empty((height, width), np.float32)
+    light_head = getattr(model, "light_head", None) if include_light_centers else None
+    light_heatmap = np.empty((height, width), np.float32) if light_head is not None else None
     device = next(model.parameters()).device
     halo = 64 if model.context_dilation == 1 else 128
     tiles = ((height + tile_size - 1) // tile_size) * ((width + tile_size - 1) // tile_size)
@@ -113,7 +120,14 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384):
                 tensor = torch.from_numpy(rgb).to(device=device, dtype=torch.float32).unsqueeze(0) / 255
                 tensor = F.pad(tensor, (0, (-tensor.shape[3]) % 8, 0, (-tensor.shape[2]) % 8), mode="replicate")
                 with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
-                    logits = model(tensor)
+                    if light_head is None:
+                        logits = model(tensor)
+                    else:
+                        features = model.forward_features(tensor)
+                        logits = model.local.head(features)
+                        light_scores = light_head(features, tensor).float().sigmoid()
+                        light_scores = F.interpolate(light_scores, size=tensor.shape[-2:],
+                                                     mode="bilinear", align_corners=False)[0, 0]
                 probabilities, labels = logits[0].float().softmax(0).max(0)
                 if not torch.isfinite(probabilities).all():
                     raise RuntimeError("The model produced nonfinite probabilities.")
@@ -121,7 +135,13 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384):
                 region = np.s_[y - y0:end_y - y0, x - x0:end_x - x0]
                 classes[y:end_y, x:end_x] = labels[region].cpu().numpy().astype(np.uint8)
                 confidence[y:end_y, x:end_x] = probabilities[region].cpu().numpy()
+                if light_heatmap is not None:
+                    if not torch.isfinite(light_scores).all():
+                        raise RuntimeError("The model produced nonfinite light scores.")
+                    light_heatmap[y:end_y, x:end_x] = light_scores[region].cpu().numpy()
                 completed += 1
                 if progress:
                     progress(f"ML segmentation: {completed}/{tiles} tiles")
+    if include_light_centers:
+        return classes, confidence, light_heatmap
     return classes, confidence

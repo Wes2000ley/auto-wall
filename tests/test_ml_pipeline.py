@@ -92,7 +92,8 @@ def test_learned_rectangle_next_to_parallel_wall_does_not_protect_noise(monkeypa
 
 @pytest.mark.parametrize("change", [dict(model_path=42), dict(ml_device="magic"),
                                     dict(ml_wall_confidence=.49), dict(ml_door_confidence=float("nan")),
-                                    dict(ml_light_confidence=1.1), dict(ml_recover_jambs=1)])
+                                    dict(ml_light_confidence=1.1), dict(ml_recover_jambs=1),
+                                    dict(ml_light_center_threshold=.01), dict(ml_light_center_threshold=float("nan"))])
 def test_invalid_ml_settings(change):
     with pytest.raises(ValueError):
         replace(FastSettings(), **change).validate()
@@ -103,7 +104,7 @@ def test_model_controls_roundtrip_and_clear(qt_app, monkeypatch):
     from src.gui.fast_setup import FastSetupDialog
     settings = replace(FastSettings(), model_path="test.safetensors", ml_device="cuda",
                        ml_wall_confidence=.94, ml_light_confidence=.95, ml_door_confidence=.96,
-                       ml_recover_jambs=True)
+                       ml_recover_jambs=True, ml_light_center_threshold=.65)
     dialog = FastSetupDialog()
     dialog.apply_settings(settings)
     assert dialog.settings() == settings

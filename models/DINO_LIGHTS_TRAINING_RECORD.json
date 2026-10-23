@@ -1,0 +1,766 @@
+{
+  "format": "auto-wall-dino-lights-v1",
+  "base_sha256": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c",
+  "parameters": 14569,
+  "steps": 2400,
+  "lr": 0.0005,
+  "seed": 73113,
+  "crop_size": 384,
+  "batch_size": 4,
+  "real_crops": 3,
+  "synthetic_crops": 1,
+  "stride": 4,
+  "sigma": 1.25,
+  "selection_threshold": 0.35,
+  "nms_radius": 3,
+  "initialization": "None",
+  "source_sha256": "5ff567ad6e74cf102e1d1d659f802dc07faf8e80f3772b5cae86ffa116c2f7f0",
+  "architecture": "DINOv2-small + original segmentation decoder + stride-4 light center head",
+  "selected_step": 1350,
+  "head_sha256": "4b2ef8ffd70972eccf1b7b466c0d7935a7c4080251c213f9e7f148078edd2532",
+  "segmentation_tensors_unchanged": 313,
+  "base_model": "battlemap-dino-v1.safetensors",
+  "training_seconds": 268.4160170000396,
+  "peak_allocated_bytes": 512191488,
+  "torch": "2.11.0+cu128",
+  "device": "NVIDIA GeForce RTX 3080",
+  "method_reference": "https://arxiv.org/abs/1904.07850",
+  "selection": "Light F0.5 at score 0.35 on stone and reviewed regions of Dyson map 14; whole layouts kept separate.",
+  "limitations": "Agent-reviewed small dataset, not independent human ground truth. Flowers and decorative stars can be false lights. Small lanterns and cool emitters remain missed. Optional comparison model, not default.",
+  "samples": [
+    {
+      "id": "temple",
+      "group": "temple_family",
+      "split": "train",
+      "center_annotation": "Centers of the 30 previously reviewed connected flame labels.",
+      "source_sha256": "e6fc750df1bf11c1b53552a24dedbb308d330297bf038f7f71c9c8c4741f626c",
+      "valid_sha256": "9addad1633d8d05d21dede69524ab16646ea032a29af8418f927a1a3877c5631",
+      "points_sha256": "fec4c6a8d7baaf32edee6bad8890cdb6f8ca7ff4dd7c88312efbb7c6bd19aae7",
+      "centers": 30
+    },
+    {
+      "id": "wood",
+      "group": "wood_camp",
+      "split": "train",
+      "center_annotation": "Existing manually reviewed physical-light centers; complete list.",
+      "source_sha256": "58d984b39751bf761aa15833bb9fa23f93c5689d478612527614072e8ff6f250",
+      "valid_sha256": "e59431a8de62b1a56bd278921f7085ed320a6e8c474ff758482e2cfab1c121af",
+      "points_sha256": "70e63938fb90a596affb1f0ea2a1fa60d47bddfd7156475b8d3fbb00bd8a3a9d",
+      "centers": 9
+    },
+    {
+      "id": "stone",
+      "group": "stone_camp",
+      "split": "validation",
+      "center_annotation": "Existing manually reviewed physical-light centers; complete list.",
+      "source_sha256": "af61029dec1e45b55ba61343755714e5103fcaba9bbc1726ea4a664a2ca0111e",
+      "valid_sha256": "9addad1633d8d05d21dede69524ab16646ea032a29af8418f927a1a3877c5631",
+      "points_sha256": "478657efd799e161184b49fe1dd72e6abd5d1104a2a46eface8fdd9da2e78cdf",
+      "centers": 13
+    },
+    {
+      "id": "dyson-13",
+      "group": "dyson-index-card-II-13",
+      "split": "train",
+      "center_annotation": "Only existing reviewed wall/floor/door regions are light negatives; all other pixels ignored.",
+      "source_sha256": "a726939580f6543d2d998bc3d5118811b081b36e1f4d64ea1b6a7a20be9617f8",
+      "valid_sha256": "6a5535760a3a0ee5a0ff4960c6fa7664c21bd38d847530d4a4b583aabeedc996",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "dyson-14",
+      "group": "dyson-index-card-II-14",
+      "split": "validation",
+      "center_annotation": "Only existing reviewed wall/floor/door regions are light negatives; all other pixels ignored.",
+      "source_sha256": "4ace0a00828f531a224cdc90b3ff6ea0721d5cf3e6afc34423d303669f8232cc",
+      "valid_sha256": "b0ec670837af0bfae64d4ebeecbb0951954e27cdb015a5e7ab98b269840753ba",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-000-stone",
+      "group": "procedural-layout-876000",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "542b6cfe604632d51703073ed0ef7df9c1f633b3acbdfa6261357691bfec703d",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "db6b3bfc6898e6e80a84848f09d01dc3c3f7aeb8bc497f7a634ba48dda8c2859",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-001-palisade",
+      "group": "procedural-layout-876001",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "69b121dc5ae9f1bd1e9c6d5a064425946116f3c91d6b50161f5adf302993777f",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "1d49f24758b104170683bd17a82b2b5cb03067b1c421bbfbe807d86ff3420d30",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-002-panels",
+      "group": "procedural-layout-876002",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "a51b94e9e2b294dd01f160ca7d5eebe5e0e39aa81756609df1ed11c3f6ed4c64",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "b5f268a8965b266ae0e4e77769102f893ad8f3c828c7bd12090fdea8445cc6dd",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-003-ink",
+      "group": "procedural-layout-876003",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "93a76e505f089afb36b3e6e91fc620a29fc28450e6fe5febdd438b683a7daf44",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-004-stone",
+      "group": "procedural-layout-876004",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "1af7a5b8399876f3e0b44225af1dfcb4181b542ba6ef8e186bab50fe3cdf0757",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "536793421d45fe2d73f276516c4270525ab3987714056abba10d48bc55ccb905",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-005-palisade",
+      "group": "procedural-layout-876005",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "8d786efa809502a1d8fdbef77f259a95cd21192920f61a0bc7bbd81276822245",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "e14856e59bb2f851e89875075ef0c86b5f9312ebdaf7e8bbdd014dc69acdc2c0",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-006-panels",
+      "group": "procedural-layout-876006",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "39b48c5cb7491ded204850fd134398440e1dab36392975804afc7bc486bbaeef",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "e67aeb460ef6519028279410b3eb37f8956620efea6721a2ae27d75eae671a89",
+      "centers": 8
+    },
+    {
+      "id": "synthetic-007-ink",
+      "group": "procedural-layout-876007",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "4e09dba257dc406532fa5b6e6db7415662a2bb7e2d8f3c13bf05d217b504f4c5",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-008-stone",
+      "group": "procedural-layout-876008",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "9698e893d3f54934ac1635136b6d7aec79745b0ce52a7599da1466f7c385c923",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "9c275cada61bcdef706eb591d83167d49ad9fa4ae79ae9873eedf597e22eaed8",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-009-palisade",
+      "group": "procedural-layout-876009",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "d00402aba6bcb784e3a5532dcf7a4fae7541083f5efbd31d4da8e689ab2305f9",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "cb75f7a67cda173e4d032a23338f0f33f5c4fbc95576fbc0f442ff1a268c4094",
+      "centers": 12
+    },
+    {
+      "id": "synthetic-010-panels",
+      "group": "procedural-layout-876010",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "d7fa664e145c5a0df083f718a14aa3bd358d0319b1f2d38ef5eb3206a828ec37",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "8b26a48095e9f48bf76f9d31564d2d379bd76d8d1be9d99ac875fcae2852ae26",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-011-ink",
+      "group": "procedural-layout-876011",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "51036397ec7e529d2d92fa80484437006d8a94caad79b621423e6d511126437c",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-012-stone",
+      "group": "procedural-layout-876012",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "81bf7d3c5ec2447ed67103734ac5ccb99b5b0331a2c322bd781a332fbeed9acc",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "0fd06aabc37c319e76440ccc94a15646763f447ea9a75c9a6b84673ac95e5ff0",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-013-palisade",
+      "group": "procedural-layout-876013",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "152fd4512b86961220dbba9d8b594c3250523b7d938a2ea77dcc450c69338377",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "c250a03dde761f57e3d2653280a5a06e139f57351cf3cf6abeb039e65a0ed435",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-014-panels",
+      "group": "procedural-layout-876014",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "bba63d9012d989deb6af437eeb682a9bcaabc39d2bfbcb60f924a4fa2f6a85c3",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "aec20a9487b5d0635d6c0d46c04ee03ce7eae4c268cc90e53c23e7fa7a77358f",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-015-ink",
+      "group": "procedural-layout-876015",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f0de2cd6ce1572c52e2d6839924883901b8ade26517d28dc66ed4714245a3e9f",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-016-stone",
+      "group": "procedural-layout-876016",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "03433f744b65b8560b1577a0dcfa4ee46a794847c9110fcfad8bf5bb74c0ac5d",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "f078f0eb85d5216f10c49bc3b7c049bee8f1fea9db30c6f2c63eae6f6bafb7d4",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-017-palisade",
+      "group": "procedural-layout-876017",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "d43e2a0d92187a1c4efa49f3c2a478cfd64714f193c627c8b7e47d27d170337c",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "15ac8ce8b06b88f5c6700a9a9d863992648624f675158a0e703a7bd1660482da",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-018-panels",
+      "group": "procedural-layout-876018",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "e246448f877f7e3096624abeb606f267dd189a4cf0fb14c4341392fd19cdd376",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "3db097a4feb0330c722bb0052cbd17587cba70ce33a68965053c75a44539ef69",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-019-ink",
+      "group": "procedural-layout-876019",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "2da4bf72ad7f10dcbfe406d5a89ad3a56a436ee2dfbb4bacb2fe768efa7c997a",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-020-stone",
+      "group": "procedural-layout-876020",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "e75a8e0840ebd6f261e63e6a67cda2a0f103bc3e254a55c4c3662016ae394ba4",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "15d2fd7f5a31999869e18e10864cdcc18ac158da28388864eb4e2c1abd0467e1",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-021-palisade",
+      "group": "procedural-layout-876021",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "9bf18c0f01fa2125fb9d9e0a58f98504f143d042caf5c60690bf0e012d7a28e2",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "c4cb34134aeab2799146d6c1bfa75ed9714ea68687c3694f0db4ad9c42968fb8",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-022-panels",
+      "group": "procedural-layout-876022",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "75f6d2367427da15d6547236ffd003446ead6758c2556cf0e10a8336be648877",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "305d93f5ec2f9d1d09106e23fed36b05dfc755d79bad5bd7b0a695947633932a",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-023-ink",
+      "group": "procedural-layout-876023",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "cb4b415bcc3fe4c5e1dd31db24b283d6e944a7a21a28350200faad6de6180312",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-024-stone",
+      "group": "procedural-layout-876024",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "3efc47a4c7c475770db782d5f76191a4784f54b6d327f64ce1ba3429e97ccb86",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "2a935f89164918c7d59c760dbd830ad1293e1cf4d4b2c16a70fa1d4bee025e10",
+      "centers": 8
+    },
+    {
+      "id": "synthetic-025-palisade",
+      "group": "procedural-layout-876025",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f2e6a59a6d75f12417bdb710d46e885ed3c493ff2343e5f932b961f0f339ff87",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "1f3f39470ae53ffb8925d5eedf71b5b74bc9511b255dcc5284e0ad41ea1fe5ab",
+      "centers": 12
+    },
+    {
+      "id": "synthetic-026-panels",
+      "group": "procedural-layout-876026",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "cb38053d2532469337e96df6085d845cc4b37e4516c600646338e704708577c1",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "dbebf6af90f7750a3a25eb4c470eb720a4ee6d47984a1b7507d8970eb94fdc05",
+      "centers": 8
+    },
+    {
+      "id": "synthetic-027-ink",
+      "group": "procedural-layout-876027",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "184982f5d3965edd1dd68decd054106f4892a0fc5b6da5509e3e72df1c2d09c5",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-028-stone",
+      "group": "procedural-layout-876028",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f158cc3ae6c63bc09b753fa530b2630020bb675bd3a9c83e3fb33daa351d42a4",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "7c17819840ec9458240461eb03aa9e5239b0196aaaa1ebc9eb01933f30d625ff",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-029-palisade",
+      "group": "procedural-layout-876029",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "2f289550a06866b2b0b55211cf2c5948c30e439bc540206818296dcbb0a2704d",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "22a9c6ebecee1bce54699bd36f8b4c55203a03efb422ca71e2f38952d548d2a7",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-030-panels",
+      "group": "procedural-layout-876030",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "8053114c1a0e3ea03a64b72b007b9a5b236315c00d4d7703154f628e869c6218",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "e7df6016185f5295b5ed8e30dfa3e67f2bf1486fd0e0983baaa690235ad20b89",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-031-ink",
+      "group": "procedural-layout-876031",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "01dabd46f65439ec62ffb254c675f1895cee42e246aa95d0982b8a8935d4521c",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-032-stone",
+      "group": "procedural-layout-876032",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "42df8b8c48849fb5f28c5ad69c6416c53162e50b8f5571a6481435f5b1875150",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "cd71d904e3674dc7b1bf28c7260e688050b81d18226b99e43b10de0ea35c5764",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-033-palisade",
+      "group": "procedural-layout-876033",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "67c494d2c9855a2335752ac3fc74db3842f5eee5b319fae254a01907a49f7097",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "f259ac69cbbd3dd812b5e8f44c76b975eae2b134b9a19624e41c5776db799e5c",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-034-panels",
+      "group": "procedural-layout-876034",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "544da7cfb173d1f20a902d60976cf31e17eddf203ebb87d6ace9ec3ca13a7b6b",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "f8ed762e2fd184b1574adfa8bb656ba44251d75db2591d641fabf985e9d9811d",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-035-ink",
+      "group": "procedural-layout-876035",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "411c52571970a2267b789ba3c22bd8ddaed1cd5f5ae95a8cbf249cc13e0a2df1",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-036-stone",
+      "group": "procedural-layout-876036",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "5fb7d91970ceda4129c00d2e2f61f1f7e4ea99a94172fe46da4e4ee14c07ea02",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "6acff7666874b1d192aaeb2ed6d29a5574bbd608d9bde55f6855201254244699",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-037-palisade",
+      "group": "procedural-layout-876037",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "408a663f61ca1d6d846733c59f3ec11393b4a5b12b42eade73790f648b7305cf",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "31bb832b998bc5c53b1c4477309d12f99f2d1147c009663d0e1f3a5c996dd58c",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-038-panels",
+      "group": "procedural-layout-876038",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "b1efc544fcb3f5b8e68136c36ef1758926a7b55d3874de67da47cab926686bcc",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "5b810725abe67fac1bbf8732d2857508bd27333f0a4fb7f1f83f8413d2ecaa6a",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-039-ink",
+      "group": "procedural-layout-876039",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "1fe3db862f2d8929e78a5582769536f9426fb21904218e84501a7481c06e37f9",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-040-stone",
+      "group": "procedural-layout-876040",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "b8abd877e01c2ba31fe08aea162402658f76dd3beefe9e5b233f603a31b73fff",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "0b5380acbe91502a3ca0de08f75e62bc8e0f97777ccdaf64b2e5f1a030549cf7",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-041-palisade",
+      "group": "procedural-layout-876041",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "bb768aa4398d0463c108c8976bb5ce03a72f36150dc577cb18cb938dd435e17b",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "ad7c7d808faaa3f6d389854369472f6801d2b3b6b284f8d79f1ec2b354db5339",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-042-panels",
+      "group": "procedural-layout-876042",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "361503f77759f4f86cdfba2849b10b46d2396be862f21a67f4fc252828a2804f",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "934f48b589af51f1f7916233fe6d2207509fdac121eca57bbac5d9693d158168",
+      "centers": 8
+    },
+    {
+      "id": "synthetic-043-ink",
+      "group": "procedural-layout-876043",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "dc98790d8be9066e764ceae5c58e8181bc94da7b215b5dc6aa187994cf21d578",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-044-stone",
+      "group": "procedural-layout-876044",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "e1ff3a6094cfa31cc13795b735b052d5bf824891f49448b75e0e5282193500b4",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "71290937dcd7672520125a1bd58d92ae976b44959bec4c9ac9aaa4746437a9f1",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-045-palisade",
+      "group": "procedural-layout-876045",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "71065e9013eaced863cec24a542c937f8c04f5f6aa00c472fe9c36ea31b88cea",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "f3a9dbbcfebece8a2a6699666047ec59ebe36d453021ce8ee0cc770d72ba21fa",
+      "centers": 12
+    },
+    {
+      "id": "synthetic-046-panels",
+      "group": "procedural-layout-876046",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "6dcfad20e8464af9f84eeaaeb616bb55bd2f8b25a3d9b7c563865b1d1cd373bb",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "372f42ffe27ce494c63f8856b54bca9a7506930499e43b752ba2b3fc9c21b2d1",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-047-ink",
+      "group": "procedural-layout-876047",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f9240546edae13d243cf6c74cd08349fffda761fc12a5cee1349c1d6b9cced74",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-048-stone",
+      "group": "procedural-layout-876048",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "fe345c5aba8146916ce14e8f9bde51b2fa52c01f8bc2cde46931d8f8f571ee7d",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "faf2eded79168ea79e2491e530837ee5f3d0c99cc5a431731f0b6814ab47d2aa",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-049-palisade",
+      "group": "procedural-layout-876049",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "c610f69bac9d3107781234ad4008f7333a2b7c0892422940c28d5e30bbd6722b",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "eb48133ddaf6d03da2201417d891529f14a122602196ea9799f1a6015cdd0c33",
+      "centers": 12
+    },
+    {
+      "id": "synthetic-050-panels",
+      "group": "procedural-layout-876050",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "b30e3d94cda02b0763b4fdf9eb6c33a16baf410967efdcc66d9cf825a3e09269",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "c5aca239992fc08cdf797e44fa6d3d456dd37e6a38feac8a051cebab1bb9af97",
+      "centers": 6
+    },
+    {
+      "id": "synthetic-051-ink",
+      "group": "procedural-layout-876051",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "4973db989f8585b8d10160bfca78bf106df45180d03379e041e651d672c4fc74",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-052-stone",
+      "group": "procedural-layout-876052",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "b0892f13f78679a79c8eae4f486a7377a5c382396c32c6cc7624e3be96c551b2",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "2eaba383f64076b553a42b5742fbc3de55948a45f06b63feb5ab970437bf5f5e",
+      "centers": 7
+    },
+    {
+      "id": "synthetic-053-palisade",
+      "group": "procedural-layout-876053",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "3881144698ba6c5143e0a831ba155eaa4fffcc771fa5d4a699741df47ac39d2f",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "777f72e134c7c059caaa249e102a3689c51da5198b70387307be0e7f4502a319",
+      "centers": 7
+    },
+    {
+      "id": "synthetic-054-panels",
+      "group": "procedural-layout-876054",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "a7103e63fe0c124dd770bb999caadced0b606e47530b6a4e5453b267baa40e37",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "d0622bc05fdb7f4c4e83b668ff53ab125b7d8715b333d8362fd3ae0c24fe7b4d",
+      "centers": 9
+    },
+    {
+      "id": "synthetic-055-ink",
+      "group": "procedural-layout-876055",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "e7d26872c4b7ee8a6863f54b5302e8999f569403eb8220d2c25f959c5d0ff276",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-056-stone",
+      "group": "procedural-layout-876056",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "85dac7309798b902068a60702cba18b5bd3f38cfbe39b2c3c0c25992a7dfdc33",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "67a06187a1b9f182dbbbb58f0913832bbf688c8e3fb533a82816bc42621b9625",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-057-palisade",
+      "group": "procedural-layout-876057",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "5e5a938c221b57c5d08399d18a94324b09624560cbe9f6097ce1f9e0be5dfe51",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "f84bc56b5ff39b52258c5d730613dfae8290331cfa70a50de1b1957b849e68bc",
+      "centers": 11
+    },
+    {
+      "id": "synthetic-058-panels",
+      "group": "procedural-layout-876058",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "277b8559c8aad70932d1c1807f9a229d9832468e471cf7a6566da88ca95daf93",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "36572761d1382e2e5451d7f08bffe42955ec8cd6940c8dea4f85c329433f59d1",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-059-ink",
+      "group": "procedural-layout-876059",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f8f64c59574e4a4dab034afb855d80ba48bf3a93be68171a12a0ca9d54d2b631",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    },
+    {
+      "id": "synthetic-060-stone",
+      "group": "procedural-layout-876060",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "c16d6a8589cae7266d1d52e92665287fc4a4680a6aeede5a113406c4db9ca8de",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "d20a06658ccded217549e28575e462aa4705c3a914778d1dd5230b461b6c55ca",
+      "centers": 10
+    },
+    {
+      "id": "synthetic-061-palisade",
+      "group": "procedural-layout-876061",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "0478534a1ef0333e7af17dad46865635ba924b5be28d31e088f803b64825193c",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "65abf48a6ab7dcd7363a8549a8e247c2bd676bf758d11c240f94d265c7fe7b07",
+      "centers": 7
+    },
+    {
+      "id": "synthetic-062-panels",
+      "group": "procedural-layout-876062",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "255a73f6cb5fc769bee5a0e07a3e3b06234446ed9eacab8974928c9e579ec585",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "c15138ba108a1d2301007b109cf2f3b52334ec161d8a23b42dafd968636afcad",
+      "centers": 12
+    },
+    {
+      "id": "synthetic-063-ink",
+      "group": "procedural-layout-876063",
+      "split": "train",
+      "center_annotation": "Exact procedural emitter centers, independent layout seeds.",
+      "source_sha256": "f4644cf606331d29782d74b40fabb4ca98e4f54350fcb4737e7e149992f05fad",
+      "valid_sha256": "58df1370a8ca67ffd35cde32d113e394baf20f4be4b09c235d806cfd796c7a83",
+      "points_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "centers": 0
+    }
+  ],
+  "review": {
+    "temple": {
+      "matched": 30,
+      "truth_count": 30,
+      "prediction_count": 30,
+      "all_peak_count": 30,
+      "complete_annotation": true
+    },
+    "wood": {
+      "matched": 9,
+      "truth_count": 9,
+      "prediction_count": 9,
+      "all_peak_count": 9,
+      "complete_annotation": true
+    },
+    "stone": {
+      "matched": 12,
+      "truth_count": 13,
+      "prediction_count": 12,
+      "all_peak_count": 12,
+      "complete_annotation": true
+    },
+    "dyson-13": {
+      "matched": 0,
+      "truth_count": 0,
+      "prediction_count": 0,
+      "all_peak_count": 0,
+      "complete_annotation": false
+    },
+    "dyson-14": {
+      "matched": 0,
+      "truth_count": 0,
+      "prediction_count": 0,
+      "all_peak_count": 0,
+      "complete_annotation": false
+    }
+  },
+  "credits": [
+    "DINOv2-small: Meta Platforms, Inc.; Apache-2.0; see models/licenses/DINOv2.txt.",
+    "Ink map training/validation: Cartography by Dyson Logos; provenance and usage in DINO_MODEL_CARD.md.",
+    "User-supplied map artwork is not redistributed; procedural maps were generated locally."
+  ],
+  "packaged_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+  "packaged_bytes": 90523296
+}
