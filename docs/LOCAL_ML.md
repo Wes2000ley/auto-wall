@@ -330,6 +330,12 @@ failed refinements, performance, and evaluation limits.
 
 ### Generate procedural fixture and lookalike examples
 
+For additional artist-created sample layouts with reviewed light centers, use
+the [public light dataset](OPEN_LIGHT_DATA.md). Its preparation script verifies
+original downloads and preserves layout splits, character exclusions, and source
+attribution. It also provides a fixed-checkpoint evaluation command with saved
+coordinates and raw BMP overlays.
+
 ```shell
 python scripts/generate_light_maps.py dataset/procedural-lights --count 72 --seed 901000
 ```

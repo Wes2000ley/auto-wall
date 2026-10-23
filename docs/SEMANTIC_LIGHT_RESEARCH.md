@@ -95,7 +95,7 @@ local weights does not preserve outputs after the added context learns.
 | New camp, observed test | 6/6 + 2 | 6/6 + 6 | 6/6 + 2 |
 | Eight procedural test seeds | 63/63 + 8 | 49/63 + 34 | 61/63 + 8 |
 
-Neither checkpoint replaces v2. The current validation set has warm sources
+Neither checkpoint replaces v2. The trial-21 validation set has warm sources
 and reviewed ink regions but no marked cool fixtures; its winning score is
 insufficient evidence of broad improvement. Test layouts remain excluded from
 training and checkpoint selection. More diverse, separately annotated validation
@@ -195,6 +195,69 @@ remain in that suite; the ten-map timing run used outline geometry.
 Live Foundry import, other GPUs/operating systems, and release packaging were not
 run. The check uses existing UVTT behavior, not a new native Foundry wall format.
 
+## Public artwork expansion: trial 22
+
+Trial 22 adds [ten reviewed public maps](OPEN_LIGHT_DATA.md) with 59 marked
+sources. Labels and splits were fixed before predicting on those images. Puny
+maps sharing the same four-room structure remain together in training. The
+expanded validation set contains five maps and 21 sources, including one cool
+portal. Sprite families overlap across splits, so this tests new layouts within
+those families rather than wholly unfamiliar art.
+
+Starting from bundled semantic v2, the run trained the light head for 4,800 steps
+at learning rate 0.0001, with 384 px crops, two real and two procedural crops per
+batch, sample-normalized loss, and seed 73113. The original segmentation remained
+frozen. Validation F0.5 at the fixed 0.35 threshold selected step 2,850; the earliest
+checkpoint wins a tie. Test images did not participate in that selection.
+
+| Reviewed region | Bundled v2 | Trial 22, step 2,850 |
+| --- | --- | --- |
+| Expanded validation, all five maps | 16/21 + 5 | 17/21 + 1 |
+| Stone camp, validation subset | 12/13 + 0 | 11/13 + 1 |
+| Castle 3, validation subset | 4/7 + 0 | 6/7 + 0 |
+| Puny 5, validation subset | 0/1 + 5 | 0/1 + 0 |
+| Castle 4, first-use test | 2/2 + 0 | 2/2 + 0 |
+| Puny 3, first-use fire-jet test | 0/7 + 16 | 1/7 + 3 |
+| New camp, previously observed test | 6/6 + 2 | 6/6 + 0 |
+| Astral, partial previously observed test | 20/20 + 2 | 18/20 + 1 |
+| Eight earlier procedural test seeds | 63/63 + 8 | 62/63 + 4 |
+| Ship, partial training | 38/39 + 1 | 38/39 + 1 |
+
+Entries are matches / annotated sources, followed by unmatched predictions.
+An unmatched prediction can be a displaced or duplicated point on a real emitter.
+For example, Puny 5's five baseline extras are three gate-post detections and two
+points on the portal rim. Trial 22 removes those points but still misses its
+annotated center. It also removes the two flower detections on the newer camp.
+Its two new Astral misses are the side fixtures in the upper-left circular room.
+The sparse masks do not establish full-map precision.
+
+All 42 sources in the five new training maps are matched, with one extra. Both
+training portals are centered correctly, but the blue portal in a different
+validation layout is still missed. A diagnostic used 256, 384, 640, and 960 px
+inference tiles on training/validation portals only. Trial 22's maximum score
+within five pixels of the held-out portal center remained between 0.037 and
+0.085, below the 0.35 threshold. Larger tiles alone did not repair this failure;
+whole-image context also lost the training portals. No runtime tiling was changed.
+
+The last step scored 17/21 + 2 on validation and was not selected. Training took
+314.98 seconds, with 608,091,136 bytes of peak allocated CUDA tensors. This is not
+a controlled speed comparison. Independent safetensors inspection found all 323
+tensors finite in both checkpoints and all 313 segmentation tensors bit-identical
+to v2. Only the ten light-head tensors changed.
+
+The checkpoint remains a research result. Better aggregate validation precision
+does not justify the lost stone/Astral sources, and the reserved fire jets are
+still mostly missed. Bundled v2 and the application's model choice stay unchanged.
+Both raw checkpoints, exact training source snapshots, all 32 validation records,
+and per-image evaluations are retained locally. The
+[public trial record](../models/OPEN_LIGHT_DATA_TRIAL_22.json) records hashes,
+counts, the complete validation history, context probes, and evaluation limits.
+
+The full test suite passed 166 tests with three dependency deprecation warnings;
+Ruff, Python compilation, and diff whitespace checks passed. Live Foundry import,
+other GPUs/operating systems, and release packaging were not run for this data and
+training-tool change. No runtime inference or export implementation changed.
+
 ## Attribution
 
 The inherited DINOv2-small weights are by Meta Platforms, Inc. and affiliates,
@@ -204,3 +267,5 @@ under Apache 2.0. Preserve [the license](../models/licenses/DINOv2.txt) and
 weight hash, segmentation training, and structural limitations. Cartography by
 Dyson Logos is used under the recorded commercial-use map terms; source art is
 not redistributed.
+Trial 22 also uses sample maps by Gary Shaw, Shade, and Ferrin; their source
+pages, licenses, and preparation changes are recorded in [the dataset notes](OPEN_LIGHT_DATA.md).

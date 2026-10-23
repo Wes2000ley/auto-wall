@@ -1,0 +1,809 @@
+{
+  "format": "auto-wall-open-light-sources-v1",
+  "annotation_review": "Agent visual review of original artwork, before running any model predictions on these images. XY coordinates use source-image pixel centers; ignored rectangles use half-open source pixel bounds. Original downloaded bytes are retained; no remote code is executed. These are independent artist sample layouts, not independent human annotations.",
+  "split_notes": "Puny maps 1, 2, and 4 share the four-room structure and stay together in training. Castle maps use different layouts. Validation and test share sprite families with training; they do not establish generalization to wholly unseen artistic styles. The cavern style is validation only. Puny 5 supplies only one cool validation emitter; this remains a small validation set.",
+  "sources": {
+    "castle": {
+      "file": "castle-dungeon_tiles.zip",
+      "sha256": "710b9236b42b88cf95c39a50a96ea49a36058d805d58d0e57a6e6c4c05e65d60",
+      "artist": "Gary Shaw",
+      "license": "CC-BY-4.0",
+      "page": "https://opengameart.org/content/castle-dungeon",
+      "download": "https://opengameart.org/sites/default/files/castle-dungeon_tiles.zip"
+    },
+    "puny": {
+      "file": "puny_dungeon_v1.zip",
+      "sha256": "22fd85633ccd3d92ff7f4f036cc3934841ef497637f34e22c90431d479fa7954",
+      "artist": "Shade",
+      "license": "CC0-1.0",
+      "page": "https://opengameart.org/content/16x16-puny-dungeon-tileset",
+      "download": "https://opengameart.org/sites/default/files/puny_dungeon_v1.zip"
+    },
+    "cavern": {
+      "file": "cavern.png",
+      "sha256": "90955254e64cac4455044313c2ed00616fe1abd93bff5eacf10c9c868dbf80f0",
+      "artist": "Ferrin",
+      "license": "CC0-1.0",
+      "page": "https://opengameart.org/content/cavern-battlemap",
+      "download": "https://opengameart.org/sites/default/files/cavern_0.png"
+    }
+  },
+  "samples": [
+    {
+      "id": "castle-1",
+      "source": "castle",
+      "member": "Castle-Dungeon_Tiles/Sample_Map.png",
+      "image_sha256": "647d587fede6bef2661767e9f0cb72107c5473ad04ef017123e2dc5065c3ffe2",
+      "source_size": [
+        1920,
+        1920
+      ],
+      "output_size": [
+        1536,
+        1536
+      ],
+      "interpolation": "area",
+      "group": "castle-layout-1",
+      "split": "train",
+      "points": [
+        [
+          351,
+          209
+        ],
+        [
+          863,
+          209
+        ],
+        [
+          1055,
+          209
+        ],
+        [
+          1567,
+          209
+        ],
+        [
+          671,
+          657
+        ],
+        [
+          1119,
+          657
+        ],
+        [
+          1567,
+          657
+        ],
+        [
+          351,
+          1105
+        ],
+        [
+          799,
+          1105
+        ],
+        [
+          1247,
+          1105
+        ],
+        [
+          671,
+          1553
+        ],
+        [
+          1119,
+          1553
+        ],
+        [
+          1567,
+          1553
+        ]
+      ],
+      "negative_points": [
+        [
+          160,
+          864
+        ],
+        [
+          480,
+          664
+        ],
+        [
+          544,
+          1116
+        ],
+        [
+          1120,
+          1116
+        ],
+        [
+          800,
+          224
+        ],
+        [
+          544,
+          224
+        ]
+      ],
+      "ignore_rectangles": [],
+      "annotation": "Visible torch cores and one center per fireplace; gold trim, treasure, paintings, and water are background."
+    },
+    {
+      "id": "castle-2",
+      "source": "castle",
+      "member": "Castle-Dungeon_Tiles/Sample_Map2.png",
+      "image_sha256": "cc2cb1e2b416eab1084247e59d6cc76de64005593a9843d06b6f492f8766a1ee",
+      "source_size": [
+        1920,
+        1920
+      ],
+      "output_size": [
+        1536,
+        1536
+      ],
+      "interpolation": "area",
+      "group": "castle-layout-2",
+      "split": "train",
+      "points": [
+        [
+          351,
+          145
+        ],
+        [
+          543,
+          145
+        ],
+        [
+          1119,
+          181
+        ],
+        [
+          1695,
+          181
+        ],
+        [
+          863,
+          1553
+        ]
+      ],
+      "negative_points": [
+        [
+          736,
+          288
+        ],
+        [
+          160,
+          128
+        ],
+        [
+          736,
+          128
+        ],
+        [
+          352,
+          96
+        ],
+        [
+          1376,
+          182
+        ],
+        [
+          1440,
+          182
+        ]
+      ],
+      "ignore_rectangles": [],
+      "annotation": "Visible torch cores and one center per fireplace; gold trim, treasure, paintings, and water are background."
+    },
+    {
+      "id": "castle-3",
+      "source": "castle",
+      "member": "Castle-Dungeon_Tiles/Sample_Map3.png",
+      "image_sha256": "f096d4f9b5a2b802fea16edb5de9f7438933a2f17ec7bb74e0c06fd4b13f8055",
+      "source_size": [
+        1920,
+        1920
+      ],
+      "output_size": [
+        1536,
+        1536
+      ],
+      "interpolation": "area",
+      "group": "castle-layout-3",
+      "split": "validation",
+      "points": [
+        [
+          927,
+          501
+        ],
+        [
+          799,
+          785
+        ],
+        [
+          1055,
+          785
+        ],
+        [
+          543,
+          1105
+        ],
+        [
+          1311,
+          1105
+        ],
+        [
+          543,
+          1425
+        ],
+        [
+          1311,
+          1425
+        ]
+      ],
+      "negative_points": [
+        [
+          1056,
+          500
+        ],
+        [
+          544,
+          480
+        ],
+        [
+          736,
+          480
+        ],
+        [
+          1120,
+          480
+        ],
+        [
+          1312,
+          480
+        ]
+      ],
+      "ignore_rectangles": [],
+      "annotation": "Visible torch cores and one center per fireplace; gold trim, treasure, paintings, and water are background."
+    },
+    {
+      "id": "castle-4",
+      "source": "castle",
+      "member": "Castle-Dungeon_Tiles/Sample_Map4.png",
+      "image_sha256": "04ad463dd7fccdc388ac5bff3c898b354e734189e3db6910fdf1b23124c69540",
+      "source_size": [
+        896,
+        856
+      ],
+      "output_size": [
+        896,
+        856
+      ],
+      "interpolation": "area",
+      "group": "castle-layout-4",
+      "split": "test",
+      "points": [
+        [
+          222,
+          169
+        ],
+        [
+          670,
+          169
+        ]
+      ],
+      "negative_points": [
+        [
+          448,
+          500
+        ],
+        [
+          160,
+          504
+        ],
+        [
+          736,
+          504
+        ],
+        [
+          288,
+          112
+        ],
+        [
+          544,
+          112
+        ],
+        [
+          608,
+          112
+        ]
+      ],
+      "ignore_rectangles": [],
+      "annotation": "Visible torch cores and one center per fireplace; gold trim, treasure, paintings, and water are background."
+    },
+    {
+      "id": "puny-1",
+      "source": "puny",
+      "member": "PUNY_DUNGEON_v1/Tiled/Sample Images/sample-map1.png",
+      "image_sha256": "e45174063025755acd082d6b966f02c7309178bf563276e73018495e1e1cba09",
+      "source_size": [
+        240,
+        240
+      ],
+      "output_size": [
+        960,
+        960
+      ],
+      "interpolation": "nearest",
+      "group": "puny-four-rooms",
+      "split": "train",
+      "points": [],
+      "negative_points": [
+        [
+          55.5,
+          39.5
+        ],
+        [
+          71.5,
+          39.5
+        ],
+        [
+          135.5,
+          39.5
+        ],
+        [
+          167.5,
+          39.5
+        ],
+        [
+          199.5,
+          39.5
+        ],
+        [
+          39.5,
+          55.5
+        ],
+        [
+          119.5,
+          71.5
+        ],
+        [
+          183.5,
+          199.5
+        ]
+      ],
+      "ignore_rectangles": [
+        [
+          62,
+          62,
+          82,
+          82
+        ],
+        [
+          158,
+          54,
+          178,
+          82
+        ],
+        [
+          62,
+          150,
+          82,
+          178
+        ],
+        [
+          158,
+          150,
+          178,
+          178
+        ]
+      ],
+      "annotation": "Visible torch flames, luminous blue/green portals, and one center per continuous fire jet. Character sprites are excluded from supervision; gates, keys, crates, statues, and water are background."
+    },
+    {
+      "id": "puny-2",
+      "source": "puny",
+      "member": "PUNY_DUNGEON_v1/Tiled/Sample Images/sample-map2.png",
+      "image_sha256": "fe587320e0f6ade9395eefa4ea0ad3bcc4dd5a65826d48aee01c31b84377ae3c",
+      "source_size": [
+        240,
+        240
+      ],
+      "output_size": [
+        960,
+        960
+      ],
+      "interpolation": "nearest",
+      "group": "puny-four-rooms",
+      "split": "train",
+      "points": [
+        [
+          55.5,
+          55
+        ],
+        [
+          87.5,
+          55
+        ],
+        [
+          55.5,
+          87
+        ],
+        [
+          87.5,
+          87
+        ],
+        [
+          151.5,
+          119
+        ],
+        [
+          183.5,
+          119
+        ]
+      ],
+      "negative_points": [
+        [
+          71.5,
+          71.5
+        ],
+        [
+          151.5,
+          55.5
+        ],
+        [
+          183.5,
+          55.5
+        ],
+        [
+          135.5,
+          151.5
+        ],
+        [
+          103.5,
+          39.5
+        ]
+      ],
+      "ignore_rectangles": [
+        [
+          62,
+          30,
+          82,
+          50
+        ],
+        [
+          78,
+          62,
+          98,
+          82
+        ],
+        [
+          62,
+          150,
+          82,
+          178
+        ]
+      ],
+      "annotation": "Visible torch flames, luminous blue/green portals, and one center per continuous fire jet. Character sprites are excluded from supervision; gates, keys, crates, statues, and water are background."
+    },
+    {
+      "id": "puny-3",
+      "source": "puny",
+      "member": "PUNY_DUNGEON_v1/Tiled/Sample Images/sample-map3.png",
+      "image_sha256": "68eb87821711aa9554dabdfb33234bfcee4c36924d7e3f84fe640c212cc2e2d9",
+      "source_size": [
+        240,
+        240
+      ],
+      "output_size": [
+        960,
+        960
+      ],
+      "interpolation": "nearest",
+      "group": "puny-layout-3",
+      "split": "test",
+      "points": [
+        [
+          183.5,
+          135.5
+        ],
+        [
+          167.5,
+          151.5
+        ],
+        [
+          199.5,
+          151.5
+        ],
+        [
+          135.5,
+          183.5
+        ],
+        [
+          167.5,
+          183.5
+        ],
+        [
+          199.5,
+          183.5
+        ],
+        [
+          151.5,
+          199.5
+        ]
+      ],
+      "negative_points": [
+        [
+          55.5,
+          39.5
+        ],
+        [
+          87.5,
+          71.5
+        ],
+        [
+          87.5,
+          103.5
+        ],
+        [
+          23.5,
+          167.5
+        ],
+        [
+          119.5,
+          151.5
+        ],
+        [
+          87.5,
+          151.5
+        ]
+      ],
+      "ignore_rectangles": [
+        [
+          30,
+          150,
+          50,
+          178
+        ]
+      ],
+      "annotation": "Visible torch flames, luminous blue/green portals, and one center per continuous fire jet. Character sprites are excluded from supervision; gates, keys, crates, statues, and water are background."
+    },
+    {
+      "id": "puny-4",
+      "source": "puny",
+      "member": "PUNY_DUNGEON_v1/Tiled/Sample Images/sample-map4.png",
+      "image_sha256": "a4546e0f74ecb104e0442b712230a9166e3a88739f28b81caebbf72e96232bff",
+      "source_size": [
+        240,
+        240
+      ],
+      "output_size": [
+        960,
+        960
+      ],
+      "interpolation": "nearest",
+      "group": "puny-four-rooms",
+      "split": "train",
+      "points": [
+        [
+          55.5,
+          55
+        ],
+        [
+          87.5,
+          55
+        ],
+        [
+          151.5,
+          55
+        ],
+        [
+          183.5,
+          55
+        ],
+        [
+          55.5,
+          87
+        ],
+        [
+          87.5,
+          87
+        ],
+        [
+          151.5,
+          87
+        ],
+        [
+          183.5,
+          87
+        ],
+        [
+          55.5,
+          151
+        ],
+        [
+          87.5,
+          151
+        ],
+        [
+          151.5,
+          151
+        ],
+        [
+          183.5,
+          151
+        ],
+        [
+          55.5,
+          183
+        ],
+        [
+          87.5,
+          183
+        ],
+        [
+          151.5,
+          183
+        ],
+        [
+          183.5,
+          183
+        ],
+        [
+          71.5,
+          71.5
+        ],
+        [
+          167.5,
+          167.5
+        ]
+      ],
+      "negative_points": [
+        [
+          167.5,
+          39.5
+        ],
+        [
+          55.5,
+          39.5
+        ],
+        [
+          71.5,
+          39.5
+        ],
+        [
+          135.5,
+          39.5
+        ],
+        [
+          103.5,
+          103.5
+        ],
+        [
+          151.5,
+          135.5
+        ]
+      ],
+      "ignore_rectangles": [
+        [
+          30,
+          70,
+          50,
+          98
+        ],
+        [
+          158,
+          86,
+          178,
+          114
+        ],
+        [
+          126,
+          134,
+          146,
+          162
+        ],
+        [
+          190,
+          166,
+          210,
+          194
+        ]
+      ],
+      "annotation": "Visible torch flames, luminous blue/green portals, and one center per continuous fire jet. Character sprites are excluded from supervision; gates, keys, crates, statues, and water are background."
+    },
+    {
+      "id": "puny-5",
+      "source": "puny",
+      "member": "PUNY_DUNGEON_v1/Tiled/Sample Images/sample-map5.png",
+      "image_sha256": "25b0654be6e1491bce18bb0a17f69f128fc88fa6fd815ca8ffd767a0205479df",
+      "source_size": [
+        240,
+        240
+      ],
+      "output_size": [
+        960,
+        960
+      ],
+      "interpolation": "nearest",
+      "group": "puny-layout-5",
+      "split": "validation",
+      "points": [
+        [
+          199.5,
+          39.5
+        ]
+      ],
+      "negative_points": [
+        [
+          151.5,
+          87.5
+        ],
+        [
+          119.5,
+          151.5
+        ],
+        [
+          135.5,
+          39.5
+        ],
+        [
+          167.5,
+          71.5
+        ],
+        [
+          199.5,
+          119.5
+        ]
+      ],
+      "ignore_rectangles": [
+        [
+          110,
+          54,
+          130,
+          82
+        ],
+        [
+          62,
+          118,
+          82,
+          146
+        ]
+      ],
+      "annotation": "Visible torch flames, luminous blue/green portals, and one center per continuous fire jet. Character sprites are excluded from supervision; gates, keys, crates, statues, and water are background."
+    },
+    {
+      "id": "ferrin-cavern",
+      "source": "cavern",
+      "image_sha256": "90955254e64cac4455044313c2ed00616fe1abd93bff5eacf10c9c868dbf80f0",
+      "source_size": [
+        2000,
+        2000
+      ],
+      "output_size": [
+        1536,
+        1536
+      ],
+      "interpolation": "area",
+      "group": "ferrin-cavern",
+      "split": "validation",
+      "points": [],
+      "negative_points": [
+        [
+          264,
+          420
+        ],
+        [
+          1056,
+          656
+        ],
+        [
+          1280,
+          1392
+        ]
+      ],
+      "ignore_rectangles": [],
+      "annotation": "Complete negative map: blue water and pale shoreline highlights are not light sources."
+    }
+  ]
+}

@@ -1,0 +1,2543 @@
+{
+  "format": "auto-wall-research-trial-v1",
+  "trial": 22,
+  "decision": "Retain bundled semantic light v2. Trial 22 reduces several extras and learns training portals, but misses the held-out portal and regresses stone/Astral recall. Keep both checkpoints locally as research evidence.",
+  "data": {
+    "public_specification": "benchmarks/data/open_light_maps.json",
+    "public_specification_sha256": "60c90817ff97d4c8a63661f8e0ddab5153e6e0941c00d8ae9419a93f1062273e",
+    "public_prepared_manifest_sha256": "c02a6a69e7940ad7af6bde5d7ac979095dd7ead37ea453b924ebd2cc73bc254f",
+    "public_images": 10,
+    "public_marked_sources": 59,
+    "combined_samples": {
+      "train": 137,
+      "validation": 5,
+      "test": 10
+    },
+    "procedural_training_samples": 128,
+    "preprediction_review": {
+      "specification_sha256": "60c90817ff97d4c8a63661f8e0ddab5153e6e0941c00d8ae9419a93f1062273e",
+      "combined_manifest_sha256": "c48e1c5880cce70ff820823c9962eee0d31b09f30b04f1d4cc115646618adc63",
+      "annotation_phase": "Images visually reviewed and labels frozen before any model prediction on the ten new images. No test results used for selection.",
+      "planned_trial": {
+        "base": "battlemap-dino-lights-v2.safetensors",
+        "steps": 4800,
+        "lr": 0.0001,
+        "crop": 384,
+        "batch": 4,
+        "real": 2,
+        "synthetic": 2,
+        "seed": 73113,
+        "selection": "highest validation F0.5 at fixed threshold .35; earliest tie; test only after selection"
+      },
+      "samples": [
+        {
+          "id": "castle-1",
+          "group": "castle-layout-1",
+          "split": "train",
+          "pixels_sha256": "743795e13ed579fb6ab8acada375f440d4f0d8b9840270b5a0351c2b5f483a17",
+          "points_sha256": "60c6769e2d56e06dc6f51e3a795c6b81b823ab3445a59802dd73842d56cd12b9",
+          "valid_sha256": "45ff67ba802a7d81ca7a06c2b07791d91a926a7b35a0d35a92fea366b62994ed"
+        },
+        {
+          "id": "castle-2",
+          "group": "castle-layout-2",
+          "split": "train",
+          "pixels_sha256": "f541335117977d96276a9a44acaee45c8c4276271c763e17593bab17270bc41f",
+          "points_sha256": "2d947cda3b924bbc016343229fdee397f4f0c2eb1471eec4e74ce88b66ce4638",
+          "valid_sha256": "45ff67ba802a7d81ca7a06c2b07791d91a926a7b35a0d35a92fea366b62994ed"
+        },
+        {
+          "id": "castle-3",
+          "group": "castle-layout-3",
+          "split": "validation",
+          "pixels_sha256": "c3c4e6431da2ea01255d7130512ed625bb53d7c85828313accb2a40f41fda7c6",
+          "points_sha256": "02ddcd27ff01b3367344ef6eec1528da322c641cc5240119852c6bdd0006d00a",
+          "valid_sha256": "45ff67ba802a7d81ca7a06c2b07791d91a926a7b35a0d35a92fea366b62994ed"
+        },
+        {
+          "id": "castle-4",
+          "group": "castle-layout-4",
+          "split": "test",
+          "pixels_sha256": "9053611c14c9f9f05f7795664aece3a4f3d172c15fdd51aa45764d95bd8a8cbf",
+          "points_sha256": "1d55985c7e30e4630d339c3b3febf1c8c31cd8a92e0378803e331903ee800b9c",
+          "valid_sha256": "7e1b4089a28c3a7327431889a2330929fff456b85b536fdc563e3c548210c59e"
+        },
+        {
+          "id": "puny-1",
+          "group": "puny-four-rooms",
+          "split": "train",
+          "pixels_sha256": "3f25a0567352fd641e9dabd9c4f93d4b09fbc1a9967b59b0da91ca7479181e40",
+          "points_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "valid_sha256": "feff6c7c3e50f0efa12b67e4b3bb72c05c9fc4a234aaa414912de54d60f80f6a"
+        },
+        {
+          "id": "puny-2",
+          "group": "puny-four-rooms",
+          "split": "train",
+          "pixels_sha256": "c38ccfddabc1b7f49066a84b186a9496f665e9f75cd8a75ebb1a73040a588e13",
+          "points_sha256": "a0cf9a93162c0ed16eb29277a159ec467b9c62b970b4b7696cfa2a4b9bbb5c65",
+          "valid_sha256": "8596566d134a5b516f5098bf02ca24ef26de791e53a6d052ae0dddb13483ed8b"
+        },
+        {
+          "id": "puny-3",
+          "group": "puny-layout-3",
+          "split": "test",
+          "pixels_sha256": "ab81ec34b93822ff59e2df07e3e50c32a5804fe39e81b626397f16b0f5d68e8e",
+          "points_sha256": "829c7aae80806a30403c4369e42ed86103ccee7aefa0e7574381e84273977d20",
+          "valid_sha256": "fd95b405ac87b55db42a2e359a2ba9d1c19d86198acd6498a7cfa86f0bd5b9ca"
+        },
+        {
+          "id": "puny-4",
+          "group": "puny-four-rooms",
+          "split": "train",
+          "pixels_sha256": "e851ad398b3d5b72047aa3a970f8a9ac15b9842459985a7bac2debe523d82685",
+          "points_sha256": "aaa0f28242207fabe0085d8553a6e245a63e5af80fe29de5d2c5deeb778309a9",
+          "valid_sha256": "60d4027bd9cd1d3e52d6ea3937eb501d97a705e4ab3bfee1a1169b9889214b1a"
+        },
+        {
+          "id": "puny-5",
+          "group": "puny-layout-5",
+          "split": "validation",
+          "pixels_sha256": "559b6a8cf6576dcd7a03c35e6faa12013c197a2e798b0375cd5143f141f2dbbe",
+          "points_sha256": "eb6cb1ae019376befe4dd9cc92813b01458274ab1afa62aa6686c93024fe63d3",
+          "valid_sha256": "d44fef9d32011fc2c8060b3ba9bd4e4ff2ea03379cca0f6d6a0c4fcac1fb992f"
+        },
+        {
+          "id": "ferrin-cavern",
+          "group": "ferrin-cavern",
+          "split": "validation",
+          "pixels_sha256": "67ddbb92fdaac4daa67cf4f8985088c74bea39b5c3f7e82fde2d8cb9cf6870d8",
+          "points_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "valid_sha256": "45ff67ba802a7d81ca7a06c2b07791d91a926a7b35a0d35a92fea366b62994ed"
+        }
+      ]
+    }
+  },
+  "recipe": {
+    "method": "frozen segmentation with physical light centers",
+    "seed": 73113,
+    "base_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+    "manifest_sha256": "c48e1c5880cce70ff820823c9962eee0d31b09f30b04f1d4cc115646618adc63",
+    "steps": 4800,
+    "batch_size": 4,
+    "real_crops": 2,
+    "synthetic_crops": 2,
+    "crop_size": 384,
+    "lr": 0.0001,
+    "threshold": 0.35,
+    "loss_normalization": "sample",
+    "semantic_context": true,
+    "context_only": false,
+    "torch": "2.11.0+cu128",
+    "device": "cuda:0",
+    "source_sha256": {
+      "scripts\\train_light_centers.py": "5d6be794f886b7873a82bf811625a96190ea9c3b44bb37437fcde1704343f0f1",
+      "src\\ml\\light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0",
+      "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+      "src\\ml\\dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+      "src\\ml\\model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+      "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+      "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+    }
+  },
+  "completion": {
+    "seconds": 314.9786365000182,
+    "segmentation_tensors_unchanged": 313,
+    "local_light_weight_parts_unchanged": 0,
+    "peak_allocated_bytes": 608091136
+  },
+  "checkpoint_audit": [
+    {
+      "checkpoint": "best",
+      "sha256": "0693e1d129b66ac697ee9822957b2797b93f89daaba2849c8abefc51aeb4c384",
+      "bytes": 90589680,
+      "finite_tensors": 323,
+      "unchanged_segmentation_tensors": 313,
+      "changed_light_tensors": 10
+    },
+    {
+      "checkpoint": "last",
+      "sha256": "3c81f380e06800e2aa1708c2bc670cadda3002a6b66de27d025bbe189ccfa6e0",
+      "bytes": 90589696,
+      "finite_tensors": 323,
+      "unchanged_segmentation_tensors": 313,
+      "changed_light_tensors": 10
+    }
+  ],
+  "validation_history": [
+    {
+      "step": 150,
+      "loss": 0.10550562292337418,
+      "seconds": 11.999228200002108,
+      "score": 0.8415841584158416,
+      "matched": 17,
+      "false": 3,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 300,
+      "loss": 0.2642204463481903,
+      "seconds": 23.816379100026097,
+      "score": 0.7920792079207921,
+      "matched": 16,
+      "false": 4,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 3
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 450,
+      "loss": 0.06730356812477112,
+      "seconds": 33.52528000000166,
+      "score": 0.8247422680412371,
+      "matched": 16,
+      "false": 3,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 600,
+      "loss": 0.19192108511924744,
+      "seconds": 43.184501600044314,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 750,
+      "loss": 0.07243479788303375,
+      "seconds": 52.87638380000135,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 900,
+      "loss": 0.1526689976453781,
+      "seconds": 63.180154100002255,
+      "score": 0.8256880733944955,
+      "matched": 18,
+      "false": 4,
+      "missed": 3,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 2
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 7,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1050,
+      "loss": 0.1985769420862198,
+      "seconds": 72.8206949000014,
+      "score": 0.8415841584158416,
+      "matched": 17,
+      "false": 3,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1200,
+      "loss": 0.26249489188194275,
+      "seconds": 83.46403590001864,
+      "score": 0.8415841584158416,
+      "matched": 17,
+      "false": 3,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1350,
+      "loss": 0.09244692325592041,
+      "seconds": 93.31958680000389,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1500,
+      "loss": 0.03872951120138168,
+      "seconds": 103.00317169999471,
+      "score": 0.8762886597938144,
+      "matched": 17,
+      "false": 2,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 7,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1650,
+      "loss": 0.04093765467405319,
+      "seconds": 112.90077570005087,
+      "score": 0.8415841584158416,
+      "matched": 17,
+      "false": 3,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 7,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 2
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1800,
+      "loss": 0.1232474222779274,
+      "seconds": 122.539029400039,
+      "score": 0.8602150537634409,
+      "matched": 16,
+      "false": 2,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 1950,
+      "loss": 0.021063126623630524,
+      "seconds": 132.2070408000145,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2100,
+      "loss": 0.15279142558574677,
+      "seconds": 141.92970400000922,
+      "score": 0.8602150537634409,
+      "matched": 16,
+      "false": 2,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2250,
+      "loss": 0.05425003170967102,
+      "seconds": 151.57529520004755,
+      "score": 0.8602150537634409,
+      "matched": 16,
+      "false": 2,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2400,
+      "loss": 0.03708381950855255,
+      "seconds": 161.21150790003594,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2550,
+      "loss": 0.232191264629364,
+      "seconds": 170.90437050000764,
+      "score": 0.8602150537634409,
+      "matched": 16,
+      "false": 2,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2700,
+      "loss": 0.1209116131067276,
+      "seconds": 180.53159960004268,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 2850,
+      "loss": 0.08267940580844879,
+      "seconds": 190.19471080001676,
+      "score": 0.9139784946236559,
+      "matched": 17,
+      "false": 1,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3000,
+      "loss": 0.025234948843717575,
+      "seconds": 199.74096570000984,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3150,
+      "loss": 0.04181366786360741,
+      "seconds": 209.29069700004766,
+      "score": 0.8762886597938144,
+      "matched": 17,
+      "false": 2,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3300,
+      "loss": 0.05052439123392105,
+      "seconds": 218.85551570000825,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3450,
+      "loss": 0.20208504796028137,
+      "seconds": 228.3434974999982,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3600,
+      "loss": 0.03102710098028183,
+      "seconds": 237.89239280001493,
+      "score": 0.8602150537634409,
+      "matched": 16,
+      "false": 2,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3750,
+      "loss": 0.05849155783653259,
+      "seconds": 247.49117260001367,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 3900,
+      "loss": 0.10920757055282593,
+      "seconds": 257.06161740003154,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4050,
+      "loss": 0.07963574677705765,
+      "seconds": 266.7135445000022,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4200,
+      "loss": 0.07098294794559479,
+      "seconds": 276.3066293000011,
+      "score": 0.898876404494382,
+      "matched": 16,
+      "false": 1,
+      "missed": 5,
+      "per_map": {
+        "stone": {
+          "matched": 10,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4350,
+      "loss": 0.4755610227584839,
+      "seconds": 286.0165450000204,
+      "score": 0.9139784946236559,
+      "matched": 17,
+      "false": 1,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 0
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4500,
+      "loss": 0.5189270973205566,
+      "seconds": 295.5128755000187,
+      "score": 0.8910891089108911,
+      "matched": 18,
+      "false": 2,
+      "missed": 3,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 7,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4650,
+      "loss": 0.12140537798404694,
+      "seconds": 305.22116840002127,
+      "score": 0.8910891089108911,
+      "matched": 18,
+      "false": 2,
+      "missed": 3,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 7,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    },
+    {
+      "step": 4800,
+      "loss": 0.12459684908390045,
+      "seconds": 314.86334060004447,
+      "score": 0.8762886597938144,
+      "matched": 17,
+      "false": 2,
+      "missed": 4,
+      "per_map": {
+        "stone": {
+          "matched": 11,
+          "truth_count": 13,
+          "false": 1
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        },
+        "castle-3": {
+          "matched": 6,
+          "truth_count": 7,
+          "false": 0
+        },
+        "puny-5": {
+          "matched": 0,
+          "truth_count": 1,
+          "false": 1
+        },
+        "ferrin-cavern": {
+          "matched": 0,
+          "truth_count": 0,
+          "false": 0
+        }
+      }
+    }
+  ],
+  "fixed_checkpoint_comparisons": [
+    {
+      "model_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "selected_step": 2250,
+      "threshold": 0.35,
+      "manifest_sha256": "b327a13e207949ce33de4375fbb57eee789d40d355c3029cfabc19ba4720743e",
+      "source_sha256": {
+        "benchmarks/evaluate_lights.py": "f74c3fe7aa95323862ac9a7200fbd6280e12d864c25f15bb118b6d9dd39b80af",
+        "scripts/train_light_centers.py": "5d6be794f886b7873a82bf811625a96190ea9c3b44bb37437fcde1704343f0f1",
+        "benchmarks/check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816",
+        "src/core/light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "src/ml/model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+        "src/ml/dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+        "src/ml/light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+        "src/ml/light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0"
+      },
+      "name": "bundled-v2",
+      "samples": {
+        "temple": {
+          "group": "temple_family",
+          "split": "train",
+          "synthetic": false,
+          "matched": 30,
+          "truth_count": 30,
+          "prediction_count": 30,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 30,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "wood": {
+          "group": "wood_camp",
+          "split": "train",
+          "synthetic": false,
+          "matched": 9,
+          "truth_count": 9,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "stone": {
+          "group": "stone_camp",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 12,
+          "truth_count": 13,
+          "prediction_count": 12,
+          "missed": [
+            11
+          ],
+          "extra": [],
+          "all_peak_count": 12,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "dyson-13": {
+          "group": "dyson-index-card-II-13",
+          "split": "train",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.24038124774041938
+        },
+        "dyson-14": {
+          "group": "dyson-index-card-II-14",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.15501429184743312
+        },
+        "light-fixtures-901064": {
+          "group": "light-fixtures-901064",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901065": {
+          "group": "light-fixtures-901065",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 11,
+          "missed": [],
+          "extra": [
+            3,
+            6,
+            10
+          ],
+          "all_peak_count": 11,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901066": {
+          "group": "light-fixtures-901066",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [
+            3
+          ],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901067": {
+          "group": "light-fixtures-901067",
+          "split": "test",
+          "synthetic": true,
+          "matched": 10,
+          "truth_count": 10,
+          "prediction_count": 11,
+          "missed": [],
+          "extra": [
+            8
+          ],
+          "all_peak_count": 11,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901068": {
+          "group": "light-fixtures-901068",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [
+            5
+          ],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901069": {
+          "group": "light-fixtures-901069",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [
+            4
+          ],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901070": {
+          "group": "light-fixtures-901070",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 7,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 7,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901071": {
+          "group": "light-fixtures-901071",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [
+            7
+          ],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "ship-lights": {
+          "group": "ship_family",
+          "split": "train",
+          "synthetic": false,
+          "matched": 38,
+          "truth_count": 39,
+          "prediction_count": 39,
+          "missed": [
+            29
+          ],
+          "extra": [
+            9
+          ],
+          "all_peak_count": 63,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.11177953084309895
+        },
+        "castle-1": {
+          "group": "castle-layout-1",
+          "split": "train",
+          "synthetic": false,
+          "matched": 13,
+          "truth_count": 13,
+          "prediction_count": 14,
+          "missed": [],
+          "extra": [
+            7
+          ],
+          "all_peak_count": 14,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-2": {
+          "group": "castle-layout-2",
+          "split": "train",
+          "synthetic": false,
+          "matched": 4,
+          "truth_count": 5,
+          "prediction_count": 4,
+          "missed": [
+            2
+          ],
+          "extra": [],
+          "all_peak_count": 4,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-3": {
+          "group": "castle-layout-3",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "missed": [
+            0,
+            1,
+            5
+          ],
+          "extra": [],
+          "all_peak_count": 4,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-4": {
+          "group": "castle-layout-4",
+          "split": "test",
+          "synthetic": false,
+          "matched": 2,
+          "truth_count": 2,
+          "prediction_count": 2,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 2,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "puny-1": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 1,
+          "missed": [],
+          "extra": [
+            0
+          ],
+          "all_peak_count": 3,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9638888888888889
+        },
+        "puny-2": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 6,
+          "truth_count": 6,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [
+            0,
+            1
+          ],
+          "all_peak_count": 10,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9763888888888889
+        },
+        "puny-3": {
+          "group": "puny-layout-3",
+          "split": "test",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 7,
+          "prediction_count": 16,
+          "missed": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "extra": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "all_peak_count": 18,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9902777777777778
+        },
+        "puny-4": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 16,
+          "truth_count": 18,
+          "prediction_count": 19,
+          "missed": [
+            16,
+            17
+          ],
+          "extra": [
+            0,
+            1,
+            2
+          ],
+          "all_peak_count": 22,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9611111111111111
+        },
+        "puny-5": {
+          "group": "puny-layout-5",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 5,
+          "missed": [
+            0
+          ],
+          "extra": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ],
+          "all_peak_count": 7,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9805555555555555
+        },
+        "ferrin-cavern": {
+          "group": "ferrin-cavern",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "new-camp-reviewed": {
+          "group": "new_palisade_camp",
+          "split": "test",
+          "synthetic": false,
+          "matched": 6,
+          "truth_count": 6,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [
+            0,
+            7
+          ],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "astral-reviewed": {
+          "group": "astral_family",
+          "split": "test",
+          "synthetic": false,
+          "matched": 20,
+          "truth_count": 20,
+          "prediction_count": 22,
+          "missed": [],
+          "extra": [
+            12,
+            21
+          ],
+          "all_peak_count": 28,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.014392428927951388
+        }
+      }
+    },
+    {
+      "model_sha256": "0693e1d129b66ac697ee9822957b2797b93f89daaba2849c8abefc51aeb4c384",
+      "selected_step": 2850,
+      "threshold": 0.35,
+      "manifest_sha256": "b327a13e207949ce33de4375fbb57eee789d40d355c3029cfabc19ba4720743e",
+      "source_sha256": {
+        "benchmarks/evaluate_lights.py": "f74c3fe7aa95323862ac9a7200fbd6280e12d864c25f15bb118b6d9dd39b80af",
+        "scripts/train_light_centers.py": "5d6be794f886b7873a82bf811625a96190ea9c3b44bb37437fcde1704343f0f1",
+        "benchmarks/check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816",
+        "src/core/light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "src/ml/model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+        "src/ml/dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+        "src/ml/light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+        "src/ml/light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0"
+      },
+      "name": "trial-22-best",
+      "samples": {
+        "temple": {
+          "group": "temple_family",
+          "split": "train",
+          "synthetic": false,
+          "matched": 30,
+          "truth_count": 30,
+          "prediction_count": 31,
+          "missed": [],
+          "extra": [
+            23
+          ],
+          "all_peak_count": 31,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "wood": {
+          "group": "wood_camp",
+          "split": "train",
+          "synthetic": false,
+          "matched": 9,
+          "truth_count": 9,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "stone": {
+          "group": "stone_camp",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 11,
+          "truth_count": 13,
+          "prediction_count": 12,
+          "missed": [
+            11,
+            12
+          ],
+          "extra": [
+            7
+          ],
+          "all_peak_count": 12,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "dyson-13": {
+          "group": "dyson-index-card-II-13",
+          "split": "train",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.24038124774041938
+        },
+        "dyson-14": {
+          "group": "dyson-index-card-II-14",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.15501429184743312
+        },
+        "light-fixtures-901064": {
+          "group": "light-fixtures-901064",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 8,
+          "prediction_count": 7,
+          "missed": [
+            3
+          ],
+          "extra": [],
+          "all_peak_count": 7,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901065": {
+          "group": "light-fixtures-901065",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [
+            8
+          ],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901066": {
+          "group": "light-fixtures-901066",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 7,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 7,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901067": {
+          "group": "light-fixtures-901067",
+          "split": "test",
+          "synthetic": true,
+          "matched": 10,
+          "truth_count": 10,
+          "prediction_count": 11,
+          "missed": [],
+          "extra": [
+            8
+          ],
+          "all_peak_count": 11,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901068": {
+          "group": "light-fixtures-901068",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901069": {
+          "group": "light-fixtures-901069",
+          "split": "test",
+          "synthetic": true,
+          "matched": 8,
+          "truth_count": 8,
+          "prediction_count": 9,
+          "missed": [],
+          "extra": [
+            4
+          ],
+          "all_peak_count": 9,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901070": {
+          "group": "light-fixtures-901070",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 7,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 7,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "light-fixtures-901071": {
+          "group": "light-fixtures-901071",
+          "split": "test",
+          "synthetic": true,
+          "matched": 7,
+          "truth_count": 7,
+          "prediction_count": 8,
+          "missed": [],
+          "extra": [
+            7
+          ],
+          "all_peak_count": 8,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "ship-lights": {
+          "group": "ship_family",
+          "split": "train",
+          "synthetic": false,
+          "matched": 38,
+          "truth_count": 39,
+          "prediction_count": 39,
+          "missed": [
+            29
+          ],
+          "extra": [
+            8
+          ],
+          "all_peak_count": 64,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.11177953084309895
+        },
+        "castle-1": {
+          "group": "castle-layout-1",
+          "split": "train",
+          "synthetic": false,
+          "matched": 13,
+          "truth_count": 13,
+          "prediction_count": 13,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 13,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-2": {
+          "group": "castle-layout-2",
+          "split": "train",
+          "synthetic": false,
+          "matched": 5,
+          "truth_count": 5,
+          "prediction_count": 5,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 5,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-3": {
+          "group": "castle-layout-3",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 6,
+          "truth_count": 7,
+          "prediction_count": 6,
+          "missed": [
+            0
+          ],
+          "extra": [],
+          "all_peak_count": 6,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "castle-4": {
+          "group": "castle-layout-4",
+          "split": "test",
+          "synthetic": false,
+          "matched": 2,
+          "truth_count": 2,
+          "prediction_count": 2,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 2,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "puny-1": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 2,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9638888888888889
+        },
+        "puny-2": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 6,
+          "truth_count": 6,
+          "prediction_count": 7,
+          "missed": [],
+          "extra": [
+            0
+          ],
+          "all_peak_count": 7,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9763888888888889
+        },
+        "puny-3": {
+          "group": "puny-layout-3",
+          "split": "test",
+          "synthetic": false,
+          "matched": 1,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "missed": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ],
+          "extra": [
+            0,
+            1,
+            2
+          ],
+          "all_peak_count": 5,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9902777777777778
+        },
+        "puny-4": {
+          "group": "puny-four-rooms",
+          "split": "train",
+          "synthetic": false,
+          "matched": 18,
+          "truth_count": 18,
+          "prediction_count": 18,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 20,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9611111111111111
+        },
+        "puny-5": {
+          "group": "puny-layout-5",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "missed": [
+            0
+          ],
+          "extra": [],
+          "all_peak_count": 1,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.9805555555555555
+        },
+        "ferrin-cavern": {
+          "group": "ferrin-cavern",
+          "split": "validation",
+          "synthetic": false,
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 0,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "new-camp-reviewed": {
+          "group": "new_palisade_camp",
+          "split": "test",
+          "synthetic": false,
+          "matched": 6,
+          "truth_count": 6,
+          "prediction_count": 6,
+          "missed": [],
+          "extra": [],
+          "all_peak_count": 6,
+          "complete_annotation": true,
+          "reviewed_fraction": 1.0
+        },
+        "astral-reviewed": {
+          "group": "astral_family",
+          "split": "test",
+          "synthetic": false,
+          "matched": 18,
+          "truth_count": 20,
+          "prediction_count": 19,
+          "missed": [
+            17,
+            18
+          ],
+          "extra": [
+            18
+          ],
+          "all_peak_count": 24,
+          "complete_annotation": false,
+          "reviewed_fraction": 0.014392428927951388
+        }
+      }
+    }
+  ],
+  "context_probe": {
+    "purpose": "Diagnostic on training and validation portals only; no checkpoint or runtime tile selection.",
+    "rows": [
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 256,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.025118710473179817,
+        "max_score_within_40px": 0.19966617226600647,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 256,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.018507972359657288,
+        "max_score_within_40px": 0.07603096961975098,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 384,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.009656617417931557,
+        "max_score_within_40px": 0.3040792942047119,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 384,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.06198026239871979,
+        "max_score_within_40px": 0.06886434555053711,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 640,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.012153979390859604,
+        "max_score_within_40px": 0.35542812943458557,
+        "nearby_decoded_peaks": [
+          [
+            269.0,
+            290.0
+          ],
+          [
+            289.0,
+            313.0
+          ]
+        ]
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 640,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.011539013125002384,
+        "max_score_within_40px": 0.028783857822418213,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 960,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.004082580097019672,
+        "max_score_within_40px": 0.4690335988998413,
+        "nearby_decoded_peaks": [
+          [
+            269.0,
+            290.0
+          ]
+        ]
+      },
+      {
+        "model": "v2",
+        "sample": "puny-4",
+        "tile_size": 960,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.004753160756081343,
+        "max_score_within_40px": 0.1442626267671585,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "v2",
+        "sample": "puny-5",
+        "tile_size": 256,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.007321985904127359,
+        "max_score_within_40px": 0.47390979528427124,
+        "nearby_decoded_peaks": [
+          [
+            781.0,
+            165.0
+          ]
+        ]
+      },
+      {
+        "model": "v2",
+        "sample": "puny-5",
+        "tile_size": 384,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.0045628855004906654,
+        "max_score_within_40px": 0.5763692855834961,
+        "nearby_decoded_peaks": [
+          [
+            781.0,
+            165.0
+          ],
+          [
+            801.0,
+            185.0
+          ]
+        ]
+      },
+      {
+        "model": "v2",
+        "sample": "puny-5",
+        "tile_size": 640,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.004376595839858055,
+        "max_score_within_40px": 0.6587461233139038,
+        "nearby_decoded_peaks": [
+          [
+            821.0,
+            161.0
+          ],
+          [
+            781.0,
+            165.0
+          ],
+          [
+            801.0,
+            182.0
+          ]
+        ]
+      },
+      {
+        "model": "v2",
+        "sample": "puny-5",
+        "tile_size": 960,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.008937831968069077,
+        "max_score_within_40px": 0.5177786946296692,
+        "nearby_decoded_peaks": [
+          [
+            821.0,
+            158.0
+          ],
+          [
+            781.0,
+            162.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 256,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.6646968126296997,
+        "max_score_within_40px": 0.6646968126296997,
+        "nearby_decoded_peaks": [
+          [
+            286.0,
+            286.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 256,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.6489849090576172,
+        "max_score_within_40px": 0.6489849090576172,
+        "nearby_decoded_peaks": [
+          [
+            670.0,
+            670.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 384,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.4470865726470947,
+        "max_score_within_40px": 0.4470865726470947,
+        "nearby_decoded_peaks": [
+          [
+            286.0,
+            285.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 384,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.7400698661804199,
+        "max_score_within_40px": 0.7400698661804199,
+        "nearby_decoded_peaks": [
+          [
+            673.0,
+            670.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 640,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.37288615107536316,
+        "max_score_within_40px": 0.37288615107536316,
+        "nearby_decoded_peaks": [
+          [
+            286.0,
+            285.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 640,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.577993631362915,
+        "max_score_within_40px": 0.577993631362915,
+        "nearby_decoded_peaks": [
+          [
+            670.0,
+            670.0
+          ]
+        ]
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 960,
+        "target": [
+          287.5,
+          287.5
+        ],
+        "max_score_within_5px": 0.06046586483716965,
+        "max_score_within_40px": 0.2578732371330261,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-4",
+        "tile_size": 960,
+        "target": [
+          671.5,
+          671.5
+        ],
+        "max_score_within_5px": 0.3360644578933716,
+        "max_score_within_40px": 0.3360644578933716,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-5",
+        "tile_size": 256,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.07148761302232742,
+        "max_score_within_40px": 0.17937955260276794,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-5",
+        "tile_size": 384,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.04925937205553055,
+        "max_score_within_40px": 0.29436618089675903,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-5",
+        "tile_size": 640,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.037091877311468124,
+        "max_score_within_40px": 0.34856101870536804,
+        "nearby_decoded_peaks": []
+      },
+      {
+        "model": "trial22",
+        "sample": "puny-5",
+        "tile_size": 960,
+        "target": [
+          799.5,
+          159.5
+        ],
+        "max_score_within_5px": 0.08508956432342529,
+        "max_score_within_40px": 0.31488534808158875,
+        "nearby_decoded_peaks": []
+      }
+    ]
+  },
+  "limits": [
+    "Annotations are agent-reviewed.",
+    "Only one cool validation portal; no claim of broad style generalization.",
+    "New test layouts were first evaluated only after selecting step 2850 at threshold 0.35. They are now observed tests.",
+    "Training, validation, procedural tests, previously observed diagnostics, and first-use artist test layouts must be reported separately.",
+    "Partial masks exclude unreviewed pixels and character sprites; all-map precision is unknown on those maps.",
+    "An extra is an unmatched point: it can be a displaced or duplicate point on a real emitter, not necessarily a nonexistent light.",
+    "No runtime tile size, bundled model, palette fallback, wall, door, or transparent export behavior changed.",
+    "No live Foundry import, other GPU/OS, or release package was tested in this data/training change.",
+    "Training runtime is not a controlled speed benchmark; CPU tests ran during part of training."
+  ]
+}

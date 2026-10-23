@@ -14,6 +14,7 @@ pytest.importorskip("safetensors")
 pytest.importorskip("transformers")
 
 from scripts.train_light_centers import center_focal_loss, light_optimizer, local_light_hashes, segmentation_hashes, train
+from benchmarks.evaluate_lights import run as evaluate_checkpoint
 from src.core.fast_pipeline import DetectionCancelled
 from src.core.light_geometry import light_center_points
 from src.ml.dino import DinoBattlemap, sample_patch_context
@@ -270,3 +271,31 @@ def test_context_only_training_rejects_missing_initial_light_weights(tmp_path):
     with pytest.raises(ValueError, match="requires an existing light-head checkpoint"):
         train(args)
     assert not args.output.exists()
+
+
+def test_fixed_checkpoint_evaluation_only_scores_requested_split_and_keeps_evidence(tmp_path):
+    manifest, _ = light_manifest(tmp_path)
+    checkpoint = tmp_path / "lights.safetensors"
+    save_model(checkpoint, DinoBattlemap(light_centers=True).eval(), {"selected_step": 12})
+    output = tmp_path / "evaluation"
+    report = evaluate_checkpoint(manifest, checkpoint, output, ["validation"], threshold=1., device="cpu")
+    assert report["selected_step"] == 12 and report["splits"] == ["validation"]
+    assert list(report["samples"]) == ["validation"]
+    sample = report["samples"]["validation"]
+    assert sample["truth_positions"] == [[30., 30.]] and sample["missed"] == [0]
+    assert sample["reviewed_fraction"] == 1 and len(sample["points_sha256"]) == 64
+    assert report == json.loads((output / "report.json").read_text(encoding="utf-8"))
+    assert cv2.imread(str(output / "validation.bmp")).shape == (64, 64, 3)
+    assert not (output / "train.bmp").exists()
+    with pytest.raises(FileExistsError, match="overwrite"):
+        evaluate_checkpoint(manifest, checkpoint, output, ["validation"])
+    with pytest.raises(ValueError, match="No samples"):
+        evaluate_checkpoint(manifest, checkpoint, tmp_path / "empty", ["test"])
+    with pytest.raises(ValueError, match="threshold"):
+        evaluate_checkpoint(manifest, checkpoint, tmp_path / "invalid", ["validation"], float("nan"))
+    assert not (tmp_path / "empty").exists() and not (tmp_path / "invalid").exists()
+    segmentation = tmp_path / "segmentation.safetensors"
+    save_model(segmentation, DinoBattlemap().eval(), {})
+    with pytest.raises(ValueError, match="light-center head"):
+        evaluate_checkpoint(manifest, segmentation, tmp_path / "no-head", ["validation"], device="cpu")
+    assert not (tmp_path / "no-head").exists()
