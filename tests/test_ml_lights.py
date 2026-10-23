@@ -214,9 +214,11 @@ def test_negative_crop_anchors_are_reviewed_background_and_never_become_lights(t
     assert samples[0]["negative_points_sha256"] != samples[0]["points_sha256"]
 
 
-@pytest.mark.parametrize("semantic_context,context_only,initial_head", [
-    (False, False, None), (True, False, None), (True, True, "local"), (False, True, "semantic")])
-def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(tmp_path, semantic_context, context_only, initial_head):
+@pytest.mark.parametrize("semantic_context,context_only,initial_head,cutmix_probability", [
+    (False, False, None, 0.), (True, False, None, 0.), (True, True, "local", 0.),
+    (False, True, "semantic", 0.), (False, False, "semantic", 1.)])
+def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(
+        tmp_path, semantic_context, context_only, initial_head, cutmix_probability):
     path, _ = light_manifest(tmp_path)
     base = DinoBattlemap(light_centers=initial_head is not None,
                         semantic_light_context=initial_head == "semantic").eval()
@@ -225,9 +227,10 @@ def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(
     base_path = tmp_path / "base.safetensors"
     save_model(base_path, base, {})
     args = argparse.Namespace(manifest=path, output=tmp_path / "run", init_model=base_path,
-                              steps=2, batch_size=1, synthetic_per_batch=0, crop_size=32,
+                              steps=2, batch_size=2 if cutmix_probability else 1, synthetic_per_batch=0,
+                              crop_size=64 if cutmix_probability else 32,
                               seed=2, lr=.001, threshold=.35, device="cpu", loss_normalization="sample",
-                              semantic_context=semantic_context, context_only=context_only)
+                              semantic_context=semantic_context, context_only=context_only, cutmix_probability=cutmix_probability)
     trained = train(args)
     assert segmentation_hashes(trained) == before
     assert all(not p.requires_grad and p.grad is None for name, p in trained.named_parameters()
@@ -242,6 +245,7 @@ def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(
     assert details["segmentation_tensors_unchanged"] == 313 and saved.light_head is not None
     assert details["semantic_context"] == (semantic_context or initial_head == "semantic")
     assert details["context_only"] == context_only
+    assert details["cutmix_probability"] == cutmix_probability and details["cutmix_seed"] == args.seed + 2
     if saved.light_head.semantic_context:
         assert trained.light_head.context_projection.weight.grad.abs().sum() > 0
     if context_only:
@@ -260,6 +264,15 @@ def test_context_only_training_requires_semantic_inputs():
         light_optimizer(LightCenterHead(), .001, context_only=True)
 
 
+def test_training_rejects_invalid_cutmix_before_loading_data_or_models():
+    for probability, batch_size in ((-.1, 2), (1.1, 2), (float("nan"), 2), (1., 1)):
+        args = argparse.Namespace(steps=1, batch_size=batch_size, synthetic_per_batch=0,
+                                  lr=.001, threshold=.35, loss_normalization="sample",
+                                  cutmix_probability=probability)
+        with pytest.raises(ValueError, match="CutMix probability"):
+            train(args)
+
+
 def test_context_only_training_rejects_missing_initial_light_weights(tmp_path):
     path, _ = light_manifest(tmp_path)
     base_path = tmp_path / "segmentation.safetensors"
@@ -267,7 +280,7 @@ def test_context_only_training_rejects_missing_initial_light_weights(tmp_path):
     args = argparse.Namespace(manifest=path, output=tmp_path / "run", init_model=base_path,
                               steps=2, batch_size=1, synthetic_per_batch=0, crop_size=32,
                               seed=2, lr=.001, threshold=.35, device="cpu", loss_normalization="sample",
-                              semantic_context=True, context_only=True)
+                              semantic_context=True, context_only=True, cutmix_probability=0.)
     with pytest.raises(ValueError, match="requires an existing light-head checkpoint"):
         train(args)
     assert not args.output.exists()

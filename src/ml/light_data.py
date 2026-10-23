@@ -100,6 +100,49 @@ def transform_points(points, x, y, size, output_size, turns, flip):
     return points
 
 
+def cutmix_light_crops(images, targets, valid, rng, probability=0.):
+    """Exchange aligned image/label patches; ignore ambiguous cut boundaries.
+
+    Adapted from CutMix (https://arxiv.org/abs/1905.04899) for quarter-resolution
+    point targets, rather than mixing image-level class labels. Inputs are never
+    mutated. The disabled path consumes no random numbers.
+    """
+    if not 0 <= probability <= 1:
+        raise ValueError("CutMix probability must be in [0, 1].")
+    if probability == 0:
+        return images, targets, valid
+    count, height, width = targets.shape
+    if count < 2 or min(height, width) < 8:
+        raise ValueError("CutMix needs at least two crops with eight-by-eight point targets.")
+    if images.shape != (count, 3, 4 * height, 4 * width) or valid.shape != targets.shape:
+        raise ValueError("CutMix image, quarter-resolution target, and validity shapes must agree.")
+    if rng.random() >= probability:
+        return images, targets, valid
+    patch_height = int(rng.integers(max(1, height // 4), 3 * height // 4 + 1))
+    patch_width = int(rng.integers(max(1, width // 4), 3 * width // 4 + 1))
+    y0 = int(rng.integers(height - patch_height + 1))
+    x0 = int(rng.integers(width - patch_width + 1))
+    y1, x1 = y0 + patch_height, x0 + patch_width
+    # A nonzero cyclic shift gives each recipient a different, unchanged donor.
+    donors = (np.arange(count) + int(rng.integers(1, count))) % count
+    mixed_images, mixed_targets, mixed_valid = images.copy(), targets.copy(), valid.copy()
+    mixed_images[:, :, 4 * y0:4 * y1, 4 * x0:4 * x1] = images[donors, :, 4 * y0:4 * y1, 4 * x0:4 * x1]
+    mixed_targets[:, y0:y1, x0:x1] = targets[donors, y0:y1, x0:x1]
+    mixed_valid[:, y0:y1, x0:x1] = valid[donors, y0:y1, x0:x1]
+    # 32 image pixels on ordinary crops cover the local head's receptive radius.
+    margin = min(8, min(height, width) // 8)
+    for y in (y0, y1):
+        mixed_valid[:, max(0, y - margin):min(height, y + margin),
+                    max(0, x0 - margin):min(width, x1 + margin)] = False
+    for x in (x0, x1):
+        mixed_valid[:, max(0, y0 - margin):min(height, y1 + margin),
+                    max(0, x - margin):min(width, x + margin)] = False
+    # Sparse annotations can disappear under the cut; retain that original crop.
+    empty = ~mixed_valid.any(axis=(1, 2))
+    mixed_images[empty], mixed_targets[empty], mixed_valid[empty] = images[empty], targets[empty], valid[empty]
+    return mixed_images, mixed_targets, mixed_valid
+
+
 class LightCropSampler:
     def __init__(self, samples, seed=73113, crop_size=384):
         if not samples or crop_size < 32 or crop_size % 8:

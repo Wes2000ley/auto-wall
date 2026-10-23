@@ -21,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from benchmarks.check_geometry import match_instances
 from src.core.light_geometry import light_center_points
 from src.ml.light_centers import LightCenterHead
-from src.ml.light_data import LightCropSampler, read_light_dataset
+from src.ml.light_data import LightCropSampler, cutmix_light_crops, read_light_dataset
 from src.ml.model import load_model, predict, save_model
 
 
@@ -97,8 +97,11 @@ def train(args):
         raise ValueError("Use positive steps, batch size and learning rate, a valid synthetic crop count, and a score in [0.05, 1].")
     if args.loss_normalization not in ("batch", "sample"):
         raise ValueError("Light loss normalization must be batch or sample.")
+    if not 0 <= args.cutmix_probability <= 1 or (args.cutmix_probability and args.batch_size < 2):
+        raise ValueError("CutMix probability must be in [0, 1] and enabled mixing needs at least two crops.")
     torch.set_num_threads(4)
     torch.manual_seed(args.seed)
+    mixing_rng = np.random.default_rng(args.seed + 2)
     data = read_light_dataset(args.manifest)
     validation = [s for s in data if s["split"] == "validation"]
     if not validation or not any(len(s["points"]) for s in validation):
@@ -140,6 +143,7 @@ def train(args):
                "threshold": args.threshold, "loss_normalization": args.loss_normalization,
                "semantic_context": model.light_head.semantic_context,
                "context_only": args.context_only,
+               "cutmix_probability": args.cutmix_probability, "cutmix_seed": args.seed + 2,
                "torch": torch.__version__, "device": str(device),
                "source_sha256": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources},
                "samples": [{key: s[key] for key in ("id", "group", "split", "synthetic", "pixels_sha256",
@@ -150,6 +154,7 @@ def train(args):
         for step in range(1, args.steps + 1):
             batches = [sampler.batch(count) for sampler, count in samplers]
             arrays = [np.concatenate([batch[index] for batch in batches]) for index in range(3)]
+            arrays = cutmix_light_crops(*arrays, mixing_rng, args.cutmix_probability)
             image, target, valid = [torch.from_numpy(array).to(device) for array in arrays]
             optimizer.zero_grad(set_to_none=True)
             with torch.no_grad(), torch.autocast(device.type, enabled=device.type == "cuda"):
@@ -213,6 +218,8 @@ def main():
                         help="Give the light head direct access to shared frozen DINO features")
     parser.add_argument("--context-only", action="store_true",
                         help="Train only the added DINO inputs of an existing light model; freeze its local weights")
+    parser.add_argument("--cutmix-probability", type=float, default=0.,
+                        help="Chance of exchanging labelled patches between crops; ignore their cut boundaries")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     train(parser.parse_args())
 

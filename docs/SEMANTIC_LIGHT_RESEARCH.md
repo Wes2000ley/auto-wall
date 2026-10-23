@@ -258,6 +258,83 @@ Ruff, Python compilation, and diff whitespace checks passed. Live Foundry import
 other GPUs/operating systems, and release packaging were not run for this data and
 training-tool change. No runtime inference or export implementation changed.
 
+## Training context augmentation: trial 23
+
+Trial 23 changes only training augmentation relative to trial 22. It adapts
+[CutMix](https://arxiv.org/abs/1905.04899) by exchanging rectangular image patches
+with their point heatmaps and review masks. A separate RNG leaves the original
+crop streams unchanged. Mixing has probability 0.5; a 32 px band around cuts is
+ignored on these 384 px crops, and crops with no surviving supervision are
+restored. This is our dense-target adaptation, not the paper's image-level loss.
+It adds no inference work and leaves the model format unchanged.
+
+The initial model, v4 dataset, seed, batch mixture, optimizer, learning rate,
+loss, 4,800-step schedule, and fixed 0.35 threshold match trial 22. The first
+128 batches contained 55 mixing events. They retained 1,409 of the original
+1,638 supervised centers and 3,724,805 of 4,295,328 supervised target pixels.
+Input/target alignment, ignored regions, sparse-crop restoration, deterministic
+sampling, and disabled behavior were checked before training. The cut margin
+does not guarantee that large objects remain whole.
+
+Validation F0.5 selected step 600, with 16/21 sources and no extras (0.94118).
+This exceeds trial 22's aggregate selection score (0.91398), but loses small
+stone-camp lights. The final checkpoint was evaluated separately as a diagnostic;
+it did not replace the validation winner. Test layouts were already observed
+in previous trials and remained outside training and checkpoint selection.
+
+| Reviewed region | Bundled v2 | Trial 22 best | Trial 23 best | Trial 23 last |
+| --- | --- | --- | --- | --- |
+| Expanded validation, five maps | 16/21 + 5 | 17/21 + 1 | 16/21 + 0 | 16/21 + 1 |
+| Stone camp, validation subset | 12/13 + 0 | 11/13 + 1 | 10/13 + 0 | 10/13 + 1 |
+| Castle 3, validation subset | 4/7 + 0 | 6/7 + 0 | 6/7 + 0 | 6/7 + 0 |
+| Puny 5, validation portal | 0/1 + 5 | 0/1 + 0 | 0/1 + 0 | 0/1 + 0 |
+| Castle 4, observed test | 2/2 + 0 | 2/2 + 0 | 2/2 + 0 | 2/2 + 0 |
+| Puny 3, observed fire-jet test | 0/7 + 16 | 1/7 + 3 | 0/7 + 2 | 1/7 + 3 |
+| New camp, observed test | 6/6 + 2 | 6/6 + 0 | 6/6 + 0 | 6/6 + 0 |
+| Astral, partial observed test | 20/20 + 2 | 18/20 + 1 | 18/20 + 1 | 18/20 + 1 |
+| Eight procedural test seeds | 63/63 + 8 | 62/63 + 4 | 63/63 + 2 | 62/63 + 2 |
+| Ship, partial training | 38/39 + 1 | 38/39 + 1 | 37/39 + 0 | 38/39 + 1 |
+
+Entries are matches / marked sources, followed by unmatched predictions.
+Partial reviews do not establish whole-map precision. The selected model's
+three stone misses are one northwestern watchtower light and both small lamps
+beside the eastern paddock. Its two Puny 3 extras lie on a bone and a gate.
+The two missed Astral side fixtures persist. These regressions outweigh the
+improved aggregate precision, so bundled v2 remains the selected research model.
+
+A separate diagnostic examines the blue training and validation portals. Their
+central 32 by 32 pixels are exactly equal. Their 64 by 64 patches differ in 7.81%
+of pixels, with mean channel difference only 0.443 on the 0–255 scale. Swapping
+those 64 px patches barely changes either model's response. Swapping wider
+patches, which include surrounding architecture and nearby sources, has a
+larger effect while preserving the central pixels.
+
+For trial 22, inserting the validation portal's 192 px surroundings into the
+training map lowers its center score from 0.447 to 0.278, losing the detection.
+Inserting the training surroundings into validation raises 0.049 to 0.277,
+still below 0.35. Trial 23's final checkpoint retains the altered training
+portal (0.489 to 0.373), but the reverse change reaches only 0.251 from 0.052.
+The early selected checkpoint misses the blue training portal too. This
+confirms sensitivity to surrounding pixels on these two images; it does not
+isolate every mechanism or establish broad context robustness. No diagnostic
+image, modified label, or runtime tiling change entered training or selection.
+
+Training took 391.86 seconds and peaked at 608,091,136 allocated CUDA bytes.
+Part of the CPU test suite ran concurrently, so this is not a controlled training
+speed comparison. Independent safetensors inspection found 323 finite tensors
+in each checkpoint, all 313 segmentation tensors identical to v2, and only the
+ten light-head tensors changed. Both raw checkpoints, exact training sources,
+all 32 validation records, per-image overlays, and diagnostic sources are kept
+locally. The [trial record](../models/CUTMIX_LIGHT_TRIAL_23.json) contains the
+recipe, hashes, counts, history, context probes, and limitations.
+
+The full suite passed 172 tests with three dependency deprecation warnings;
+Ruff, compilation, and diff whitespace checks passed. Actual CPU optimization
+with CutMix is covered, including frozen segmentation and loadable checkpoints.
+Runtime inference, GUI, export, and bundled weights are unchanged. Live Foundry
+import, other GPUs/operating systems, and release packaging were not run for
+this training-only change.
+
 ## Attribution
 
 The inherited DINOv2-small weights are by Meta Platforms, Inc. and affiliates,

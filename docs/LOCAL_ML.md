@@ -323,6 +323,23 @@ light weights cannot accidentally be frozen. Without the flag, the entire
 light head trains as before. Fixed local weights do not mean fixed predictions:
 the new context still changes the heatmap. Trial 21 did not justify replacing v2.
 
+For an optional training augmentation, add `--cutmix-probability 0.5`. This adapts
+[CutMix](https://arxiv.org/abs/1905.04899) to point targets: each crop receives a
+rectangular patch from another crop in the same training batch, with its heatmap
+and review mask. Patch edges align to the quarter-resolution target grid. Pixels
+within 32 image pixels of a cut are excluded from supervision on ordinary crops;
+the margin scales down for crops smaller than 256 px. This avoids supervising
+centers and fragments close to the cut, but does not guarantee that very large
+objects remain whole. A crop with no surviving reviewed pixels is restored.
+
+Mixing requires at least two crops and uses a separate seeded random generator,
+so it does not change the underlying crop sequence. The default probability is
+zero; disabled mixing returns the original arrays without consuming randomness.
+Only training crops are mixed. Validation, inference, model formats, and export
+are unchanged. The recipe records the probability and seed. Treat this as an
+experiment, choosing checkpoints using held-out layouts and retaining the
+original model until broader results justify a replacement.
+
 The semantic experiments improve recognition of cool emitters on the checked
 maps, but still require review for non-emissive details. See the
 [semantic light research notes](SEMANTIC_LIGHT_RESEARCH.md) for selection,
