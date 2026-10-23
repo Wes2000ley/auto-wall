@@ -1,0 +1,517 @@
+{
+  "purpose": "Cool-emitter and hard-negative light research; no replacement of bundled v1.",
+  "dataset": {
+    "real_train": [
+      "temple",
+      "wood",
+      "dyson-13",
+      "ship-lights"
+    ],
+    "real_validation": [
+      "stone",
+      "dyson-14"
+    ],
+    "ship_marked_sources": 39,
+    "ship_reviewed_fraction": 0.11177953084309895,
+    "old_procedural_train": 64,
+    "new_procedural_train": 64,
+    "new_procedural_test": 8,
+    "trial17_negative_anchors": 533,
+    "trial17_real_negative_anchors": 9,
+    "all_validation_and_test_images_points_masks_and_splits_unchanged": true
+  },
+  "diagnostic_labels": {
+    "source": "Agent review after earlier predictions; never training or checkpoint selection.",
+    "new_camp_complete_sources": 6,
+    "astral_partial_sources": 20,
+    "astral_nonlight_regions": 12,
+    "manifest_sha256": "5f16263e65678e53007c05fe0324ad316675dac18777f0a30f8caa2901b48ca8"
+  },
+  "trials": [
+    {
+      "base_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "manifest_sha256": "5d2eb45ead7c0ae46cb8b24eced1a3e31ec2a008806ef0732b1f3ce3ccb75348",
+      "steps": 2400,
+      "batch_size": 4,
+      "real_crops": 3,
+      "synthetic_crops": 1,
+      "crop_size": 384,
+      "lr": 0.0002,
+      "threshold": 0.35,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "seed": 73113,
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "215e0adcb6c25de9f9eb6751f06825a704240c868e09cd477444cf1029d44197",
+        "src\\ml\\light_data.py": "149d813575a7d4fcc00ee508720f93fca07a247329617165701cf6e1e6d0b66e",
+        "src\\ml\\light_centers.py": "5ddea94e0c059914bc00c0af205b5231ea747495061d3ae6218c5f58a7851f91",
+        "src\\ml\\dino.py": "0d5faaf873184c30a49c71d77da0b3b2a4e988758abde53ea48736a54cc08d43",
+        "src\\ml\\model.py": "7c2c09b68b3d69855e27e9e2196ee064a93df9e466cbbbace8c48951ef09dd5c",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 15,
+      "loss_normalization": "batch",
+      "best_step": 150,
+      "best_validation_score": 0.9836065573770492,
+      "best_validation": {
+        "matched": 12,
+        "false": 0,
+        "missed": 1
+      },
+      "maximum_validation_false": 12,
+      "completed": {
+        "seconds": 260.0310696999659,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 602834944
+      },
+      "promoted": false,
+      "best_sha256": "b641e5b53e2b32cbb750b169ba659af0fd2a3f7822e3d99bd7d0ef297bce71a6",
+      "last_sha256": "4f283443cca99ba0b6f72aa442a95011e24581190e1da05a9184a29d4af32705"
+    },
+    {
+      "base_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "manifest_sha256": "5d2eb45ead7c0ae46cb8b24eced1a3e31ec2a008806ef0732b1f3ce3ccb75348",
+      "steps": 2400,
+      "batch_size": 4,
+      "real_crops": 3,
+      "synthetic_crops": 1,
+      "crop_size": 384,
+      "lr": 0.0002,
+      "threshold": 0.35,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "seed": 73113,
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "af97ec932692b454e772193b72f01fa901d91de954d3812e2697c850181d0cbf",
+        "src\\ml\\light_data.py": "149d813575a7d4fcc00ee508720f93fca07a247329617165701cf6e1e6d0b66e",
+        "src\\ml\\light_centers.py": "5ddea94e0c059914bc00c0af205b5231ea747495061d3ae6218c5f58a7851f91",
+        "src\\ml\\dino.py": "0d5faaf873184c30a49c71d77da0b3b2a4e988758abde53ea48736a54cc08d43",
+        "src\\ml\\model.py": "7c2c09b68b3d69855e27e9e2196ee064a93df9e466cbbbace8c48951ef09dd5c",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 16,
+      "loss_normalization": "sample",
+      "best_step": 300,
+      "best_validation_score": 0.9433962264150944,
+      "best_validation": {
+        "matched": 10,
+        "false": 0,
+        "missed": 3
+      },
+      "maximum_validation_false": 1,
+      "completed": {
+        "seconds": 155.98547040001722,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 602834944
+      },
+      "promoted": false,
+      "best_sha256": "e491ee5dd2c1dbe75c2049075e8dddb90938c303b1fa255a97fc7ce999ee12ac",
+      "last_sha256": "3effc997c9b5003c54cdbeb125e502e19b20c7d5d87576b1fb12f13d1b9f018b"
+    },
+    {
+      "base_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+      "steps": 4800,
+      "batch_size": 4,
+      "real_crops": 2,
+      "synthetic_crops": 2,
+      "crop_size": 384,
+      "lr": 0.0002,
+      "threshold": 0.35,
+      "torch": "2.11.0+cu128",
+      "device": "cuda:0",
+      "seed": 73113,
+      "source_sha256": {
+        "scripts\\train_light_centers.py": "fc1aa227a78c4e41b08e08abb8ede40242f9c9b47c01d0f022a8815050a1c8b1",
+        "src\\ml\\light_data.py": "bddb5ef48c008d9056935ea8b3c9b02574c08277ed99bbc61c2981bc0dff0d31",
+        "src\\ml\\light_centers.py": "5ddea94e0c059914bc00c0af205b5231ea747495061d3ae6218c5f58a7851f91",
+        "src\\ml\\dino.py": "0d5faaf873184c30a49c71d77da0b3b2a4e988758abde53ea48736a54cc08d43",
+        "src\\ml\\model.py": "7c2c09b68b3d69855e27e9e2196ee064a93df9e466cbbbace8c48951ef09dd5c",
+        "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+        "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+      },
+      "trial": 17,
+      "loss_normalization": "sample",
+      "best_step": 150,
+      "best_validation_score": 0.9649122807017544,
+      "best_validation": {
+        "matched": 11,
+        "false": 0,
+        "missed": 2
+      },
+      "maximum_validation_false": 0,
+      "completed": {
+        "seconds": 348.3312511999975,
+        "segmentation_tensors_unchanged": 313,
+        "peak_allocated_bytes": 602834944
+      },
+      "promoted": false,
+      "best_sha256": "989225557a4328ab4d8fa60e84a2575c1f429306d590f4a4b332f65502042310",
+      "last_sha256": "d6915dcded8cba19678a6a97440ffecb3902fa8f0a1925d64a3ad3bcf435576b"
+    }
+  ],
+  "comparison": [
+    {
+      "model": "bundled-v1",
+      "sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "step": null,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 12,
+          "truth": 13,
+          "false": 0,
+          "missed": 1
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 0,
+          "truth": 39,
+          "false": 0,
+          "missed": 39
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 42,
+        "truth": 63,
+        "false": 76,
+        "missed": 21
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 1,
+          "missed": 0,
+          "all_peaks": 7,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 16,
+          "truth": 20,
+          "false": 8,
+          "missed": 4,
+          "all_peaks": 24,
+          "complete_annotation": false
+        }
+      }
+    },
+    {
+      "model": "trial-15-best",
+      "sha256": "b641e5b53e2b32cbb750b169ba659af0fd2a3f7822e3d99bd7d0ef297bce71a6",
+      "step": 150,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 12,
+          "truth": 13,
+          "false": 0,
+          "missed": 1
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 2,
+          "truth": 39,
+          "false": 0,
+          "missed": 37
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 44,
+        "truth": 63,
+        "false": 64,
+        "missed": 19
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 6,
+          "missed": 0,
+          "all_peaks": 12,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 16,
+          "truth": 20,
+          "false": 10,
+          "missed": 4,
+          "all_peaks": 29,
+          "complete_annotation": false
+        }
+      }
+    },
+    {
+      "model": "trial-15-final",
+      "sha256": "4f283443cca99ba0b6f72aa442a95011e24581190e1da05a9184a29d4af32705",
+      "step": 2400,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 3,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 0,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 36,
+          "truth": 39,
+          "false": 9,
+          "missed": 3
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 52,
+        "truth": 63,
+        "false": 58,
+        "missed": 11
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 7,
+          "missed": 0,
+          "all_peaks": 13,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 17,
+          "truth": 20,
+          "false": 7,
+          "missed": 3,
+          "all_peaks": 28,
+          "complete_annotation": false
+        }
+      }
+    },
+    {
+      "model": "trial-16-final",
+      "sha256": "3effc997c9b5003c54cdbeb125e502e19b20c7d5d87576b1fb12f13d1b9f018b",
+      "step": 2400,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 1,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 0,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 36,
+          "truth": 39,
+          "false": 7,
+          "missed": 3
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 54,
+        "truth": 63,
+        "false": 47,
+        "missed": 9
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 4,
+          "missed": 0,
+          "all_peaks": 10,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 17,
+          "truth": 20,
+          "false": 6,
+          "missed": 3,
+          "all_peaks": 24,
+          "complete_annotation": false
+        }
+      }
+    },
+    {
+      "model": "trial-17-final",
+      "sha256": "d6915dcded8cba19678a6a97440ffecb3902fa8f0a1925d64a3ad3bcf435576b",
+      "step": 4800,
+      "segmentation_tensors_unchanged": 313,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 10,
+          "truth": 13,
+          "false": 0,
+          "missed": 3
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 37,
+          "truth": 39,
+          "false": 5,
+          "missed": 2
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 59,
+        "truth": 63,
+        "false": 39,
+        "missed": 4
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 4,
+          "missed": 0,
+          "all_peaks": 10,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 20,
+          "truth": 20,
+          "false": 7,
+          "missed": 0,
+          "all_peaks": 32,
+          "complete_annotation": false
+        }
+      }
+    }
+  ],
+  "sampler_memory": {
+    "training_samples": 132,
+    "unchanged_image_points_masks_and_splits": 142,
+    "unchanged_procedural_renders": 64,
+    "anchor_coordinates_exact": true,
+    "previous_retained_anchor_bytes": 1081996288,
+    "current_retained_anchor_bytes": 67624784,
+    "reduction_fraction": 0.9374999852125185,
+    "scope": "Retained crop-anchor NumPy buffers only, not total process RAM or inference memory.",
+    "audit_repair": "Initial audit assumed slash-separated metadata keys and raised KeyError on Windows. This version normalizes separators; no model/data change.",
+    "source_snapshots_match_all_three_runs": true
+  },
+  "limitations": [
+    "Ship figures are partial training accuracy, not held-out generalization.",
+    "Astral and new camp had been observed before these experiments; annotations are agent review.",
+    "Procedural test performance is not real artwork accuracy.",
+    "Comparison uses raw light predictions before the normal pipeline rejects doorway highlights.",
+    "Final checkpoints are diagnostic; best checkpoints are selected only on stone and partial ink validation.",
+    "Runtime/export behavior and bundled weights are unchanged; these candidates were not promoted."
+  ]
+}

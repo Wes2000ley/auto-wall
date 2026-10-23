@@ -11,6 +11,10 @@ The head has 14,569 trained parameters. See the
 [training record](DINO_LIGHTS_TRAINING_RECORD.json) for hashes, source identities,
 selection, and recipe. This is **not the default detector**.
 
+[Follow-up trials 15–17](../docs/LIGHT_RESEARCH.md) added cool emitters and
+negative examples. They learned new source types but regressed on small lanterns
+and flowers, so this bundled checkpoint remains unchanged.
+
 ```shell
 python fast_auto_wall.py "map.png" --settings profiles/ml-light-centers.json --model models/battlemap-dino-lights-v1.safetensors --ml-device auto
 ```

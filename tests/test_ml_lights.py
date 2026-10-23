@@ -85,6 +85,23 @@ def light_manifest(tmp_path):
     return path, data
 
 
+def test_sample_loss_weights_sparse_crops_equally_and_ignores_unreviewed_pixels():
+    logits = torch.linspace(-2, 2, 32).reshape(2, 1, 4, 4).requires_grad_()
+    target = torch.zeros((2, 4, 4))
+    target[0, 1, 1] = 1
+    target[1, :2, :2] = 1
+    valid = torch.ones_like(target, dtype=torch.bool)
+    valid[0, 0, :] = False
+    actual = center_focal_loss(logits, target, valid, "sample")
+    separate = [center_focal_loss(logits[i:i + 1], target[i:i + 1], valid[i:i + 1]) for i in range(2)]
+    torch.testing.assert_close(actual, torch.stack(separate).mean())
+    assert not torch.isclose(actual, center_focal_loss(logits, target, valid))
+    actual.backward()
+    assert torch.isfinite(logits.grad).all() and not logits.grad[0, 0, 0].any()
+    with pytest.raises(ValueError, match="normalization"):
+        center_focal_loss(logits, target, valid, "unknown")
+
+
 def test_light_dataset_rejects_leakage_and_invalid_centers_and_keeps_sparse_labels(tmp_path):
     path, data = light_manifest(tmp_path)
     data["samples"][1]["group"] = "train"
@@ -108,6 +125,40 @@ def test_light_dataset_rejects_leakage_and_invalid_centers_and_keeps_sparse_labe
     assert np.all(np.any((targets == 1) & masks, axis=(1, 2)))
 
 
+def test_negative_crop_anchors_are_reviewed_background_and_never_become_lights(tmp_path):
+    path, data = light_manifest(tmp_path)
+    data["samples"] = data["samples"][:1]
+    sample = data["samples"][0]
+    for invalid in ([[64, 20]], [[float("nan"), 20]], [[20, 20], [20, 20]]):
+        sample["negative_points"] = invalid
+        path.write_text(json.dumps(data))
+        with pytest.raises(ValueError, match="Negative (points|centers)"):
+            read_light_dataset(path)
+    sample["negative_points"] = [[30, 30]]
+    path.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="cannot also be a negative"):
+        read_light_dataset(path)
+    valid = np.ones((64, 64), np.uint8)
+    valid[20, 20] = 0
+    cv2.imwrite(str(tmp_path / "valid.bmp"), valid)
+    sample.update(negative_points=[[20, 20]], valid_mask="valid.bmp")
+    path.write_text(json.dumps(data))
+    with pytest.raises(ValueError, match="Negative centers must lie in labelled"):
+        read_light_dataset(path)
+
+    image = np.zeros((512, 512, 3), np.uint8)
+    image[300:421, 300:421] = 255  # Bright, explicitly non-emissive decoration.
+    cv2.imwrite(str(tmp_path / "image.bmp"), image)
+    sample.update(points=[], negative_points=[[360, 360]])
+    del sample["valid_mask"]
+    path.write_text(json.dumps(data))
+    samples = read_light_dataset(path)
+    images, targets, masks = LightCropSampler(samples, crop_size=32).batch(24)
+    assert not targets.any() and masks.all()
+    assert np.count_nonzero(images.mean(axis=(1, 2, 3)) > .1) >= 16
+    assert samples[0]["negative_points_sha256"] != samples[0]["points_sha256"]
+
+
 def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(tmp_path):
     path, _ = light_manifest(tmp_path)
     base = DinoBattlemap().eval()
@@ -116,7 +167,7 @@ def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(
     save_model(base_path, base, {})
     args = argparse.Namespace(manifest=path, output=tmp_path / "run", init_model=base_path,
                               steps=1, batch_size=1, synthetic_per_batch=0, crop_size=32,
-                              seed=2, lr=.001, threshold=.35, device="cpu")
+                              seed=2, lr=.001, threshold=.35, device="cpu", loss_normalization="sample")
     trained = train(args)
     assert segmentation_hashes(trained) == before
     assert all(not p.requires_grad and p.grad is None for name, p in trained.named_parameters()

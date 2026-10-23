@@ -231,12 +231,17 @@ region; an empty list marks reviewed regions with no light sources. An optional
 single-channel uint8 `valid_mask` uses zero for unreviewed pixels and any nonzero
 value for reviewed pixels. Without it, the entire image is treated as reviewed.
 Unmarked emitters in reviewed regions would become incorrect negative labels.
+Optional `negative_points` lists XY centers of reviewed objects that do not emit
+light, such as flowers, painted symbols, or bright upholstery. These are crop
+anchors, not additional heatmap targets. They must be inside reviewed regions
+and cannot duplicate a light center. Use training-map errors to choose them;
+keep validation and test layouts out of that process.
 
 ```json
 {
   "format": "auto-wall-light-centers-v1",
   "samples": [
-    {"id": "camp-a", "group": "camp-a", "split": "train", "image": "a.bmp", "points": [[120, 80], [300, 220]]},
+    {"id": "camp-a", "group": "camp-a", "split": "train", "image": "a.bmp", "points": [[120, 80], [300, 220]], "negative_points": [[180, 160]]},
     {"id": "ink-a", "group": "ink-a", "split": "train", "image": "ink.bmp", "points": [], "valid_mask": "ink-reviewed.bmp"},
     {"id": "camp-b", "group": "camp-b", "split": "validation", "image": "b.bmp", "points": [[96, 144]]}
   ]
@@ -253,6 +258,17 @@ crop per batch comes from that group and three come from real maps; adjust
 whole batch. The sampler transforms coordinates before rendering targets so tiny
 lights survive scaling. Rotations, flips, varied hue/saturation, exposure, and
 illumination preserve physical source identities.
+Positive sources anchor 65% of crops when available. Of the remaining crops,
+75% use explicit negative anchors when supplied; the rest sample reviewed
+pixels. Negative-only samples use the same 75%/25% negative/reviewed mixture.
+All light centers within a crop still contribute targets, regardless of its
+anchor. The run record includes the negative-anchor hashes.
+
+The default focal loss divides the batch's total loss by its number of positive
+centers. `--loss-normalization sample` instead normalizes each crop separately
+and averages the results, giving sparse and dense crops equal weight. This is an
+experiment setting, not a demonstrated universal improvement; choose it using
+held-out layouts and inspect false positives as well as missed sources.
 
 Validation uses separate layouts and a fixed score threshold (`--threshold`,
 default 0.35). Checkpoint selection maximizes light-instance F0.5, which penalizes
@@ -268,6 +284,26 @@ Each new output directory receives raw, uncompressed `best.safetensors` and
 Both model files load directly in Fast Setup. Supplying a point model as
 `--init-model` continues from its light-head weights with a fresh optimizer and
 schedule. CPU works as well as CUDA; no cloud service or download is required.
+
+### Generate procedural fixture and lookalike examples
+
+```shell
+python scripts/generate_light_maps.py dataset/procedural-lights --count 72 --seed 901000
+```
+
+This creates uncompressed BMP maps, a point manifest, and object metadata in a
+new directory. It refuses to overwrite an existing dataset. The default has 64
+training seeds and eight reserved test seeds. Torches, campfires, lanterns,
+strips, and luminous orbs share varied palettes with flowers, painted stars,
+jewels, metal rivets, and unlit lanterns. Non-emissive objects also supply
+negative crop anchors. Construction labels identify the intended light sources;
+they do not establish recognition accuracy on real artwork.
+
+Combine the generated samples with real annotated samples in a point manifest,
+resolving image paths relative to the combined manifest. Preserve the original
+layout groups and reserved splits. The procedural manifest has no validation
+split and is deliberately insufficient for model selection on its own. Reusing
+a seed creates the same layout and group, so it must not cross dataset splits.
 
 ## Limits of the initial training set
 

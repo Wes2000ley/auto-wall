@@ -10,6 +10,18 @@ import cv2
 import numpy as np
 
 
+def _read_points(values, width, height, name, label):
+    points = np.asarray(values, dtype=np.float32)
+    if points.shape == (0,):
+        points = np.empty((0, 2), np.float32)
+    if (points.ndim != 2 or points.shape[1] != 2 or not np.isfinite(points).all()
+            or np.any(points < 0) or np.any(points > [width - 1, height - 1])):
+        raise ValueError(f"{label} points must be finite XY coordinates inside the source image: {name}")
+    if len(np.unique(points, axis=0)) != len(points):
+        raise ValueError(f"{label} centers must be unique within each image: {name}")
+    return points
+
+
 def read_light_dataset(manifest):
     """XY centers use source-image pixels; a zero valid-mask pixel is unlabelled."""
     manifest = Path(manifest)
@@ -30,14 +42,10 @@ def read_light_dataset(manifest):
         if image is None or min(image.shape[:2]) < 8:
             raise ValueError(f"Light training needs an image at least eight pixels wide and high: {name}")
         height, width = image.shape[:2]
-        points = np.asarray(item["points"], dtype=np.float32)
-        if points.shape == (0,):
-            points = np.empty((0, 2), np.float32)
-        if (points.ndim != 2 or points.shape[1] != 2 or not np.isfinite(points).all()
-                or np.any(points < 0) or np.any(points > [width - 1, height - 1])):
-            raise ValueError(f"Light points must be finite XY coordinates inside the source image: {name}")
-        if len(np.unique(points, axis=0)) != len(points):
-            raise ValueError(f"Light centers must be unique within each image: {name}")
+        points = _read_points(item["points"], width, height, name, "Light")
+        negatives = _read_points(item.get("negative_points", []), width, height, name, "Negative")
+        if len(points) and len(negatives) and np.any(np.all(points[:, None] == negatives[None], axis=-1)):
+            raise ValueError(f"A light center cannot also be a negative crop anchor: {name}")
         valid = np.ones((height, width), np.uint8)
         if item.get("valid_mask"):
             valid = cv2.imdecode(np.fromfile(manifest.parent / item["valid_mask"], np.uint8), cv2.IMREAD_UNCHANGED)
@@ -46,15 +54,18 @@ def read_light_dataset(manifest):
             valid = (valid != 0).astype(np.uint8)
         if not valid.any():
             raise ValueError(f"No labelled light regions: {name}")
-        coordinates = np.rint(points).astype(int)
-        if len(points) and not valid[coordinates[:, 1], coordinates[:, 0]].all():
-            raise ValueError(f"Light centers must lie in labelled regions: {name}")
+        for centers, label in ((points, "Light"), (negatives, "Negative")):
+            coordinates = np.rint(centers).astype(int)
+            if len(centers) and not valid[coordinates[:, 1], coordinates[:, 0]].all():
+                raise ValueError(f"{label} centers must lie in labelled regions: {name}")
         synthetic = item.get("synthetic", False)
         if type(synthetic) is not bool:
             raise ValueError("The synthetic sample flag must be boolean.")
-        samples.append({**item, "pixels": image, "points": points, "valid": valid, "synthetic": synthetic,
+        samples.append({**item, "pixels": image, "points": points, "negative_points": negatives,
+                        "valid": valid, "synthetic": synthetic,
                         "pixels_sha256": hashlib.sha256(image.tobytes()).hexdigest(),
                         "points_sha256": hashlib.sha256(points.tobytes()).hexdigest(),
+                        "negative_points_sha256": hashlib.sha256(negatives.tobytes()).hexdigest(),
                         "valid_sha256": hashlib.sha256(valid.tobytes()).hexdigest()})
     if not samples:
         raise ValueError("Light dataset is empty.")
@@ -94,7 +105,8 @@ class LightCropSampler:
         if not samples or crop_size < 32 or crop_size % 8:
             raise ValueError("Light crops need samples and a size of at least 32, divisible by eight.")
         self.samples, self.rng, self.size = samples, np.random.default_rng(seed), crop_size
-        self.valid_points = [np.argwhere(item["valid"])[::16] for item in samples]
+        # Detach the sampled coordinates from argwhere's full-size backing array.
+        self.valid_points = [np.argwhere(item["valid"])[::16].copy() for item in samples]
 
     def batch(self, count):
         images, targets, masks = [], [], []
@@ -105,6 +117,9 @@ class LightCropSampler:
                 height, width = sample["valid"].shape
                 if len(sample["points"]) and self.rng.random() < .65:
                     anchor_x, anchor_y = sample["points"][self.rng.integers(len(sample["points"]))]
+                elif len(sample.get("negative_points", ())) and self.rng.random() < .75:
+                    negatives = sample["negative_points"]
+                    anchor_x, anchor_y = negatives[self.rng.integers(len(negatives))]
                 else:
                     anchor_y, anchor_x = self.valid_points[index][self.rng.integers(len(self.valid_points[index]))]
                 size = min(height, width, round(self.size * self.rng.uniform(.75, 1.5)))

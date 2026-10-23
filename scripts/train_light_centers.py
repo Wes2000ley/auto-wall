@@ -25,14 +25,20 @@ from src.ml.light_data import LightCropSampler, read_light_dataset
 from src.ml.model import load_model, predict, save_model
 
 
-def center_focal_loss(logits, target, valid):
+def center_focal_loss(logits, target, valid, normalization="batch"):
     logits = logits.float().squeeze(1)
     probability = logits.sigmoid()
     positive = (target == 1) & valid
     negative = (target < 1) & valid
     positive_loss = -F.logsigmoid(logits) * (1 - probability).square() * positive
     negative_loss = -F.logsigmoid(-logits) * probability.square() * (1 - target).pow(4) * negative
-    return (positive_loss.sum() + negative_loss.sum()) / positive.sum().clamp_min(1)
+    if normalization == "batch":
+        return (positive_loss.sum() + negative_loss.sum()) / positive.sum().clamp_min(1)
+    if normalization == "sample":
+        # Give a sparse torch crop the same weight as a crop full of fixtures.
+        counts = positive.sum(dim=(1, 2)).clamp_min(1)
+        return ((positive_loss + negative_loss).sum(dim=(1, 2)) / counts).mean()
+    raise ValueError("Light loss normalization must be batch or sample.")
 
 
 def segmentation_hashes(model):
@@ -64,6 +70,8 @@ def train(args):
     if (args.steps < 1 or args.batch_size < 1 or not 0 <= args.synthetic_per_batch <= args.batch_size
             or not math.isfinite(args.lr) or args.lr <= 0 or not .05 <= args.threshold <= 1):
         raise ValueError("Use positive steps, batch size and learning rate, a valid synthetic crop count, and a score in [0.05, 1].")
+    if args.loss_normalization not in ("batch", "sample"):
+        raise ValueError("Light loss normalization must be batch or sample.")
     torch.set_num_threads(4)
     torch.manual_seed(args.seed)
     data = read_light_dataset(args.manifest)
@@ -100,10 +108,11 @@ def train(args):
                "manifest_sha256": hashlib.sha256(args.manifest.read_bytes()).hexdigest(),
                "steps": args.steps, "batch_size": args.batch_size, "real_crops": counts[0],
                "synthetic_crops": counts[1], "crop_size": args.crop_size, "lr": args.lr,
-               "threshold": args.threshold, "torch": torch.__version__, "device": str(device),
+               "threshold": args.threshold, "loss_normalization": args.loss_normalization,
+               "torch": torch.__version__, "device": str(device),
                "source_sha256": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources},
                "samples": [{key: s[key] for key in ("id", "group", "split", "synthetic", "pixels_sha256",
-                                                    "points_sha256", "valid_sha256")} for s in data]}
+                                                    "points_sha256", "negative_points_sha256", "valid_sha256")} for s in data]}
     (args.output / "run.json").write_text(json.dumps(details, indent=2) + "\n", encoding="utf-8")
     started, best = time.perf_counter(), -1.
     with (args.output / "history.jsonl").open("w", encoding="utf-8") as log:
@@ -115,7 +124,7 @@ def train(args):
             with torch.no_grad(), torch.autocast(device.type, enabled=device.type == "cuda"):
                 features = model.forward_features(image)
             with torch.autocast(device.type, enabled=device.type == "cuda"):
-                loss = center_focal_loss(model.light_head(features, image), target, valid)
+                loss = center_focal_loss(model.light_head(features, image), target, valid, args.loss_normalization)
             if not torch.isfinite(loss):
                 raise RuntimeError(f"Nonfinite light loss at step {step}.")
             scaler.scale(loss).backward()
@@ -160,6 +169,8 @@ def main():
     parser.add_argument("--seed", type=int, default=73113)
     parser.add_argument("--lr", type=float, default=.0005)
     parser.add_argument("--threshold", type=float, default=.35)
+    parser.add_argument("--loss-normalization", choices=("batch", "sample"), default="batch",
+                        help="Normalize by all centers in a batch, or weight each crop equally")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     train(parser.parse_args())
 
