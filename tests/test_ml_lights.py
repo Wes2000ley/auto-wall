@@ -13,7 +13,7 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("safetensors")
 pytest.importorskip("transformers")
 
-from scripts.train_light_centers import center_focal_loss, segmentation_hashes, train
+from scripts.train_light_centers import center_focal_loss, light_optimizer, local_light_hashes, segmentation_hashes, train
 from src.core.fast_pipeline import DetectionCancelled
 from src.core.light_geometry import light_center_points
 from src.ml.dino import DinoBattlemap, sample_patch_context
@@ -213,26 +213,60 @@ def test_negative_crop_anchors_are_reviewed_background_and_never_become_lights(t
     assert samples[0]["negative_points_sha256"] != samples[0]["points_sha256"]
 
 
-@pytest.mark.parametrize("semantic_context", [False, True])
-def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(tmp_path, semantic_context):
+@pytest.mark.parametrize("semantic_context,context_only,initial_head", [
+    (False, False, None), (True, False, None), (True, True, "local"), (False, True, "semantic")])
+def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(tmp_path, semantic_context, context_only, initial_head):
     path, _ = light_manifest(tmp_path)
-    base = DinoBattlemap().eval()
+    base = DinoBattlemap(light_centers=initial_head is not None,
+                        semantic_light_context=initial_head == "semantic").eval()
     before = segmentation_hashes(base)
+    local_before = local_light_hashes(base.light_head) if initial_head else {}
     base_path = tmp_path / "base.safetensors"
     save_model(base_path, base, {})
     args = argparse.Namespace(manifest=path, output=tmp_path / "run", init_model=base_path,
-                              steps=1, batch_size=1, synthetic_per_batch=0, crop_size=32,
+                              steps=2, batch_size=1, synthetic_per_batch=0, crop_size=32,
                               seed=2, lr=.001, threshold=.35, device="cpu", loss_normalization="sample",
-                              semantic_context=semantic_context)
+                              semantic_context=semantic_context, context_only=context_only)
     trained = train(args)
     assert segmentation_hashes(trained) == before
     assert all(not p.requires_grad and p.grad is None for name, p in trained.named_parameters()
                if not name.startswith("light_head."))
     assert any(p.grad is not None and p.grad.abs().sum() > 0 for p in trained.light_head.parameters())
-    assert load_model(base_path, "cpu")[0].light_head is None  # cached base is not mutated
+    cached = load_model(base_path, "cpu")[0]
+    if initial_head:
+        assert local_light_hashes(cached.light_head) == local_before
+    else:
+        assert cached.light_head is None  # cached base is not mutated
     saved, details = load_model(args.output / "best.safetensors", "cpu")
     assert details["segmentation_tensors_unchanged"] == 313 and saved.light_head is not None
-    assert details["semantic_context"] == semantic_context
-    if semantic_context:
+    assert details["semantic_context"] == (semantic_context or initial_head == "semantic")
+    assert details["context_only"] == context_only
+    if saved.light_head.semantic_context:
         assert trained.light_head.context_projection.weight.grad.abs().sum() > 0
+    if context_only:
+        assert details["local_light_weight_parts_unchanged"] == 8
+        assert local_light_hashes(trained.light_head) == local_before
+        assert local_light_hashes(saved.light_head) == local_before
+        assert not trained.light_head.layers[0].weight.grad[:, :19].any()
+        assert trained.light_head.layers[0].weight.grad[:, 19:].abs().sum() > 0
+        assert all(not p.requires_grad and p.grad is None for name, p in trained.light_head.named_parameters()
+                   if not name.startswith("context_projection.") and name != "layers.0.weight")
     assert segmentation_hashes(saved) == before
+
+
+def test_context_only_training_requires_semantic_inputs():
+    with pytest.raises(ValueError, match="Context-only training needs"):
+        light_optimizer(LightCenterHead(), .001, context_only=True)
+
+
+def test_context_only_training_rejects_missing_initial_light_weights(tmp_path):
+    path, _ = light_manifest(tmp_path)
+    base_path = tmp_path / "segmentation.safetensors"
+    save_model(base_path, DinoBattlemap().eval(), {})
+    args = argparse.Namespace(manifest=path, output=tmp_path / "run", init_model=base_path,
+                              steps=2, batch_size=1, synthetic_per_batch=0, crop_size=32,
+                              seed=2, lr=.001, threshold=.35, device="cpu", loss_normalization="sample",
+                              semantic_context=True, context_only=True)
+    with pytest.raises(ValueError, match="requires an existing light-head checkpoint"):
+        train(args)
+    assert not args.output.exists()

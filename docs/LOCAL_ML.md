@@ -12,6 +12,9 @@ machine, plus `safetensors`. `requirements-ml.txt` lists the optional dependenci
 The tested GPU environment uses Python 3.13, PyTorch 2.11.0+cu128, and an RTX 3080.
 The CPU and GPU runtimes use the same model file.
 
+Use a dedicated virtual environment without system packages for faster first
+loads. See [the isolated runtime setup and measured results](ML_RUNTIME.md).
+
 DINO checkpoints additionally need `requirements-ml-dino.txt`. They combine a
 pretrained DINOv2-small backbone with a trainable local decoder. The backbone is
 frozen by default. This adds visual context while retaining fine boundary features.
@@ -307,6 +310,18 @@ default model choice remain available.
 ```shell
 python scripts/train_light_centers.py dataset/lights.json training/semantic-lights-1 --init-model models/battlemap-dino-lights-v1.safetensors --semantic-context --loss-normalization sample --synthetic-per-batch 2 --lr 0.0002 --steps 4800 --device cuda
 ```
+
+For a restricted training experiment, add `--context-only`. This updates only
+the context projection and the first convolution's added context inputs. The
+original 19 RGB/decoder input channels and all subsequent light layers stay
+fixed; their eight tensor parts are hashed before every checkpoint. Weight decay
+is disabled for that first convolution so it cannot alter the fixed columns.
+The projection keeps the ordinary weight decay. This requires an existing light
+checkpoint, using either `--semantic-context` to upgrade v1 or an existing
+semantic model. A segmentation-only checkpoint is rejected so random local
+light weights cannot accidentally be frozen. Without the flag, the entire
+light head trains as before. Fixed local weights do not mean fixed predictions:
+the new context still changes the heatmap. Trial 21 did not justify replacing v2.
 
 The semantic experiments improve recognition of cool emitters on the checked
 maps, but still require review for non-emissive details. See the

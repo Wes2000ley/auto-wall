@@ -1,0 +1,693 @@
+{
+  "purpose": "Reduce first ML detection latency by isolating Fast Setup dependencies from system packages.",
+  "runtime_or_model_source_changed": false,
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3080",
+    "cpu": "AMD Ryzen 7 7800X3D",
+    "os": "Windows",
+    "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]"
+  },
+  "models_sha256": {
+    "battlemap-dino-lights-v1.safetensors": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+    "battlemap-dino-lights-v2.safetensors": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+    "battlemap-dino-v1.safetensors": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c",
+    "battlemap-v1.safetensors": "cf7a10498fa9c938ce96f68fded84632c9e70fe4115f7a46f71edd777aca4bbe"
+  },
+  "source_sha256": {
+    "src/core/fast_pipeline.py": "2a81a4600eab382bfb2791776249591263a04e04c39ddd4b3853abca3d2b74fe",
+    "src/core/wall_geometry.py": "2c95dbd38bcdfdf1215f3c15b4361bd897972d5f35f0d75d94080d4ff4b30ee3",
+    "src/core/native_geometry.py": "3df7b3c57e01b6148f351f8f72eaf82676c75d67eb0ca288d79719a1e92fe022",
+    "src/core/light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+    "src/gui/fast_setup.py": "ba72ed7b2cd516b92b451d612b8dd9abc74ad09bc627a7b23bbbdc78ba228da9",
+    "src/ml/model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+    "src/ml/dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+    "src/ml/light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844"
+  },
+  "environment": {
+    "shared_package_count": 546,
+    "isolated_package_count_final": 49,
+    "isolated_packages_final": {
+      "ImageIO": "2.38.1",
+      "Jinja2": "3.1.6",
+      "MarkupSafe": "3.0.3",
+      "PyQt6": "6.11.0",
+      "PyQt6-Qt6": "6.11.1",
+      "PyQt6_sip": "13.11.1",
+      "PyYAML": "6.0.3",
+      "Pygments": "2.21.0",
+      "annotated-doc": "0.0.5",
+      "anyio": "4.15.1",
+      "certifi": "2026.10.19",
+      "click": "8.5.0",
+      "colorama": "0.4.6",
+      "filelock": "3.32.3",
+      "fsspec": "2026.7.0",
+      "h11": "0.16.0",
+      "hf-xet": "1.7.0",
+      "httpcore": "1.0.9",
+      "httpx": "0.28.1",
+      "huggingface_hub": "1.33.0",
+      "idna": "3.20",
+      "iniconfig": "2.3.1",
+      "lazy-loader": "0.6",
+      "markdown-it-py": "4.2.0",
+      "mdurl": "0.1.2",
+      "mpmath": "1.3.0",
+      "networkx": "3.6.1",
+      "numpy": "2.2.2",
+      "opencv-python": "4.11.0.86",
+      "packaging": "26.3",
+      "pillow": "11.1.0",
+      "pip": "24.3.1",
+      "pluggy": "1.7.0",
+      "pytest": "8.4.2",
+      "regex": "2026.9.29",
+      "rich": "15.0.0",
+      "safetensors": "0.7.0",
+      "scikit-image": "0.26.0",
+      "scipy": "1.16.3",
+      "setuptools": "78.1.0",
+      "shellingham": "1.5.4",
+      "sympy": "1.14.0",
+      "tifffile": "2026.10.15",
+      "tokenizers": "0.22.2",
+      "torch": "2.11.0+cu128",
+      "tqdm": "4.70.1",
+      "transformers": "5.8.0",
+      "typer": "0.27.3",
+      "typing_extensions": "4.16.0"
+    },
+    "include_system_site_packages": false,
+    "core_versions_equal": {
+      "torch": "2.11.0+cu128",
+      "transformers": "5.8.0",
+      "numpy": "2.2.2",
+      "opencv-python": "4.11.0.86",
+      "PyQt6": "6.11.0",
+      "PyQt6-Qt6": "6.11.1",
+      "safetensors": "0.7.0",
+      "scipy": "1.16.3"
+    },
+    "scope": "Standalone Fast Setup with ML and both centerline implementations. Existing full-editor/training environment is retained."
+  },
+  "cpu_stage_profile": {
+    "method": "Three alternating fresh processes per environment; 8 torch threads; CPU import, construction and strict weight load. Excludes CUDA transfer, map decode, inference, and Qt.",
+    "initial_isolated_package_count": 42,
+    "runs": {
+      "shared": [
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 1.6809254999971017,
+            "runtime_import": 0.010026600037235767,
+            "transformers_dino_import": 11.755080600036308,
+            "model_constructor": 0.17058829998131841,
+            "read_tensors": 0.005586799990851432,
+            "finite_check": 0.04023739998228848,
+            "assign_tensors": 0.00730579998344183,
+            "total": 13.66979590000119
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        },
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 1.6027364000328816,
+            "runtime_import": 0.010020899993833154,
+            "transformers_dino_import": 11.498185999982525,
+            "model_constructor": 0.1722736000083387,
+            "read_tensors": 0.005590799963101745,
+            "finite_check": 0.034097000025212765,
+            "assign_tensors": 0.0076006000163033605,
+            "total": 13.330552800034638
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        },
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 1.6585556999780238,
+            "runtime_import": 0.010536800022237003,
+            "transformers_dino_import": 11.671720799989998,
+            "model_constructor": 0.17748989997198805,
+            "read_tensors": 0.004869199998211116,
+            "finite_check": 0.03831129998434335,
+            "assign_tensors": 0.007514500000979751,
+            "total": 13.569039099966176
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        }
+      ],
+      "isolated": [
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 6.4216305000009015,
+            "runtime_import": 0.02520209999056533,
+            "transformers_dino_import": 4.7256517999921925,
+            "model_constructor": 0.17733299999963492,
+            "read_tensors": 0.00585379998665303,
+            "finite_check": 0.0392858000122942,
+            "assign_tensors": 0.007817400037311018,
+            "total": 11.402830699982587
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        },
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 1.5069519000244327,
+            "runtime_import": 0.007609700027387589,
+            "transformers_dino_import": 2.778349199972581,
+            "model_constructor": 0.1699963000137359,
+            "read_tensors": 0.005479499988723546,
+            "finite_check": 0.03821349999634549,
+            "assign_tensors": 0.006480899988673627,
+            "total": 4.513117499998771
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        },
+        {
+          "torch": "2.11.0+cu128",
+          "threads": 8,
+          "seconds": {
+            "torch_import": 1.4593433999689296,
+            "runtime_import": 0.007462100009433925,
+            "transformers_dino_import": 2.697915499971714,
+            "model_constructor": 0.15944600000511855,
+            "read_tensors": 0.004222000017762184,
+            "finite_check": 0.035916299966629595,
+            "assign_tensors": 0.0065246999729424715,
+            "total": 4.370869399979711
+          },
+          "method": "Fresh process; CPU stages corresponding to the normal loader. No inference or CUDA copy."
+        }
+      ]
+    },
+    "median_seconds": {
+      "shared": {
+        "torch_import": 1.6585556999780238,
+        "runtime_import": 0.010026600037235767,
+        "transformers_dino_import": 11.671720799989998,
+        "model_constructor": 0.1722736000083387,
+        "read_tensors": 0.005586799990851432,
+        "finite_check": 0.03831129998434335,
+        "assign_tensors": 0.007514500000979751,
+        "total": 13.569039099966176
+      },
+      "isolated": {
+        "torch_import": 1.5069519000244327,
+        "runtime_import": 0.007609700027387589,
+        "transformers_dino_import": 2.778349199972581,
+        "model_constructor": 0.1699963000137359,
+        "read_tensors": 0.005479499988723546,
+        "finite_check": 0.03821349999634549,
+        "assign_tensors": 0.0065246999729424715,
+        "total": 4.513117499998771
+      }
+    },
+    "caveat": "The first isolated pass after installation took 11.403 seconds. OS file caching and desktop activity vary. All passes are included."
+  },
+  "qt_detection": {
+    "method": "Three alternating fresh processes per environment. Actual offscreen Qt workers, 1536 px cap, CUDA. Each process detects wood then stone and changes light score 0.35 to 0.60 to 0.35, then exports both maps.",
+    "timing_boundary": "Detection worker total including first ML import, model initialization, CUDA copy and inference/geometry. Excludes Qt startup, map decode, painting, and export writing.",
+    "training_running": false,
+    "runs": {
+      "shared": [
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 16.50800050003454,
+            "warm_detection_seconds": 0.4289337999653071,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5355807000305504,
+            "warm_detection_seconds": 0.5235163000179455,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ],
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 16.334045999974478,
+            "warm_detection_seconds": 0.4347358000231907,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5435645999968983,
+            "warm_detection_seconds": 0.5112391999573447,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ],
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 16.557101299986243,
+            "warm_detection_seconds": 0.43500769999809563,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5369579999824055,
+            "warm_detection_seconds": 0.5152987000183202,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ]
+      ],
+      "isolated": [
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 5.900054999976419,
+            "warm_detection_seconds": 0.4294973000069149,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5052321000257507,
+            "warm_detection_seconds": 0.5123672000481747,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ],
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 5.451770099985879,
+            "warm_detection_seconds": 0.44753880001371726,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5587488999590278,
+            "warm_detection_seconds": 0.5486374999745749,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ],
+        [
+          {
+            "map": "wood",
+            "first_detection_seconds": 5.446920800022781,
+            "warm_detection_seconds": 0.4403790999785997,
+            "lights": 9,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          },
+          {
+            "map": "stone",
+            "first_detection_seconds": 0.5257737000356428,
+            "warm_detection_seconds": 0.5106150000356138,
+            "lights": 12,
+            "doors": 4,
+            "geometry_unchanged_on_score_change": true,
+            "score_control_invalidated_export_and_recomputed": true,
+            "source_png_identical": true,
+            "export_worker_completed": true
+          }
+        ]
+      ]
+    },
+    "median_first_detection_seconds": {
+      "shared": 16.50800050003454,
+      "isolated": 5.451770099985879
+    },
+    "first_detection_ratio": 3.0280074539601918,
+    "first_detection_reduction_percent": 66.97498222165385,
+    "all_twelve_serialized_exports_pairwise_identical": true,
+    "warm_detection_range_seconds": {
+      "shared": [
+        0.4289337999653071,
+        0.5235163000179455
+      ],
+      "isolated": [
+        0.4294973000069149,
+        0.5486374999745749
+      ]
+    }
+  },
+  "compatibility": {
+    "raw_prediction_arrays_identical": 60,
+    "raw_cases": [
+      {
+        "model": "battlemap-v1",
+        "device": "cpu",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-v1",
+        "device": "cpu",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-v1",
+        "device": "cpu",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-v1",
+        "device": "cuda",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-v1",
+        "device": "cuda",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-v1",
+        "device": "cuda",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cpu",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cpu",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cpu",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cuda",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cuda",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-v1",
+        "device": "cuda",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 2
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cpu",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cpu",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cpu",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cuda",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cuda",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v1",
+        "device": "cuda",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cpu",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cpu",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cpu",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cuda",
+        "size": [
+          43,
+          35
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cuda",
+        "size": [
+          384,
+          384
+        ],
+        "arrays": 3
+      },
+      {
+        "model": "battlemap-dino-lights-v2",
+        "device": "cuda",
+        "size": [
+          511,
+          385
+        ],
+        "arrays": 3
+      }
+    ],
+    "pipeline_maps": [
+      {
+        "id": "wood",
+        "source_sha256": "201e6ef77b440a424f75331c695ec03f5739c8053632e561197426b15bdce65e",
+        "walls": 1000,
+        "doors": 4,
+        "lights": 9,
+        "transparent": 123,
+        "source_png_identical": true
+      },
+      {
+        "id": "stone",
+        "source_sha256": "e21098db4e48f31eb773d45ad276af7d52757322d9b5ad8362c84a0f548aeccb",
+        "walls": 1673,
+        "doors": 4,
+        "lights": 12,
+        "transparent": 90,
+        "source_png_identical": true
+      },
+      {
+        "id": "temple",
+        "source_sha256": "2b21e436191cb09918c04356ac5287e4bf5425b66a57266aafbc02f52a5ae48c",
+        "walls": 2302,
+        "doors": 68,
+        "lights": 30,
+        "transparent": 0,
+        "source_png_identical": true
+      },
+      {
+        "id": "ship",
+        "source_sha256": "c5c5288dc4b8f2251b28738317a54b79e1ba7a24722de8426a70f3d2a72577d6",
+        "walls": 1894,
+        "doors": 62,
+        "lights": 63,
+        "transparent": 0,
+        "source_png_identical": true
+      },
+      {
+        "id": "demon",
+        "source_sha256": "75d5b8cc425a46841b63dd32090a54f48c3d66f5dbc4de7ca19624a2c275cbf0",
+        "walls": 2379,
+        "doors": 66,
+        "lights": 30,
+        "transparent": 0,
+        "source_png_identical": true
+      },
+      {
+        "id": "astral",
+        "source_sha256": "89460a0a6d08c11fc0c355275279ab7375c06886f06425935cd4de53e0f0bed0",
+        "walls": 2496,
+        "doors": 42,
+        "lights": 28,
+        "transparent": 0,
+        "source_png_identical": true
+      }
+    ],
+    "geometry_and_serialized_exports_identical": true,
+    "source_png_bytes_identical": true
+  },
+  "validation": {
+    "full_existing_environment": {
+      "command": "python -m pytest -q",
+      "passed": 161,
+      "warnings": 3,
+      "seconds": 26.03
+    },
+    "isolated_fast_ml_environment": {
+      "command": "python -m pytest -q tests/test_detection_profiles.py tests/test_fast_pipeline.py tests/test_fast_setup.py tests/test_geometry_metrics.py tests/test_light_geometry.py tests/test_ml.py tests/test_ml_dino.py tests/test_ml_lights.py tests/test_ml_pipeline.py tests/test_native_geometry.py tests/test_synthetic_lights.py tests/test_wall_geometry.py",
+      "passed": 151,
+      "warnings": 0,
+      "seconds": 16.89
+    },
+    "pip_check": "No broken requirements found.",
+    "launcher_help_exit_code": 0,
+    "live_foundry_import_run": false,
+    "release_packaging_run": false,
+    "other_os_or_gpu_run": false
+  },
+  "limitations": [
+    "This improves startup on the measured installation; it does not improve detection accuracy or change trained weights.",
+    "Fresh processes can benefit from warm OS file caches. First launch after install, antivirus activity, and other desktop load can differ.",
+    "Transitive dependency versions and optional installed packages differ; this is an environment comparison, not an isolated microbenchmark of one import call.",
+    "The full legacy editor was tested in its existing environment, not in the standalone runtime.",
+    "Transparent barriers retain the existing preview-only behavior and are omitted from opaque UVTT geometry."
+  ]
+}

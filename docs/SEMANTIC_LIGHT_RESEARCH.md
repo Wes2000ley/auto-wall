@@ -70,6 +70,43 @@ for exact checkpoint and dataset hashes, source snapshots, training recipes,
 validation histories summarized by run, and fixed-checkpoint comparisons.
 Private map artwork is not included in this repository.
 
+### Trial 21: keep the original local light weights fixed
+
+This experiment starts again from v1 and trains only the 9,616 added context
+parameters with `--semantic-context --context-only`. It uses the same data,
+seed, crop mixture, learning rate, loss, and 4,800-step schedule as trial 18.
+All 313 segmentation tensors and eight original light-weight parts remain
+bit-for-bit identical. The first convolution's fixed columns have zeroed
+gradients and no weight decay; its new columns also receive no decay. This
+optimizer detail means it is not a pure one-factor comparison with trial 18.
+
+The validation winner occurs at step 150: 13/13 stone sources and no extras.
+That early checkpoint has learned too little about cool fixtures. The final
+checkpoint learns more of them but drops to 11/13 stone sources. Preserving
+local weights does not preserve outputs after the added context learns.
+
+| Reviewed region | Bundled v2 | Trial 21, step 150 | Trial 21, step 4,800 |
+| --- | --- | --- | --- |
+| Wooden camp, training | 9/9 + 0 | 9/9 + 0 | 9/9 + 0 |
+| Stone camp, validation | 12/13 + 0 | 13/13 + 0 | 11/13 + 0 |
+| Temple, training | 30/30 + 0 | 30/30 + 0 | 30/30 + 0 |
+| Ship, partial training | 38/39 + 1 | 29/39 + 9 | 35/39 + 1 |
+| Astral, partial observed test | 20/20 + 2 | 16/20 + 5 | 17/20 + 0 |
+| New camp, observed test | 6/6 + 2 | 6/6 + 6 | 6/6 + 2 |
+| Eight procedural test seeds | 63/63 + 8 | 49/63 + 34 | 61/63 + 8 |
+
+Neither checkpoint replaces v2. The current validation set has warm sources
+and reviewed ink regions but no marked cool fixtures; its winning score is
+insufficient evidence of broad improvement. Test layouts remain excluded from
+training and checkpoint selection. More diverse, separately annotated validation
+layouts are needed before further selection claims.
+
+The run took 361.31 seconds and peaked at 607,963,136 allocated CUDA bytes.
+Both checkpoints, the history, and verified source snapshots are retained locally.
+The [trial record](../models/CONTEXT_ONLY_LIGHT_TRIAL_21.json) includes the recipe,
+hashes, validation history, fixed-checkpoint comparisons, and evaluation limits.
+No runtime model or geometry behavior changed in this experiment.
+
 ## Fixed-checkpoint results
 
 Entries show matched sources / marked sources, followed by false extras. These
@@ -136,6 +173,8 @@ back, verified that export was invalidated and recomputed, and exported both
 camps with the expected four doors and 9/12 lights. Captured previews were
 inspected. The first detection in a fresh process took 20.45 seconds; subsequent
 checked detections took 0.45–0.62 seconds. Startup remains a material cost.
+The later [isolated-runtime comparison](ML_RUNTIME.md) reduces median first Qt
+detection from 16.51 to 5.45 seconds in three paired runs, with identical outputs.
 
 Training took 297.90, 172.77, and 382.00 seconds for trials 18–20. Peak allocated
 CUDA tensors were 608,052,224, 608,091,136, and 1,348,270,080 bytes respectively.

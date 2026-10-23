@@ -46,6 +46,31 @@ def segmentation_hashes(model):
             for key, value in model.state_dict().items() if not key.startswith("light_head.")}
 
 
+def local_light_hashes(head):
+    """Hash the original RGB/decoder inputs and all following light-head weights."""
+    result = {}
+    for key, value in head.layers.state_dict().items():
+        if key == "0.weight":
+            value = value[:, :19]
+        result[key] = hashlib.sha256(value.detach().cpu().numpy().tobytes()).hexdigest()
+    return result
+
+
+def light_optimizer(head, learning_rate, context_only=False):
+    if context_only and not head.semantic_context:
+        raise ValueError("Context-only training needs --semantic-context or an existing semantic light model.")
+    head.requires_grad_(not context_only)
+    parameters = head.parameters()
+    if context_only:
+        head.context_projection.requires_grad_(True)
+        head.layers[0].weight.requires_grad_(True)
+        # The first convolution mixes fixed local inputs with trainable context.
+        # Masking its local gradients also requires disabling weight decay here.
+        parameters = [{"params": head.context_projection.parameters()},
+                      {"params": [head.layers[0].weight], "weight_decay": 0.}]
+    return torch.optim.AdamW(parameters, lr=learning_rate, weight_decay=.0001)
+
+
 def evaluate(model, samples, threshold):
     report, matched, false, missed = {}, 0, 0, 0
     for sample in samples:
@@ -92,13 +117,15 @@ def train(args):
         raise ValueError("Light-center training requires a local DINO Auto-Wall model.")
     device = next(model.parameters()).device
     model.requires_grad_(False).eval()
+    if args.context_only and model.light_head is None:
+        raise ValueError("Context-only training requires an existing light-head checkpoint.")
     if model.light_head is None:
         model.light_head = LightCenterHead(semantic_context=args.semantic_context).to(device)
     elif args.semantic_context and not model.light_head.semantic_context:
         model.light_head = model.light_head.with_semantic_context()
-    model.light_head.requires_grad_(True)
     before = segmentation_hashes(model)
-    optimizer = torch.optim.AdamW(model.light_head.parameters(), lr=args.lr, weight_decay=.0001)
+    optimizer = light_optimizer(model.light_head, args.lr, args.context_only)
+    local_before = local_light_hashes(model.light_head) if args.context_only else {}
     scaler = torch.amp.GradScaler(device.type, enabled=device.type == "cuda")
     args.output.mkdir(parents=True, exist_ok=False)
     root = Path(__file__).resolve().parents[1]
@@ -112,6 +139,7 @@ def train(args):
                "synthetic_crops": counts[1], "crop_size": args.crop_size, "lr": args.lr,
                "threshold": args.threshold, "loss_normalization": args.loss_normalization,
                "semantic_context": model.light_head.semantic_context,
+               "context_only": args.context_only,
                "torch": torch.__version__, "device": str(device),
                "source_sha256": {str(path.relative_to(root)): hashlib.sha256(path.read_bytes()).hexdigest() for path in sources},
                "samples": [{key: s[key] for key in ("id", "group", "split", "synthetic", "pixels_sha256",
@@ -132,10 +160,13 @@ def train(args):
                 raise RuntimeError(f"Nonfinite light loss at step {step}.")
             scaler.scale(loss).backward()
             scaler.unscale_(optimizer)
+            if args.context_only:
+                model.light_head.layers[0].weight.grad[:, :19].zero_()
             torch.nn.utils.clip_grad_norm_(model.light_head.parameters(), 5.)
             scaler.step(optimizer)
             scaler.update()
-            optimizer.param_groups[0]["lr"] = args.lr * (.2 + .8 * (1 + math.cos(math.pi * step / args.steps)) / 2)
+            for group in optimizer.param_groups:
+                group["lr"] = args.lr * (.2 + .8 * (1 + math.cos(math.pi * step / args.steps)) / 2)
             if step % 100 == 0:
                 print(json.dumps({"step": step, "loss": float(loss.detach()), "seconds": time.perf_counter() - started}), flush=True)
             if step % 150 == 0 or step == args.steps:
@@ -145,15 +176,19 @@ def train(args):
                 log.flush()
                 if segmentation_hashes(model) != before:
                     raise RuntimeError("Segmentation tensors changed during light-only training.")
+                if args.context_only and local_light_hashes(model.light_head) != local_before:
+                    raise RuntimeError("Fixed local light weights changed during context-only training.")
                 checkpoint = {**details, "selected_step": step, "validation": metrics,
-                              "segmentation_tensors_unchanged": len(before)}
+                              "segmentation_tensors_unchanged": len(before),
+                              "local_light_weight_parts_unchanged": len(local_before)}
                 save_model(args.output / "last.safetensors", model, checkpoint)
                 if metrics["score"] > best:
                     best = metrics["score"]
                     save_model(args.output / "best.safetensors", model, checkpoint)
                     (args.output / "best.json").write_text(json.dumps(item, indent=2) + "\n", encoding="utf-8")
                 print(json.dumps({key: value for key, value in item.items() if key != "samples"}), flush=True)
-    report = {"seconds": time.perf_counter() - started, "segmentation_tensors_unchanged": len(before)}
+    report = {"seconds": time.perf_counter() - started, "segmentation_tensors_unchanged": len(before),
+              "local_light_weight_parts_unchanged": len(local_before)}
     if device.type == "cuda":
         report["peak_allocated_bytes"] = torch.cuda.max_memory_allocated()
     (args.output / "completed.json").write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
@@ -176,6 +211,8 @@ def main():
                         help="Normalize by all centers in a batch, or weight each crop equally")
     parser.add_argument("--semantic-context", action="store_true",
                         help="Give the light head direct access to shared frozen DINO features")
+    parser.add_argument("--context-only", action="store_true",
+                        help="Train only the added DINO inputs of an existing light model; freeze its local weights")
     parser.add_argument("--device", choices=("auto", "cpu", "cuda"), default="auto")
     train(parser.parse_args())
 

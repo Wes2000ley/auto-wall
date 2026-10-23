@@ -1,0 +1,427 @@
+{
+  "purpose": "Test whether preserving original local light weights improves generalization when learning DINO context.",
+  "trial": 21,
+  "recipe": {
+    "method": "frozen segmentation with physical light centers",
+    "seed": 73113,
+    "base_sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+    "manifest_sha256": "4a63b5d374e0beac43874f516a112f0aa12a055de3b922a9525c2ec058bf4d75",
+    "steps": 4800,
+    "batch_size": 4,
+    "real_crops": 2,
+    "synthetic_crops": 2,
+    "crop_size": 384,
+    "lr": 0.0002,
+    "threshold": 0.35,
+    "loss_normalization": "sample",
+    "semantic_context": true,
+    "context_only": true,
+    "torch": "2.11.0+cu128",
+    "device": "cuda:0",
+    "source_sha256": {
+      "scripts\\train_light_centers.py": "4cde7c5690f642f9bf5b747beb2579aefb0d83404b3828002e877501e5850bd1",
+      "src\\ml\\light_data.py": "2a17be754e14051488d4c3ec1bd619d190e03de4d39e6883f4ce46f978883ef0",
+      "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+      "src\\ml\\dino.py": "fb86c972aa29c4a72cc3ad4ca651bc47feefb18206228d525a19d7136a33b4ca",
+      "src\\ml\\model.py": "153309eb2eddd81e6ddce942e650c3c259ecacf0232edd43955bf70757128fe6",
+      "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+      "benchmarks\\check_geometry.py": "a6f5a60c816fb0a4b37fbb170a7ca250e8554f431912c6c02eb082ca6736d816"
+    }
+  },
+  "source_snapshot_verified": true,
+  "completed": {
+    "seconds": 361.30626739998115,
+    "segmentation_tensors_unchanged": 313,
+    "local_light_weight_parts_unchanged": 8,
+    "peak_allocated_bytes": 607963136
+  },
+  "optimizer": {
+    "trainable_elements": 9616,
+    "fixed_local_weight_parts": 8,
+    "first_convolution_weight_decay": 0,
+    "context_projection_weight_decay": 0.0001,
+    "local_first_convolution_gradients_masked_before_clipping": true
+  },
+  "selection": "Highest validation F0.5 at 0.35 on stone and reviewed Dyson 14; first checkpoint wins a tie.",
+  "best_validation": {
+    "step": 150,
+    "score": 1.0,
+    "matched": 13,
+    "false": 0,
+    "missed": 0
+  },
+  "validation_history": [
+    {
+      "step": 150,
+      "score": 1.0,
+      "matched": 13,
+      "false": 0,
+      "missed": 0
+    },
+    {
+      "step": 300,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 450,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 600,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 750,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 900,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 1050,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 1200,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 1350,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 1500,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 1650,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 1800,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 1950,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 2100,
+      "score": 0.821917808219178,
+      "matched": 12,
+      "false": 3,
+      "missed": 1
+    },
+    {
+      "step": 2250,
+      "score": 0.9230769230769231,
+      "matched": 12,
+      "false": 1,
+      "missed": 1
+    },
+    {
+      "step": 2400,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 2550,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 2700,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 2850,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3000,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3150,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3300,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3450,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3600,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 3750,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 3900,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 4050,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 4200,
+      "score": 0.9836065573770492,
+      "matched": 12,
+      "false": 0,
+      "missed": 1
+    },
+    {
+      "step": 4350,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 4500,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 4650,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    },
+    {
+      "step": 4800,
+      "score": 0.9649122807017544,
+      "matched": 11,
+      "false": 0,
+      "missed": 2
+    }
+  ],
+  "comparison": [
+    {
+      "checkpoint": "best",
+      "sha256": "2bbdcd574a5e68114daef9cdf143bfecdd4a9a44fa00e28b0912d022523117cf",
+      "step": 150,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 13,
+          "truth": 13,
+          "false": 0,
+          "missed": 0
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 29,
+          "truth": 39,
+          "false": 9,
+          "missed": 10
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 49,
+        "truth": 63,
+        "false": 34,
+        "missed": 14
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 6,
+          "missed": 0,
+          "all_peaks": 12,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 16,
+          "truth": 20,
+          "false": 5,
+          "missed": 4,
+          "all_peaks": 21,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 0
+    },
+    {
+      "checkpoint": "final",
+      "sha256": "48dbd5ce2f6d5b9f8732d48d21ac03a1a14f47459a9fb691b8f0d9e07ab724b7",
+      "step": 4800,
+      "real": {
+        "wood": {
+          "matched": 9,
+          "truth": 9,
+          "false": 0,
+          "missed": 0
+        },
+        "stone": {
+          "matched": 11,
+          "truth": 13,
+          "false": 0,
+          "missed": 2
+        },
+        "temple": {
+          "matched": 30,
+          "truth": 30,
+          "false": 0,
+          "missed": 0
+        },
+        "ship-lights": {
+          "matched": 35,
+          "truth": 39,
+          "false": 1,
+          "missed": 4
+        },
+        "dyson-13": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        },
+        "dyson-14": {
+          "matched": 0,
+          "truth": 0,
+          "false": 0,
+          "missed": 0
+        }
+      },
+      "procedural_test": {
+        "matched": 61,
+        "truth": 63,
+        "false": 8,
+        "missed": 2
+      },
+      "observed_test": {
+        "new-camp": {
+          "matched": 6,
+          "truth": 6,
+          "false": 2,
+          "missed": 0,
+          "all_peaks": 8,
+          "complete_annotation": true
+        },
+        "astral": {
+          "matched": 17,
+          "truth": 20,
+          "false": 0,
+          "missed": 3,
+          "all_peaks": 17,
+          "complete_annotation": false
+        }
+      },
+      "ink15_all_peaks": 1
+    }
+  ],
+  "decision": "Retain the experiment; do not replace bundled semantic v2. The early validation winner underlearns cool fixtures and the final model regresses on stone.",
+  "limitations": [
+    "Labels are agent-reviewed. The repeated two-layout validation set contains warm sources but no marked cool fixtures.",
+    "Ship results cover partial training regions, not generalization; pixels outside reviewed regions are ignored.",
+    "Astral, new camp, and Dyson 15 are previously observed test layouts, kept out of training and checkpoint selection.",
+    "Procedural test seeds measure the generator task, not real artwork accuracy.",
+    "The restricted optimizer disables decay on all first-convolution weights, including new context columns; this is not a pure one-factor comparison with trial 18.",
+    "Fixed local weights do not guarantee fixed predictions: learned context can still change the heatmap.",
+    "This trial did not change runtime inference, the bundled model, or export geometry. No live Foundry import was run."
+  ]
+}
