@@ -368,3 +368,62 @@ def test_gullthorn_boundary_negatives_preserve_rails_and_exclude_only_reviewed_f
     checks = evaluate_structure_annotations(detection, structure_checks(item), (*after.shape, 3))
     assert checks["ray_summary"] == {"sight": {"passed": 1, "total": 1},
                                       "movement": {"passed": 3, "total": 3}}
+
+
+def test_whistling_rail_cores_preserve_prior_labels_and_exclude_rejected_post_positions():
+    from benchmarks.evaluate_structures import evaluate_structure_annotations
+    from src.core.fast_pipeline import FastSettings, detect_map
+
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    parent_path = root / "partial-source-v2/annotations/whistling-stones.json"
+    split_path = root / "partial-source-v2/splits.json"
+    addition = root / "additional-whistling-v1"
+    path = addition / "whistling-stones.json"
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    assert json.loads((addition / "splits.json").read_text(encoding="utf-8")) == {"whistling-stones": "train"}
+    assert json.loads(split_path.read_text(encoding="utf-8"))["whistling-stones"] == "train"
+    assert review["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    assert review["parent_split_sha256"] == hashlib.sha256(split_path.read_bytes()).hexdigest()
+    inherited = {**item, "regions": item["regions"][:-6], "strokes": item["strokes"][:-17],
+                 "rays": item["rays"][:-9], "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    assert item["complete"] is False
+    assert [entry["status"] for entry in review["draft_history"]] == [
+        "rejected-before-training", "rejected-before-training", "source-reviewed-accepted"]
+    before, after = (rasterize_annotation(a, (item["width"], item["height"])) for a in (parent, item))
+    changed = before != after
+    assert np.all(before[changed] == 255)
+    assert np.array_equal(after[before != 255], before[before != 255])
+    assert int((changed & (after == 4)).sum()) == 1187
+    assert int((changed & (after == 0)).sum()) == 2468
+    assert after[549, 750] == after[612, 844] == after[650, 754] == 4
+    assert after[150, 150] == 0  # A reviewed path patch stays outside the rope.
+    assert after[645, 746] == after[569, 654] == 255  # Rejected ground/rock post traces.
+    assert after[195, 208] == 255  # Flag fabric is not a new positive label.
+    accepted = review["samples"]["whistling-stones"]
+    assert accepted["source_sha256"] == item["image_sha256"] == parent["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+    checks = structure_checks(item)
+    assert len(checks["rays"]) == 9 and checks["complete_instances"] == {"doors": False, "windows": False}
+    for ray in checks["rays"]:
+        trace = np.zeros_like(after)
+        cv2.line(trace, ray["from"], ray["to"], 1, 1)
+        values = after[trace != 0]
+        if ray["expect"] == "blocked":
+            assert ray["sense"] == "movement" and np.any(values == 4)
+        elif "ground" in ray["id"]:
+            assert np.all(values == 0)
+        else:
+            assert ray["sense"] == "sight" and not np.any(np.isin(values, [1, 2, 5]))
+    # A partial-mask oracle checks the native extraction interface, not model
+    # accuracy. Unknown pixels stay 255 in training; neutralize them only here.
+    detection = detect_map(np.zeros((*after.shape, 3), np.uint8),
+                           FastSettings(ml_profile="windows", lights=False, min_wall_area=0, max_dimension=0),
+                           prediction=(np.where(after == 255, 0, after).astype(np.uint8),
+                                       np.full(after.shape, .99, np.float32)))
+    measured = evaluate_structure_annotations(detection, checks, (*after.shape, 3))
+    assert measured["ray_summary"] == {"sight": {"passed": 3, "total": 3},
+                                        "movement": {"passed": 6, "total": 6}}

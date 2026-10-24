@@ -1,0 +1,52 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "parent_annotation_sha256": "7071917dd2948c40c0cc6ee333105ef9bfe5dccf62e3cca073f58327fa6d97df",
+  "parent_split_sha256": "890ebc7497dc9b74cfbb7531f026a22aa661f6327061973c0d6b1228c7592339",
+  "scope": "Primary native-coordinate source/raster review. Only seven rope cores, ten post interiors and six ground patches were newly reviewed. All earlier partial labels and the whole-layout train split remain unchanged. No model prediction, SAM proposal, or rejected initial green/blue overlay supplied labels. Not exhaustive independent human ground truth.",
+  "draft_history": [
+    {
+      "path": "whistling-rails-draft-v1.json",
+      "sha256": "131e9b9c4d124a81d5002555dc0036d1b8036cc808af870ea55f4c22572ab150",
+      "status": "rejected-before-training",
+      "reason": "Some strokes follow flag fabric or miss the rope core by several source pixels."
+    },
+    {
+      "path": "whistling-rails-draft-v2.json",
+      "sha256": "f2d30e539b7962e9f08276227a134d8b06be2d8a362850bb88b5f816c09dba26",
+      "status": "rejected-before-training",
+      "reason": "Post 7 reaches rock below its base; post 9 has the wrong X coordinate. Trim other post ends to clear interiors."
+    },
+    {
+      "path": "whistling-rails-draft-v3.json",
+      "sha256": "b6505c5ae568ab5a8996dde7533b846cc8bc74a321e96565fb1863440ce9d805",
+      "status": "source-reviewed-accepted",
+      "reason": "Corrected rope cores and post interiors, plus six source-reviewed ground patches. Original/overlay pairs inspected before admission."
+    }
+  ],
+  "reviewed_closeups": {
+    "whistling-rope-draft-v2-1.bmp": "2c088df620d37ba9c1dbaae40e75c4b65fe3bb568e14f1fa5461688c43329a01",
+    "whistling-rope-draft-v2-2.bmp": "2d56a75b5511c9132e7272a1f09a1dae16f6c0a57c2b5542ec94c12551b2bb97",
+    "whistling-rope-draft-v2-3.bmp": "3ed247e14bda27c43bbffea45af36b504ba90bc5470852d3095d81eadc86825e",
+    "whistling-rope-draft-v2-4.bmp": "71ada623172911befdb261f68ba66d3edf9f20a8083756f73b7c082adbd6ef3c",
+    "whistling-rope-draft-v2-5.bmp": "478f4d525c263ee3e3d6e223fc2519fd6dd24841272f5cdf8751b76112fa02ba",
+    "whistling-rope-draft-v2-6.bmp": "15ab78f9ce45d01acfc84d6a1eb7189597e414ca7002433b8c7d62576dba8b25",
+    "whistling-rope-draft-v2-7.bmp": "274d0768c283f5ebfb8f43236d0e77d96f15605248d3032b4e679db7e9a2ee52",
+    "whistling-posts-draft-v3.bmp": "c0459d8567f90ee2844541bbfae4af3e1648095bdbf671fdefc96cfd8624e225",
+    "whistling-ground-draft-v3.bmp": "db696401ef1530344ded07f0fd9a1d9b595409436e4b5564cb041524cb134af4"
+  },
+  "accepted_preview_sha256": "a3dfb742ab94cae15f09df1cef0c85993146d9f509ed89e87b6872a92ae13f5f",
+  "admission_script_sha256": "19fc99f1ab4b9e11e6cbd2a6f6fa3f7256248bc0dce5250085253050e80f6a6b",
+  "samples": {
+    "whistling-stones": {
+      "status": "accepted",
+      "reviewer": "primary native-coordinate source and raster-overlay review",
+      "source_sha256": "31edbcfa12873a57e87e99d117e57d4a9cbc7d392fedd5130fd581bfbf26d6b1",
+      "annotation_sha256": "4e2cf9efc3c69a305dda567f4a65c86ca3a40b0c331c0fd9257f7e49f6cbe352",
+      "mask_sha256": "a43f1596d90f948ab75d19fbd1044968bb82a2866701399028653f0ce4d253fa",
+      "added_fence_pixels": 1187,
+      "added_background_pixels": 2468,
+      "notes": "Every changed pixel was previously unknown. All earlier supervision is retained. Rope labels are narrow material cores, not filled strips underneath suspended cables. Flags, rocks, plants and the tent receive no new positive structure labels. Nine training-fit rays check three sight-transparent movement barriers and three clear ground passages. No validation/test annotation changed."
+    }
+  }
+}

@@ -673,3 +673,82 @@ seconds. Ruff passes on the three changed Python files. The audit retains an
 initial regression-fixture typo and an initial report-reader error with their
 causes and corrected reruns. No live Foundry world import was rerun for this
 loader change.
+
+## Source-reviewed rope-rail extension
+
+The Whistling Stones training layout contained visible rope handrails but no
+fence supervision. Its rope pixels were unknown, not background. The
+[training-only extension](../benchmarks/data/encounters/additional-whistling-v1/README.md)
+adds seven one-pixel rope cores, ten narrow wood-post interiors and six clear
+path/ground patches. All 1,187 new fence pixels and 2,468 new background pixels
+were previously unknown; every earlier supervised pixel is preserved. New
+positives exclude flag fabric, rock/cliff edges, plants and the tent. Suspended
+ropes are not filled down to the ground.
+
+The primary reviewer compared native-coordinate grids and enlarged original
+pixels with actual raster overlays. The first draft touched flag fabric or
+missed some rope cores. The second placed one post on the wrong X coordinate
+and extended another into rock below its base. Both were rejected before
+training and remain recorded with hashes and reasons. Only the corrected
+third draft was admitted. These selected source-assisted patches are partial
+training supervision, not exhaustive independently human-corrected truth.
+No model prediction or proposal supplied a label. The source images, all
+validation/test annotations and the frozen whole-layout splits are unchanged.
+
+A partial-mask oracle passes all nine added native passage checks: three
+sight-transparent ropes block movement, and three reviewed ground passages
+stay open. Unknown pixels remain 255 in training and are neutralized only in
+this extraction-interface test. This confirms that correct material cores can
+reach the native exporter; it does not measure model accuracy.
+
+The v17 experiment retains v16's two-block DINO setup, initializer, replay
+teacher, hyperparameters and six validation layouts. Only Whistling's training
+mask changes, and its crop sampling weight increases from 1 to 10. The current
+loader also consumes a different torch RNG sequence because it skips random
+checkpoint initialization. These changes are recorded together; this is not a
+single-variable causal ablation. The 2,400-step run took 422.09 seconds locally.
+The partial-label selector chooses step 1,200 with score 0.69799, compared with
+v16's 0.67594. Neither that increase nor a lower loss establishes correct spans.
+
+[The audited record](ENCOUNTER_ML_RAIL_RESULTS.json) preserves the training
+sources, invocation, input/checkpoint hashes, admission scripts, ten evaluation
+reports and native source/output crops. Its 36 cases comprise selected/final
+validation in both appearances, separate selected-checkpoint training fit, and
+Whistling controls using v16 selected and v17 final checkpoints. Final-test
+entries are absent before reading the dataset. Recolored views share layouts
+with their originals and are not independent examples.
+
+| Check | Selected v17: original / recolored | Final v17: original / recolored |
+| --- | --- | --- |
+| Rimebell fence movement check | fail / fail | pass / pass |
+| Rimebell matched doors out of three | 2 / 2 | 2 / 2 |
+| Mothveil matched door spans | 0 / 0 | 0 / 0 |
+| Mothveil matched window spans | 0 / 0 | 0 / 0 |
+| Mothveil unmatched window predictions | 0 / 0 | 0 / 1 |
+| Whistling training rope movement checks passed out of three | 1 / 1 | 1 / 1 |
+
+The final checkpoint gains a real partial fence passage on Rimebell in both
+appearances, where both v16 checkpoints failed. Native review shows the tested
+geometry following wooden railing. Coverage remains partial and fragmented.
+Both v17 checkpoints lose Rimebell's south door. Mothveil still misses its
+physical glass and door; its final recolored prediction places a window across
+masonry steps, and the final original prediction places movement-only segments
+on an interior timber support. Antler and Cinderglass still export zero
+structures in all four validation cases. Original Stone retains an unmatched
+door; final recolored Dyson loses its remaining matched door.
+
+Whistling's selected model exports 115/84 movement segments and its final model
+72/68, but the lower horizontal and curved rope movement checks still fail in
+both appearances. The v16 control exports no fence and fails all three rope
+checks. Gullthorn's full-span training railing check also still fails on the
+selected v17 checkpoint. These training-fit results do not establish held-out
+generalization.
+
+Neither checkpoint is promoted. The six-class segmentation candidate also
+lacks the installed semantic-light center head. Further source-reviewed rail
+boundaries and independent physical-glass styles are needed; confidence cuts
+and prop guards are unchanged. All four production model hashes remain intact.
+The new source/raster/native-export regression passes; the full local suite
+passes 354 tests with three dependency warnings in 34.07 seconds. Ruff and
+`git diff --check` pass. No live Foundry world import was rerun for this
+training-data and research change.
