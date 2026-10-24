@@ -22,6 +22,10 @@ python fast_auto_wall.py "path/to/map.png" --schema "profiles/foundry-v2.json"
 Windows users can also drop a map onto `run-fast.bat`. Use **Auto setup** in the
 existing editor to generate walls, doors, and lights, then continue editing them.
 See [Fast Setup instructions and limitations](docs/FAST_SETUP.md).
+Use **B · Paint** for a manual brush: **1** paints walls, **2** paints straight
+door openings, and **3** paints invisible walls. The wheel changes brush size;
+**Ctrl+wheel** zooms. Overlapping paint becomes a shared outline, with one door
+per opening and one undo step per stroke. Rectangle tools remain available.
 For centerlines, install `requirements-centerline.txt` and choose **Walls → Geometry →
 Centerlines**. Use `--preset demon` for the earlier gray/orange-door artwork.
 The optional **ML** tab runs a compact custom segmentation model locally on CPU

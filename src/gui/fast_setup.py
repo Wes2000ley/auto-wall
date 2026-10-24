@@ -20,6 +20,7 @@ from src.core.fast_pipeline import (
 from src.core.detection_profiles import PRESETS, load_settings, preset_settings, save_settings
 from src.core.foundry_export import write_map_exports
 from src.core.wall_editing import cut_door_opening, nearest_wall, rectangle_walls, walls_in_rectangle
+from src.gui.paint_geometry import PaintGeometry
 
 
 def _cut_windows_by_door(windows, face_groups, door):
@@ -103,6 +104,9 @@ class MapView(QGraphicsView):
     wall_rectangle_deleted = pyqtSignal(object, object)
     shape_drawn = pyqtSignal(str, object, object)
     drawing_mode_changed = pyqtSignal(object)
+    paint_stroke_drawn = pyqtSignal(str, object, float)
+    paint_mode_changed = pyqtSignal(bool)
+    brush_size_changed = pyqtSignal(float)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -121,6 +125,13 @@ class MapView(QGraphicsView):
         self.walls, self.doors, self.windows, self.invisible_walls = [], [], [], []
         self.editing_enabled = False
         self.drawing_mode = None
+        self.paint_enabled = False
+        self.brush_diameter = 28.
+        self.paint_points = []
+        self.paint_preview = None
+        self.brush_cursor = None
+        self.paint_geometry = None
+        self.setMouseTracking(True)
         self.draw_origin = self.draw_target = None
         self.drag_start = None
         self.pan_last = None
@@ -131,11 +142,13 @@ class MapView(QGraphicsView):
         self.erase_box = None
         self.setToolTip("Right-drag to pan in any tool. Middle-drag a box to delete visible walls.\n"
                         "1: wall rectangles · 2: door spans · 3: invisible wall rectangles.\n"
+                        "B: paint mode · Wheel: brush size · Ctrl+wheel: zoom in paint mode.\n"
                         "Press the active number again to pan. Ctrl+Z: undo. Esc: cancel.")
 
     def set_image(self, image):
         self.cancel_wall_gesture()
         self.stop_pan()
+        self.paint_geometry = None
         self.walls, self.doors, self.windows, self.invisible_walls = [], [], [], []
         self.editing_enabled = False
         self.update_cursor()
@@ -143,6 +156,7 @@ class MapView(QGraphicsView):
         height, width = image.shape[:2]
         qt_image = QImage(image.data, width, height, image.strides[0], QImage.Format.Format_BGR888)
         self.scene().clear()
+        self.brush_cursor = None
         self.layers = {name: [] for name in self.layers}
         self.bitmap = self.scene().addPixmap(QPixmap.fromImage(qt_image))
         self.bitmap.setZValue(-1)
@@ -215,9 +229,18 @@ class MapView(QGraphicsView):
             self.set_drawing_mode(None)
 
     def has_wall_gesture(self):
-        return self.erase_box is not None or self.draw_origin is not None
+        return self.erase_box is not None or self.draw_origin is not None or bool(self.paint_points)
 
     def wheelEvent(self, event):
+        if (self.paint_enabled and self.editing_enabled and self.drawing_mode
+                and not event.modifiers() & Qt.KeyboardModifier.ControlModifier
+                and self.pan_last is None and self.erase_box is None):
+            delta = event.angleDelta().y() or event.pixelDelta().y()
+            if delta:
+                self.set_brush_diameter(self.brush_diameter * 1.15 ** (delta / 120))
+                self.update_brush_cursor(event.position().toPoint())
+            event.accept()
+            return
         if self.has_wall_gesture() or self.pan_last is not None:
             event.accept()
             return
@@ -270,6 +293,16 @@ class MapView(QGraphicsView):
                     for layer in ("walls", "doors", "windows", "invisible_walls"):
                         if self.visibility[layer]:
                             self.snap_walls.extend(getattr(self, layer))
+                    if self.paint_enabled:
+                        source, _ = self.snapped_brush_point(event.position().toPoint())
+                        self.paint_points = [source]
+                        self.paint_preview = self.scene().addPath(QPainterPath())
+                        self.paint_preview.setZValue(10)
+                        self.setFocus(Qt.FocusReason.MouseFocusReason)
+                        self.update_paint_preview()
+                        self.update_brush_cursor(event.position().toPoint())
+                        event.accept()
+                        return
                     self.draw_origin, _ = self.snapped_point(event.position().toPoint(), self.snap_walls)
                     self.drag_start = event.position().toPoint()
                     color = {"walls": "#4ee19b", "doors": "#35d4ff", "invisible_walls": "#ff9b50"}[self.drawing_mode]
@@ -310,7 +343,70 @@ class MapView(QGraphicsView):
         self.drawing_mode_changed.emit(mode)
         self.update_cursor()
 
+    def set_paint_enabled(self, enabled):
+        if enabled == self.paint_enabled:
+            return
+        self.cancel_wall_gesture()
+        self.paint_enabled = enabled
+        if enabled and self.drawing_mode is None:
+            self.set_drawing_mode("walls")
+        self.paint_mode_changed.emit(enabled)
+        self.update_cursor()
+
+    def set_brush_diameter(self, diameter):
+        diameter = round(min(2048., max(2., float(diameter))), 1)
+        if diameter != self.brush_diameter:
+            self.brush_diameter = diameter
+            self.brush_size_changed.emit(diameter)
+            if self.paint_points:
+                self.update_paint_preview()
+
+    def update_brush_cursor(self, position):
+        if not (self.paint_enabled and self.editing_enabled and self.drawing_mode
+                and self.pan_last is None and not self.picking and not self.removing):
+            if self.brush_cursor is not None:
+                self.brush_cursor.hide()
+            return
+        point = self.mapToScene(position)
+        if self.brush_cursor is None:
+            self.brush_cursor = self.scene().addEllipse(QRectF(), self.pen("#ffffff", 1))
+            self.brush_cursor.setZValue(12)
+        radius = self.brush_diameter / 2
+        self.brush_cursor.setRect(point.x() - radius, point.y() - radius, radius * 2, radius * 2)
+        self.brush_cursor.show()
+
+    def update_paint_preview(self):
+        path = QPainterPath()
+        path.moveTo(*self.paint_points[0])
+        points = self.paint_points if self.drawing_mode != "doors" else [self.paint_points[0], self.paint_points[-1]]
+        for point in points[1:]:
+            path.lineTo(*point)
+        if len(points) == 1:
+            path.lineTo(points[0][0] + .001, points[0][1])
+        color = {"walls": "#4ee19b", "doors": "#35d4ff", "invisible_walls": "#ff9b50"}[self.drawing_mode]
+        color = QColor(color)
+        color.setAlpha(110)
+        pen = QPen(color, self.brush_diameter)
+        pen.setCapStyle(Qt.PenCapStyle.FlatCap if self.drawing_mode == "doors" else Qt.PenCapStyle.RoundCap)
+        pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+        self.paint_preview.setPen(pen)
+        self.paint_preview.setPath(path)
+
+    def update_painting(self, position, *, final=False):
+        point = self.mapToScene(position)
+        target = (min(max(point.x(), 0), self.image_size[0] - 1),
+                  min(max(point.y(), 0), self.image_size[1] - 1))
+        if final:
+            target, _ = self.snapped_brush_point(position)
+        if final or np.linalg.norm(np.subtract(target, self.paint_points[-1])) >= max(.5, self.brush_diameter / 16):
+            if target != self.paint_points[-1]:
+                self.paint_points.append(target)
+            self.update_paint_preview()
+
     def update_cursor(self):
+        if self.brush_cursor is not None and (not self.paint_enabled or not self.editing_enabled
+                                               or not self.drawing_mode or self.pan_last is not None):
+            self.brush_cursor.hide()
         if self.pan_last is not None:
             self.setCursor(Qt.CursorShape.ClosedHandCursor)
         elif self.has_wall_gesture() or self.picking or (self.editing_enabled and self.drawing_mode):
@@ -319,13 +415,15 @@ class MapView(QGraphicsView):
             self.unsetCursor()
 
     def cancel_wall_gesture(self):
-        for item in (self.drag_preview, self.snap_marker, self.erase_box):
+        for item in (self.drag_preview, self.snap_marker, self.erase_box, self.paint_preview):
             if item is not None:
                 self.scene().removeItem(item)
         self.drag_start = None
         self.draw_origin = self.draw_target = None
         self.drag_preview = self.snap_marker = self.erase_origin = self.erase_box = None
         self.snap_walls = []
+        self.paint_points = []
+        self.paint_preview = None
         self.update_cursor()
 
     def stop_pan(self):
@@ -338,6 +436,20 @@ class MapView(QGraphicsView):
                   min(max(point.y(), 0), self.image_size[1] - 1))
         hit = nearest_wall(segments, target, 10 / self.transform().m11())
         return (hit[1], True) if hit is not None else (target, False)
+
+    def snapped_brush_point(self, position):
+        point = self.mapToScene(position)
+        if self.drawing_mode == "doors" and self.visibility["doors"]:
+            hit = nearest_wall(self.doors, (point.x(), point.y()), 10 / self.transform().m11())
+            if hit is not None:
+                return hit[1], True
+        if self.paint_geometry is not None and (
+                (self.visibility["walls"] and self.paint_geometry.walls.contains(point))
+                or (self.visibility["invisible_walls"] and self.paint_geometry.invisible.contains(point))):
+            # Inside existing ink, its outer edge is not a centerline target.
+            # Snapping to that edge would make repeated strokes grow at low zoom.
+            return (point.x(), point.y()), False
+        return self.snapped_point(position, self.snap_walls)
 
     def update_snap_marker(self, target, snapped):
         radius = 5 / self.transform().m11()
@@ -356,6 +468,7 @@ class MapView(QGraphicsView):
         self.update_snap_marker(target, snapped)
 
     def mouseMoveEvent(self, event):
+        self.update_brush_cursor(event.position().toPoint())
         if self.pan_last is not None:
             position = event.position().toPoint()
             delta = position - self.pan_last
@@ -368,6 +481,9 @@ class MapView(QGraphicsView):
             event.accept()
         elif self.draw_origin is not None:
             self.update_drawing(event.position().toPoint())
+            event.accept()
+        elif self.paint_points:
+            self.update_painting(event.position().toPoint())
             event.accept()
         else:
             super().mouseMoveEvent(event)
@@ -383,6 +499,13 @@ class MapView(QGraphicsView):
             if moved and rect.width() > 0 and rect.height() > 0:
                 self.wall_rectangle_deleted.emit((rect.left(), rect.top()), (rect.right(), rect.bottom()))
             event.accept()
+        elif event.button() == Qt.MouseButton.LeftButton and self.paint_points:
+            self.update_painting(event.position().toPoint(), final=True)
+            points, diameter, layer = self.paint_points, self.brush_diameter, self.drawing_mode
+            self.cancel_wall_gesture()
+            if layer != "doors" or np.linalg.norm(np.subtract(points[-1], points[0])) * self.transform().m11() >= 3:
+                self.paint_stroke_drawn.emit(layer, points, diameter)
+            event.accept()
         elif event.button() == Qt.MouseButton.LeftButton and self.draw_origin is not None:
             self.update_drawing(event.position().toPoint())
             source, target, layer = self.draw_origin, self.draw_target, self.drawing_mode
@@ -395,7 +518,11 @@ class MapView(QGraphicsView):
 
     def keyPressEvent(self, event):
         modes = {Qt.Key.Key_1: "walls", Qt.Key.Key_2: "doors", Qt.Key.Key_3: "invisible_walls"}
-        if event.key() in modes and event.modifiers() in (
+        if event.key() == Qt.Key.Key_B and event.modifiers() == Qt.KeyboardModifier.NoModifier:
+            if self.editing_enabled and not event.isAutoRepeat():
+                self.set_paint_enabled(not self.paint_enabled)
+            event.accept()
+        elif event.key() in modes and event.modifiers() in (
                 Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.KeypadModifier):
             if self.editing_enabled and not event.isAutoRepeat():
                 mode = modes[event.key()]
@@ -416,6 +543,11 @@ class MapView(QGraphicsView):
         self.cancel_wall_gesture()
         self.stop_pan()
         super().focusOutEvent(event)
+
+    def leaveEvent(self, event):
+        if self.brush_cursor is not None:
+            self.brush_cursor.hide()
+        super().leaveEvent(event)
 
 
 class FastSetupDialog(QDialog):
@@ -443,6 +575,7 @@ class FastSetupDialog(QDialog):
         self.light_color = FastSettings().light_color
         self.applying_settings = False
         self.undo_states = []
+        self.paint_geometry = None
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.timeout.connect(self.run_detection)
@@ -462,8 +595,9 @@ class FastSetupDialog(QDialog):
         title = QLabel("FAST SETUP")
         title.setStyleSheet("font-size: 22px; font-weight: bold;")
         controls.addWidget(title)
-        caption = QLabel("Scroll to zoom. Right-drag to pan.\nMiddle-drag a box to delete walls.\n"
-                         "1: wall box · 2: door · 3: invisible box.\nPress the active number again to pan.")
+        caption = QLabel("Right-drag to pan. Middle-drag to erase.\n"
+                         "1: walls · 2: doors · 3: invisible walls.\n"
+                         "B: paint · Wheel: brush size in paint mode.\nCtrl+wheel: zoom while painting.")
         controls.addWidget(caption)
         open_button = QPushButton("Open map…")
         open_button.clicked.connect(self.open_map)
@@ -668,6 +802,8 @@ class FastSetupDialog(QDialog):
         self.view.wall_rectangle_deleted.connect(self.delete_walls_in_rectangle)
         self.view.shape_drawn.connect(self.add_shape)
         self.view.drawing_mode_changed.connect(self.drawing_mode_changed)
+        self.view.paint_stroke_drawn.connect(self.paint_stroke)
+        self.view.paint_mode_changed.connect(self.paint_mode_changed)
         self.layer_checks = {}
         labels = {"walls": "Walls", "doors": "Doors", "windows": "Windows",
                   "invisible_walls": "Invisible walls",
@@ -697,19 +833,37 @@ class FastSetupDialog(QDialog):
         toolbar.addWidget(fit)
         canvas.addLayout(toolbar)
         drawing_toolbar = QHBoxLayout()
+        selected_tool_style = "QPushButton:checked { background: #285978; border: 1px solid #79c8f6; }"
+        self.paint_button = QPushButton("B · Paint")
+        self.paint_button.setCheckable(True)
+        self.paint_button.setStyleSheet(selected_tool_style)
+        self.paint_button.setToolTip("Paint filled walls/invisible walls or a straight door opening. Wheel changes brush width; Ctrl+wheel zooms.")
+        self.paint_button.toggled.connect(self.view.set_paint_enabled)
+        drawing_toolbar.addWidget(self.paint_button)
         self.draw_buttons = {}
         for layer, label in (("walls", "1 · Wall rectangle"), ("doors", "2 · Door"),
                              ("invisible_walls", "3 · Invisible rectangle")):
             button = QPushButton(label)
             button.setCheckable(True)
+            button.setStyleSheet(selected_tool_style)
             button.setToolTip("Left-drag to draw. Press this number while the map is focused to toggle the tool.")
             button.clicked.connect(lambda checked, layer=layer: self.view.set_drawing_mode(layer if checked else None))
             self.draw_buttons[layer] = button
             drawing_toolbar.addWidget(button)
         self.drawing_hint = QLabel("Right-drag: pan · 1 / 2 / 3: tools")
-        drawing_toolbar.addWidget(self.drawing_hint)
+        self.brush_size = QDoubleSpinBox()
+        self.brush_size.setRange(2, 2048)
+        self.brush_size.setDecimals(1)
+        self.brush_size.setSuffix(" px")
+        self.brush_size.setValue(self.view.brush_diameter)
+        self.brush_size.setToolTip("Brush diameter in original map pixels; independent of zoom. Wheel over the map resizes it.")
+        self.brush_size.valueChanged.connect(self.view.set_brush_diameter)
+        self.view.brush_size_changed.connect(self.brush_size.setValue)
+        drawing_toolbar.addWidget(QLabel("Brush"))
+        drawing_toolbar.addWidget(self.brush_size)
         drawing_toolbar.addStretch()
         canvas.addLayout(drawing_toolbar)
+        canvas.addWidget(self.drawing_hint)
         canvas.addWidget(self.view, 1)
         self._update_swatches()
 
@@ -721,9 +875,28 @@ class FastSetupDialog(QDialog):
             self.layer_checks[mode].setChecked(True)
         for layer, button in self.draw_buttons.items():
             button.setChecked(mode == layer)
-        action = "door span" if mode == "doors" else "rectangle"
+        self.update_drawing_hint()
+        self.view.setFocus(Qt.FocusReason.OtherFocusReason)
+
+    def update_drawing_hint(self):
+        mode = self.view.drawing_mode
+        for layer, button in self.draw_buttons.items():
+            name = {"walls": "Wall", "doors": "Door", "invisible_walls": "Invisible"}[layer]
+            number = {"walls": 1, "doors": 2, "invisible_walls": 3}[layer]
+            action = " paint" if self.view.paint_enabled else ("" if layer == "doors" else " rectangle")
+            button.setText(f"{number} · {name}{action}")
+        action = ("door span" if mode == "doors" else "paint") if self.view.paint_enabled else (
+            "door span" if mode == "doors" else "rectangle")
         self.drawing_hint.setText(f"Left-drag: {action} · Right-drag: pan · Esc: cancel"
                                   if mode else "Left-drag: pan · 1 / 2 / 3: tools")
+        if self.view.paint_enabled:
+            self.drawing_hint.setText(self.drawing_hint.text() + " · Wheel: brush size · Ctrl+wheel: zoom")
+
+    def paint_mode_changed(self, enabled):
+        self.paint_button.setChecked(enabled)
+        if enabled and self.view.drawing_mode:
+            self.drawing_mode_changed(self.view.drawing_mode)
+        self.update_drawing_hint()
         self.view.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def set_removing(self, enabled):
@@ -929,6 +1102,8 @@ class FastSetupDialog(QDialog):
         self.undo_button.setEnabled(current and bool(self.undo_states))
         for button in self.draw_buttons.values():
             button.setEnabled(current)
+        self.paint_button.setEnabled(current)
+        self.brush_size.setEnabled(current)
 
     def settings_changed(self, *_):
         if not hasattr(self, "live") or self.applying_settings:
@@ -989,6 +1164,8 @@ class FastSetupDialog(QDialog):
             self.source_path = Path(path).resolve()
         self.path = None
         self.undo_states.clear()
+        self.paint_geometry = None
+        self.view.paint_geometry = None
         self.view.set_result(result)
         self.show_counts()
         self.update_actions()
@@ -1031,18 +1208,57 @@ class FastSetupDialog(QDialog):
         self.status.setText("Detection cancelled. Previous preview retained.")
         self.update_actions()
 
-    def apply_edit(self, **layers):
+    def apply_edit(self, *, paint_geometry=None, **layers):
         if not self.can_edit():
             return
-        self.undo_states.append({name: getattr(self.result, name) for name in layers})
+        state = {name: getattr(self.result, name) for name in layers}
+        state["_paint_geometry"] = self.paint_geometry
+        self.undo_states.append(state)
+        self.paint_geometry = paint_geometry
+        self.view.paint_geometry = paint_geometry
         for name, values in layers.items():
             setattr(self.result, name, values)
         self.view.set_result(self.result)
         self.update_actions()
         self.show_counts()
 
+    def paint_stroke(self, layer, points, diameter):
+        if layer not in self.draw_buttons or not self.can_edit() or not self.view.visibility[layer]:
+            return
+        geometry = self.paint_geometry or PaintGeometry.from_result(self.result)
+        other = "invisible_walls" if layer == "walls" else "walls"
+        geometry = geometry.paint(layer, points, diameter, replace_other=self.view.visibility[other])
+        changes, _ = geometry.compose()
+        if all(values == getattr(self.result, name) for name, values in changes.items()):
+            return
+        # Use the existing window editor for a door crossing glazing too.
+        if layer == "doors":
+            windows, faces = _cut_windows_by_door(self.result.windows, self.result.window_faces,
+                                                  (tuple(points[0]), tuple(points[-1])))
+            if windows != self.result.windows:
+                changes.update(windows=windows, window_faces=faces)
+        self.apply_edit(paint_geometry=geometry, **changes)
+
     def add_shape(self, layer, source, target):
         if layer not in ("walls", "doors", "invisible_walls") or not self.can_edit() or source == target:
+            return
+        if self.paint_geometry is not None:
+            if layer == "doors":
+                if any(frozenset((source, target)) == frozenset(door) for door in self.result.doors):
+                    return
+                geometry = replace(self.paint_geometry,
+                                   base_doors=[*self.paint_geometry.base_doors, (source, target)])
+                changes, _ = geometry.compose()
+                windows, faces = _cut_windows_by_door(self.result.windows, self.result.window_faces,
+                                                      (source, target))
+                if windows != self.result.windows:
+                    changes.update(windows=windows, window_faces=faces)
+                self.apply_edit(paint_geometry=geometry, **changes)
+            else:
+                geometry = self.paint_geometry.add_rectangle(layer, source, target)
+                changes, _ = geometry.compose()
+                if any(values != getattr(self.result, name) for name, values in changes.items()):
+                    self.apply_edit(paint_geometry=geometry, **changes)
             return
         values = getattr(self.result, layer)
         additions = [(source, target)] if layer == "doors" else rectangle_walls(source, target)
@@ -1069,12 +1285,18 @@ class FastSetupDialog(QDialog):
         if not self.can_edit():
             return
         changes = {}
-        for name in ("walls", "invisible_walls"):
-            if self.view.visibility[name]:
-                walls = getattr(self.result, name)
-                selected = set(walls_in_rectangle(walls, first, second))
-                if selected:
-                    changes[name] = [wall for index, wall in enumerate(walls) if index not in selected]
+        geometry = self.paint_geometry
+        if geometry is not None:
+            geometry = geometry.erase(first, second, self.view.visibility)
+            composed, _ = geometry.compose()
+            changes = {name: values for name, values in composed.items() if values != getattr(self.result, name)}
+        else:
+            for name in ("walls", "invisible_walls"):
+                if self.view.visibility[name]:
+                    walls = getattr(self.result, name)
+                    selected = set(walls_in_rectangle(walls, first, second))
+                    if selected:
+                        changes[name] = [wall for index, wall in enumerate(walls) if index not in selected]
         if self.view.visibility["windows"]:
             selected = set(walls_in_rectangle(self.result.windows, first, second))
             for index, group in enumerate(self.result.window_faces):
@@ -1087,10 +1309,15 @@ class FastSetupDialog(QDialog):
                     changes["window_faces"] = [group for index, group in enumerate(self.result.window_faces)
                                                 if index not in selected]
         if changes:
-            self.apply_edit(**changes)
+            self.apply_edit(paint_geometry=geometry, **changes)
 
     def remove_candidate(self, layer, index):
         if not self.can_edit():
+            return
+        if layer == "doors" and self.paint_geometry is not None:
+            geometry = self.paint_geometry.remove_door(index)
+            changes, _ = geometry.compose()
+            self.apply_edit(paint_geometry=geometry, **changes)
             return
         values = list(getattr(self.result, layer))
         values.pop(index)
@@ -1103,12 +1330,20 @@ class FastSetupDialog(QDialog):
             existing = {frozenset(segment) for segment in walls}
             walls.extend(segment for segment in restored if frozenset(segment) not in existing)
             changes["walls"] = walls
-        self.apply_edit(**changes)
+        geometry = self.paint_geometry
+        if layer == "windows" and geometry is not None and self.result.window_faces:
+            geometry = replace(geometry, base_walls=[*geometry.base_walls, *restored])
+            composed, _ = geometry.compose()
+            changes.update(composed)
+        self.apply_edit(paint_geometry=geometry, **changes)
 
     def undo_removal(self):
         if not self.undo_states or not self.can_edit():
             return
-        for layer, values in self.undo_states.pop().items():
+        state = self.undo_states.pop()
+        self.paint_geometry = state.pop("_paint_geometry")
+        self.view.paint_geometry = self.paint_geometry
+        for layer, values in state.items():
             setattr(self.result, layer, values)
         self.view.set_result(self.result)
         self.update_actions()

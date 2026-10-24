@@ -55,3 +55,4 @@ jobs:
           tests/test_encounter_corpus.py tests/test_encounter_training.py
           tests/test_foundry_export.py tests/test_fast_setup.py
           tests/test_wall_editing.py tests/test_editor_integration.py
+          tests/test_paint_geometry.py tests/test_wall_painting.py

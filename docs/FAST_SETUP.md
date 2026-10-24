@@ -23,7 +23,7 @@ Omit the image argument to open a file picker through **Open map**. On Windows,
 The full editor uses the original `requirements.txt`. Launch `python auto_wall.py`,
 choose **Auto setup**, and use **Continue in wall editor** for individual wall and
 door edits. The standalone Fast Setup launcher needs only `requirements-fast.txt`;
-its review tools draw wall rectangles and door spans, erase walls by
+its review tools paint walls and doors, draw wall rectangles and door spans, erase walls by
 rectangle, toggle layers, and remove/undo individual door or light candidates.
 
 For optional single centerlines, install `requirements-centerline.txt`. This adds
@@ -122,6 +122,48 @@ map is loaded. Geometry edits and repeated exports do not rerun detection.
 
 ### Correct walls directly in the preview
 
+**B · Paint** toggles the brush. With the map focused, use **1** for walls,
+**2** for doors, or **3** for invisible walls, then left-drag over the artwork.
+Walls and invisible walls use a round brush with continuous strokes, including
+when the pointer moves quickly. A click paints a dot. **Scroll up/down** grows
+or shrinks the brush; **Brush** sets its diameter directly in original map pixels
+(2–2048 px). Zoom does not change that diameter. **Ctrl+wheel** zooms in paint
+mode; the plain wheel zooms when paint is off or no material is selected.
+
+Overlapping strokes of the same wall type combine into one area before its
+outline is exported. Interior seams, duplicate edges and zero-length segments
+are removed; room interiors remain empty. Paint endpoints snap within ten screen
+pixels to visible geometry. Inside existing paint, the brush keeps its position
+instead of snapping to the painted area's outer edge. This prevents repeated
+passes from growing unexpectedly at low zoom. Painting another wall type replaces
+the covered part of the other **visible** layer; hidden layers are preserved.
+
+For a door, drag a **straight span along the wall**, from one jamb to the other,
+with a brush wide enough to cover the wall thickness. The opening cuts both faces
+of a painted wall and exports **one door**, joined to its jambs. Collinear,
+overlapping door passes merge; perpendicular doors stay separate. Nearby existing
+door spans attract the brush endpoints. A door click adds nothing. Later wall
+paint preserves the opening, including when the wall becomes thicker. Removing
+a painted door restores the wall material it cut; undo restores the door and
+opening together. Existing detected openings remain as source geometry.
+
+Right-drag pans in paint mode. Middle-drag erases painted material inside the red
+rectangle; detected walls and manually drawn rectangle edges still use whole-segment
+deletion. Hidden layers and door positions are preserved. Erased paint stays erased
+when another stroke is added. **Ctrl+Z** undoes one complete stroke or erase;
+**Escape** cancels the current stroke before release. Toggle **B** off to use the
+rectangle and ordinary door-span tools below. Switching tools keeps committed paint.
+
+Paint uses Qt's native vector area operations, without a full-resolution image
+mask, model inference, or extra dependencies. Mouse movement updates only the
+preview; geometry is rebuilt on release. A local offscreen synthetic check with
+100 wall strokes (about 2,000 exported segments) and 20 doors measured 0.41 ms
+median preview event/render time, 8–9 ms median wall commits and 52–54 ms median
+door commits. That run's commits stayed below 65 ms. The same vector scene used
+4096- and 16384-pixel coordinate bounds; this does **not** measure decoding/rendering
+a 16384-pixel bitmap or guarantee latency on other hardware. Brush strokes follow
+your pointer; they do not infer or correct the artwork's wall locations.
+
 Choose **1 · Wall rectangle**, **2 · Door**, or **3 · Invisible rectangle**.
 Left-drag a rectangle for ordinary or invisible walls: its four sides become
 connected, axis-aligned wall segments, with a live preview. Doors remain straight
@@ -141,7 +183,8 @@ remains review-only: it is never automatically promoted to an invisible wall.
 
 **Right-click and drag** pans the map in every tool, including while drawing
 walls or doors. Right-click cancels an unfinished drawing before panning. It
-does not stretch or change geometry. The scroll wheel zooms.
+does not stretch or change geometry. The scroll wheel zooms outside paint mode;
+use Ctrl+wheel to zoom while painting.
 
 **Middle-click and drag** draws a red rectangle. On release, it deletes whole
 visible ordinary and invisible wall segments touching the box, including segments
@@ -153,7 +196,7 @@ click without dragging does not delete anything.
 or door/light removal. Each gesture is one undo step, including wall portions
 replaced by a door. **Escape** cancels a gesture before release; pressing it
 without an active gesture returns to panning. Left dragging pans when no drawing
-tool is selected, and the scroll wheel zooms.
+tool is selected.
 Only visible walls can be edited; detection, pending settings changes, and export
 temporarily disable edits. Export and Continue in wall editor use the edited
 geometry. Running Detect all produces a fresh detection and clears manual edits
