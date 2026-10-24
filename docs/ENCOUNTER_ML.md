@@ -913,3 +913,93 @@ Foundry world import were not rerun for the documentation update; the earlier
 359-test result belongs to commit `84db03d`. The active goal remains incomplete:
 improve native wall boundaries, missing doors and color/style robustness before
 resuming lower-priority barrier work.
+
+## Frozen-SAM wall and door decoder trials
+
+Walls and doors take priority; fence work is deferred. The
+[boundary research record](ENCOUNTER_ML_SAM_BOUNDARY_RESULTS.json) preserves
+four newly trained semantic candidates, three wall-prompt probes, exact source
+snapshots, artifact hashes and failed harness/audit attempts. All candidates
+remain unshipped. No application code, default profile, production checkpoint
+or training annotation changes in this update.
+
+The first semantic head learns background, wall and door classes from frozen
+SAM2.1-tiny features on 30 existing real training layouts. Six deterministic
+color views per layout give 180 views, not 180 independent maps. Its quarter-size
+decoder sometimes recovers doors and walls, but rounds off boundaries and loses
+previously detected doors, especially after recoloring.
+
+The second head adds full-resolution RGB detail paths and uses 10 color/orientation
+views per real layout plus 48 existing generated training controls: 348 views.
+Sampling is explicitly 70 percent real and 30 percent generated. Existing unknown
+label pixels remain ignored; generated examples do not count as real-map accuracy
+evidence. SAM outputs and installed-model predictions never become labels.
+
+Two controlled follow-ups reuse the second trial's exact cached features, targets,
+sampling, optimizer, seed and fixed 1,500-step policy. One zeros only the RGB input
+in training and inference. The other substitutes the first decoder architecture
+and its original downsampled RGB path. The zero-RGB version restores much of
+Rimebell's wall outline compared with the second head, but false landscape walls
+and door losses remain. The architecture replay also fails deployment checks.
+Neither intervention establishes a complete root cause. Comparisons with the
+original first trial additionally change data mix, augmentation, schedule and
+microbatch loss aggregation.
+
+Each semantic candidate is evaluated on the same six validation layouts and
+three training-fit controls in original and recolored appearances. These are
+72 repeated executions on nine layouts, not 72 independent maps. Validation
+groups are disjoint from training; final-test inputs are excluded before decoding.
+All checkpoints are fixed final-step weights, with unchanged 0.9 extraction
+thresholds. These repeatedly inspected validation layouts are development checks,
+not a fresh independent generalization test.
+
+| Candidate | Validation matched door spans, of 22 | Lost previously passing validation rays | Training-fit matched spans, of 20 |
+| --- | ---: | ---: | ---: |
+| Installed baseline | 9 | — | 5 |
+| First quarter-size head | 6 | 8 | 9 |
+| Full-resolution detail head | 4 | 8 | 6 |
+| Detail head, zero RGB | 7 | 7 | 8 |
+| First architecture, second recipe | 5 | 7 | 10 |
+
+The denominator counts repeated annotated color/layout instances. Partial span
+checks do not establish whole-map precision. Dyson13 has partial raster labels
+but no door geometry reference, so its matched-span counts are null and no rays
+are assessed. Its exported door count is not a measured recall result.
+
+The wall-prompt probes use only three training layouts. Cropped multimask and
+single-mask variants accept none of 41 component proposals each. Source review
+shows both clean masks rejected where a continuing wall touches the crop and
+larger masks spilling into floors or props. Full-image context with a shared
+encoder still accepts no point-only masks; adding the original predicted
+component as a dense prompt accepts 13. Some partial wall coverage improves,
+but known non-wall false positives, islands and incomplete drawn-map outlines
+remain. Those masks are retained as outputs, not corrected labels.
+
+Primary review inspected all 48 first-head door closeups, selected native exports
+and follow-up closeups, ten crop-wall diagnostic pages and all 13 accepted
+full-context wall panels. Review images show original source art even when the
+inference case is recolored; the recorded transform specifies the actual input.
+Gray caps and purple panels are source content. Export lines and mask contours
+are explicitly marked model output, not training data.
+
+The final audit rechecks all 72 semantic cases, recomputes native geometry/ray
+metrics and confirms exact saved light and other-barrier geometry parity. Original
+reports contain false nonempty-barrier parity flags because they compare
+JSON-loaded lists with runtime tuples; the audited record distinguishes those
+flags from normalized geometry equality without rewriting the original reports.
+The first scorer also wrongly assumed Dyson13 had geometry truth. Its failed
+run is retained; all six completed cases have byte-identical masks/confidence
+and matching geometry after the scoring-only correction. An initial audit path
+assumption about external encounter assets is likewise recorded and corrected.
+
+All four actual training runs pass their decoder gradient/output self-checks.
+The audit verifies 3,477 input/cache/artifact/source hashes and preserves 40 source
+snapshots. These research models use cached original light predictions during
+evaluation. Shared-GPU encoder/decoder timings exclude cold loads, original light
+inference, geometry and file I/O, so no application speedup is claimed.
+
+Do not deploy these candidates: every one loses validation doors or passing rays.
+The installed model stays unchanged. The application unit suite and a live
+Foundry world import were not rerun for this documentation/research commit; the
+earlier 359-test result belongs to `84db03d`. The wall/door accuracy goal remains
+incomplete.
