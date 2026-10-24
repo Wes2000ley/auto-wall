@@ -1,0 +1,2 @@
+# Review records hash exact annotation bytes. Preserve them on every OS.
+*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
