@@ -416,3 +416,13 @@ in 31.66 seconds. Its installed smoke check verified 80 file hashes, preserved
 the legacy light head, ran real-map CUDA inference, checked dialog settings and
 shutdown, and generated the 11-wall synthetic Foundry fixture. This is functional
 validation, not an accuracy or speed benchmark.
+
+The Gullthorn and exact-replay change, commit `65e3079`, also passes the
+[targeted Linux CPU workflow](https://github.com/Wes2000ley/auto-wall/actions/runs/40094341112):
+262 tests passed and four CUDA-only checks were skipped in 30.99 seconds.
+Both installed copies were synchronized with all four model hashes unchanged.
+The installed smoke run checked all 90 updated-file hashes, retained the legacy
+light head, completed real-map CUDA inference, round-tripped dialog settings,
+closed before queued detection and generated the 11-wall synthetic export
+fixture. The real source map was unchanged. These checks validate software
+integration; both new ML candidates remain rejected for promotion.

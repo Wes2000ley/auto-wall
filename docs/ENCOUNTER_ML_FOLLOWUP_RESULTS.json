@@ -13998,7 +13998,7 @@
       "seconds": 35.42,
       "cause": "Git line-ending conversion changed stored annotation bytes, invalidating review hashes outside the working checkout. Fixed with scoped JSON -text attributes and renormalization; exact staged bytes were then checked against the review hashes."
     },
-    "remote_ci": {
+    "previous_remote_ci": {
       "source_head": "e89ac844b0fe3cb29732951be3d2c5e9a2c3f6e5",
       "url": "https://github.com/Wes2000ley/auto-wall/actions/runs/40090627502",
       "result": "success",
@@ -14006,7 +14006,16 @@
       "skipped_cuda_checks": 4,
       "seconds": 31.66
     },
-    "installed_smoke": {
+    "remote_ci": {
+      "source_head": "65e30792c2acc36184b0adf2e592abb0f00a7a86",
+      "url": "https://github.com/Wes2000ley/auto-wall/actions/runs/40094341112",
+      "result": "success",
+      "passed": 262,
+      "skipped_cuda_checks": 4,
+      "seconds": 30.99,
+      "scope": "Targeted Linux CPU structure-model workflow; local full CUDA suite recorded separately."
+    },
+    "previous_installed_smoke": {
       "source_head": "e89ac844b0fe3cb29732951be3d2c5e9a2c3f6e5",
       "installed_model_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
       "legacy_light_head_preserved": true,
@@ -14018,6 +14027,19 @@
       "synthetic_export_walls": 11,
       "model_accuracy_claim": false,
       "checked_installed_file_hashes": 80
+    },
+    "installed_smoke": {
+      "source_head": "65e30792c2acc36184b0adf2e592abb0f00a7a86",
+      "installed_model_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "legacy_light_head_preserved": true,
+      "actual_map_inference_backend": "torch-cuda",
+      "actual_map_inference_seconds": 2.6379862000467256,
+      "real_map_source_modified": false,
+      "gui_settings_roundtrip": true,
+      "close_before_queued_detection": true,
+      "synthetic_export_walls": 11,
+      "model_accuracy_claim": false,
+      "checked_installed_file_hashes": 90
     }
   },
   "additional_training_data": {
