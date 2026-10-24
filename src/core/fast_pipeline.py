@@ -53,11 +53,14 @@ class FastSettings:
     light_range: float = 6.0  # grid squares
     model_path: str = ""  # optional local Auto-Wall .safetensors model
     ml_device: str = "auto"
+    ml_profile: str = "legacy"  # legacy five-class model or opt-in six-class windows model
     ml_wall_confidence: float = 0.9
     ml_door_confidence: float = 0.9
     ml_light_confidence: float = 0.9
+    ml_window_confidence: float = 0.93
+    ml_barrier_confidence: float = 0.97
     ml_light_center_threshold: float = 0.35  # models with a physical-light point head
-    ml_recover_jambs: bool = False  # opt-in connected wall support beside valid doors
+    ml_recover_jambs: bool = False  # opt-in connected wall support beside valid portals
 
     def validate(self):
         integers = (self.max_dimension, self.wall_tolerance, self.door_color_tolerance,
@@ -70,7 +73,8 @@ class FastSettings:
                    self.door_min_length, self.door_max_length, self.door_gap_close, self.door_rectangularity,
                    self.light_min_area, self.light_max_area, self.light_core_fraction,
                    self.light_min_fill, self.light_range, self.ml_wall_confidence,
-                   self.ml_door_confidence, self.ml_light_confidence, self.ml_light_center_threshold)
+                   self.ml_door_confidence, self.ml_light_confidence, self.ml_window_confidence,
+                   self.ml_barrier_confidence, self.ml_light_center_threshold)
         if not all(type(value) in (int, float) and math.isfinite(value) for value in numeric):
             raise ValueError("Detection settings must be finite numbers.")
         if self.grid_size <= 0 or self.light_range <= 0:
@@ -83,8 +87,11 @@ class FastSettings:
             raise ValueError("Unknown light detection method.")
         if not isinstance(self.model_path, str) or self.ml_device not in ("auto", "cpu", "cuda"):
             raise ValueError("ML requires a local model path and an auto, cpu, or cuda device.")
+        if self.ml_profile not in ("legacy", "windows"):
+            raise ValueError("ML profile must be legacy or windows.")
         if any(not .5 <= value <= 1 for value in
-               (self.ml_wall_confidence, self.ml_door_confidence, self.ml_light_confidence)):
+               (self.ml_wall_confidence, self.ml_door_confidence, self.ml_light_confidence,
+                self.ml_window_confidence, self.ml_barrier_confidence)):
             raise ValueError("ML confidence thresholds must be between 0.5 and 1.")
         if not .05 <= self.ml_light_center_threshold <= 1:
             raise ValueError("ML light center threshold must be between 0.05 and 1.")
@@ -126,6 +133,8 @@ class DetectionResult:
     detection_backend: str = "opencv"
     transparent_barriers: list = field(default_factory=list)  # review only; never opaque LOS
     invisible_walls: list = field(default_factory=list)  # manually confirmed movement-only barriers
+    windows: list = field(default_factory=list)  # supported, straight ML window spans
+    window_faces: list = field(default_factory=list)  # paired proximity spans for each window candidate
 
 
 def _stage(name, progress, cancelled):
@@ -481,24 +490,44 @@ def _learned_masks(image, settings, progress, cancelled):
     except ImportError as error:
         raise RuntimeError("ML needs PyTorch and safetensors. Install requirements-ml.txt in this Python environment.") from error
     model, _ = load_model(settings.model_path, settings.ml_device)
+    _validate_model_profile(getattr(model, "classes", ()), settings.ml_profile)
     prediction = predict(model, image, cancelled, progress, include_light_centers=settings.lights)
     return _prediction_masks(prediction, image.shape[:2], settings), "torch-" + next(model.parameters()).device.type
+
+
+def _validate_model_profile(class_names, profile):
+    legacy = ("background", "wall", "door", "light", "transparent_barrier")
+    expected = legacy if profile == "legacy" else legacy + ("window",)
+    if tuple(class_names) != expected:
+        selected = "five-class legacy" if profile == "legacy" else "six-class windows"
+        raise ValueError(f"The selected model's class metadata does not match the {selected} profile.")
 
 
 def _prediction_masks(prediction, shape, settings):
     if len(prediction) not in (2, 3):
         raise ValueError("Predictions need classes, confidence, and optionally a light heatmap.")
     labels, confidence = prediction[:2]
+    max_class = 5 if settings.ml_profile == "windows" else 4
     if (labels.shape != shape or confidence.shape != shape or labels.dtype != np.uint8
-            or not np.issubdtype(confidence.dtype, np.floating) or labels.max() > 4
+            or not np.issubdtype(confidence.dtype, np.floating) or labels.max() > max_class
             or not np.isfinite(confidence).all() or confidence.min() < 0 or confidence.max() > 1):
-        raise ValueError("Predictions must match the working image: uint8 classes 0–4 and finite probabilities 0–1.")
-    thresholds = (settings.ml_wall_confidence, settings.ml_door_confidence, settings.ml_light_confidence, .5)
+        class_range = "0–5" if settings.ml_profile == "windows" else "0–4"
+        raise ValueError(f"Predictions must match the working image: uint8 classes {class_range} and finite probabilities 0–1.")
+    thresholds = (settings.ml_wall_confidence, settings.ml_door_confidence,
+                  settings.ml_light_confidence,
+                  settings.ml_barrier_confidence if settings.ml_profile == "windows" else .5)
     masks = [((labels == cls) & (confidence >= threshold)).astype(np.uint8) * 255
              for cls, threshold in enumerate(thresholds, 1)]
-    if settings.ml_recover_jambs and settings.doors and settings.ml_wall_confidence > .5:
+    if settings.ml_profile == "windows":
+        window_mask = ((labels == 5) & (confidence >= settings.ml_window_confidence)).astype(np.uint8) * 255
+        masks.append(window_mask)
+        masks[3] = _filter_fence_components(masks[3], max(shape) / 2048)
+    if settings.ml_recover_jambs and (settings.doors or settings.ml_profile == "windows") and settings.ml_wall_confidence > .5:
         weak = ((labels == 1) & (confidence >= .5)).astype(np.uint8) * 255
-        masks[0] = _recover_door_jambs(masks[0], masks[1], weak, settings, max(shape) / 2048)
+        portal_mask = masks[1] if settings.doors else np.zeros_like(masks[1])
+        if settings.ml_profile == "windows":
+            portal_mask = cv2.bitwise_or(portal_mask, masks[4])
+        masks[0] = _recover_door_jambs(masks[0], portal_mask, weak, settings, max(shape) / 2048)
     if len(prediction) == 3 and prediction[2] is not None:
         heatmap = prediction[2]
         if (heatmap.shape != shape or not np.issubdtype(heatmap.dtype, np.floating)
@@ -506,6 +535,308 @@ def _prediction_masks(prediction, shape, settings):
             raise ValueError("Light heatmaps must match the working image with finite scores between zero and one.")
         masks.append(heatmap)
     return masks
+
+
+def _filter_fence_components(mask, reference_scale):
+    """Reject compact prop-like regions before turning ML barriers into walls.
+
+    Fences form long, thin strokes or thin polygonal enclosures. Filled boulders,
+    tents, and other compact regions do not pass the oriented size, width, and
+    fill checks even when their class score is high.
+    """
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    keep = np.zeros(count, dtype=np.uint8)
+    minimum_length = max(8.0, 36 * reference_scale)
+    minimum_area = max(4, round(24 * reference_scale ** 2))
+    for index in range(1, count):
+        x, y, width, height, area = stats[index]
+        if area < minimum_area:
+            continue
+        component = np.uint8(labels[y:y + height, x:x + width] == index) * 255
+        contours, _ = cv2.findContours(component, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if not contours:
+            continue
+        contour = max(contours, key=cv2.contourArea)
+        rect_width, rect_height = cv2.minAreaRect(contour)[1]
+        length, thickness = max(rect_width, rect_height), max(1.0, min(rect_width, rect_height))
+        if length < minimum_length:
+            continue
+        fill = area / max(1.0, length * thickness)
+        aspect = length / thickness
+        if aspect < 1.8:
+            # Without a long axis, require a thin enclosure rather than a filled
+            # area. Geometry alone cannot establish that the material is a fence.
+            perimeter = cv2.arcLength(contour, True)
+            polygon = cv2.approxPolyDP(contour, max(1.0, perimeter * .02), True)
+            if fill > .35 or len(polygon) > 10:
+                continue
+        else:
+            estimated_width = area / length
+            if estimated_width > max(12 * reference_scale, length * .2):
+                continue
+        keep[index] = 1
+    keep[0] = 0
+    return keep[labels] * 255
+
+
+def _thin_binary_mask(mask, cancelled=None):
+    """Return a one-pixel medial trace using vectorized Zhang–Suen thinning."""
+    image = np.pad(mask != 0, 1)
+    height, width = mask.shape
+    while True:
+        if cancelled and cancelled():
+            raise DetectionCancelled()
+        changed = False
+        center = image[1:height + 1, 1:width + 1]
+        neighbors = (image[:-2, 1:width + 1], image[:-2, 2:width + 2],
+                     image[1:height + 1, 2:width + 2], image[2:height + 2, 2:width + 2],
+                     image[2:height + 2, 1:width + 1], image[2:height + 2, :width],
+                     image[1:height + 1, :width], image[:-2, :width])
+        count = sum(neighbor.astype(np.uint8) for neighbor in neighbors)
+        transitions = sum((~current & following).astype(np.uint8)
+                          for current, following in zip(neighbors, neighbors[1:] + neighbors[:1]))
+        for phase in (0, 1):
+            if phase == 0:
+                preserve = ((~neighbors[0] | ~neighbors[2] | ~neighbors[4])
+                            & (~neighbors[2] | ~neighbors[4] | ~neighbors[6]))
+            else:
+                preserve = ((~neighbors[0] | ~neighbors[2] | ~neighbors[6])
+                            & (~neighbors[0] | ~neighbors[4] | ~neighbors[6]))
+            remove = center & (count >= 2) & (count <= 6) & (transitions == 1) & preserve
+            if np.any(remove):
+                center[remove] = False
+                changed = True
+            # The second phase must see the updated neighborhood.
+            neighbors = (image[:-2, 1:width + 1], image[:-2, 2:width + 2],
+                         image[1:height + 1, 2:width + 2], image[2:height + 2, 2:width + 2],
+                         image[2:height + 2, 1:width + 1], image[2:height + 2, :width],
+                         image[1:height + 1, :width], image[:-2, :width])
+            count = sum(neighbor.astype(np.uint8) for neighbor in neighbors)
+            transitions = sum((~current & following).astype(np.uint8)
+                              for current, following in zip(neighbors, neighbors[1:] + neighbors[:1]))
+            center = image[1:height + 1, 1:width + 1]
+        if not changed:
+            break
+    return image[1:height + 1, 1:width + 1].astype(np.uint8) * 255
+
+
+def _trace_mask_skeleton(skeleton, cancelled=None):
+    """Use the optional native tracer when selected, with the Python fallback."""
+    from src.core.wall_geometry import _trace_python, centerline_backend
+
+    if centerline_backend() == "cpp":
+        from src.core.native_geometry import trace_skeleton
+        paths = trace_skeleton(skeleton, cancelled)
+        if paths is not None:
+            return paths
+    return _trace_python(skeleton, cancelled)
+
+
+def _fence_segments(mask, tolerance, cancelled=None):
+    """Trace accepted fence regions as movement-only centerlines."""
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
+    segments = []
+    for index in range(1, count):
+        if cancelled and cancelled():
+            raise DetectionCancelled()
+        x, y, width, height, _ = stats[index]
+        component = np.uint8(labels[y:y + height, x:x + width] == index) * 255
+        skeleton = _thin_binary_mask(component, cancelled) != 0
+        for path in _trace_mask_skeleton(skeleton, cancelled):
+            closed = np.array_equal(path[0], path[-1])
+            points = cv2.approxPolyDP(path[:-1] if closed else path, tolerance, closed).reshape(-1, 2)
+            starts = points
+            ends = np.roll(points, -1, axis=0) if closed else points[1:]
+            if not closed:
+                starts = points[:-1]
+            segments.extend((start.astype(float) + (x, y), end.astype(float) + (x, y))
+                            for start, end in zip(starts, ends) if np.any(start != end))
+    return segments
+
+
+def _window_jamb(wall_mask, endpoint, direction, thickness, reach):
+    """Find a wall cross-section supporting the center and both window faces."""
+    normal = np.array([-direction[1], direction[0]])
+    offsets = np.arange(0, math.ceil(reach) + 1)
+    samples = np.rint(endpoint + offsets[None, :, None] * direction
+                       + np.array([-.5, 0, .5])[:, None, None] * thickness * normal).astype(int)
+    inside = ((samples[..., 0] >= 0) & (samples[..., 0] < wall_mask.shape[1])
+              & (samples[..., 1] >= 0) & (samples[..., 1] < wall_mask.shape[0]))
+    hits = np.zeros(inside.shape, bool)
+    hits[inside] = wall_mask[samples[..., 1][inside], samples[..., 0][inside]] != 0
+    common = np.flatnonzero(hits.all(axis=0))
+    if not len(common):
+        return None
+    # Extend through the pixel boundary so the geometric lines meet the jamb.
+    return endpoint + (offsets[common[0]] + 1) * direction
+
+
+def _rectangular_window(component, origin, wall_mask, reference_scale, minimum_length, maximum_length):
+    """Fit compact glazing, including deep bays and small frame gaps.
+
+    Thinning shortens a thick rectangle by roughly its width. Fit its actual
+    extent instead, but still require wall jambs along both ends of its axis.
+    Require a near-rectangular envelope and dense material inside that envelope.
+    This tolerates tapered pane edges without admitting sparse frame outlines.
+    """
+    points = cv2.findNonZero(component)
+    _, (width, height), angle = cv2.minAreaRect(points)
+    length, thickness = max(width, height), min(width, height)
+    if (not minimum_length <= length <= maximum_length or thickness < 2 * reference_scale
+            or length / max(thickness, 1e-6) < 1.25):
+        return None
+    hull_area = cv2.contourArea(cv2.convexHull(points))
+    if (hull_area < .8 * width * height
+            or np.count_nonzero(component) < .75 * hull_area):
+        return None
+    angle += 90 if height > width else 0
+    cardinal = round(angle / 90) * 90
+    angles = [cardinal] if abs(angle - cardinal) <= 3 else [angle]
+    if 3 < abs(angle - cardinal) <= 12:
+        # A tapered or partly missing pane can tilt its fitted box. Try the
+        # nearby building axis only if the fitted axis lacks real wall jambs.
+        # Both faces still need independent support at both ends.
+        angles.append(cardinal)
+    points = points.reshape(-1, 2)
+    for angle in angles:
+        theta = math.radians(angle)
+        axis = np.array([math.cos(theta), math.sin(theta)])
+        basis = np.array([axis, [-axis[1], axis[0]]])
+        projected = points @ basis.T
+        lower, upper = projected.min(axis=0), projected.max(axis=0)
+        length, thickness = upper - lower
+        # Rasterized diagonal edges make the enclosing box slightly wider than
+        # the band at a jamb. Keep each exported face half a pixel inside it.
+        thickness -= 1
+        if (not minimum_length <= length <= maximum_length or thickness < 2 * reference_scale
+                or length / thickness < 1.25):
+            continue
+        center = (lower + upper) / 2 @ basis + origin
+        ends = [center - axis * length / 2, center + axis * length / 2]
+        reach = max(3 * reference_scale, thickness * .7)
+        anchors = [_window_jamb(wall_mask, endpoint, sign * axis, thickness, reach)
+                   for endpoint, sign in zip(ends, (-1, 1))]
+        if any(anchor is None for anchor in anchors):
+            continue
+        length = np.linalg.norm(anchors[1] - anchors[0])
+        if length > maximum_length:
+            continue
+        center = (anchors[0] + anchors[1]) / 2
+        footprint = cv2.boxPoints(((float(center[0]), float(center[1])),
+                                   (float(length + 4 * reference_scale),
+                                    float(thickness + 4 * reference_scale)), angle))
+        return anchors, footprint
+    return None
+
+
+def _detect_windows(wall_mask, window_mask, reference_scale, cancelled=None):
+    """Trace straight window runs from supported skeleton branches.
+
+    Unlike doors, windows can span a long glazed wall or turn at a corner.
+    Trace each straight branch, require the connected run's real endpoints to
+    meet confident wall pixels, then split long branches into editable spans.
+    """
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(window_mask, connectivity=8)
+    windows, footprints = [], []
+    minimum_length = max(12.0, 12 * reference_scale)
+    maximum_length = max(160.0, 160 * reference_scale)
+    for index in range(1, count):
+        if cancelled and cancelled():
+            raise DetectionCancelled()
+        x, y, width, height, area = stats[index]
+        if area < max(12, round(12 * reference_scale ** 2)):
+            continue
+        component = np.uint8(labels[y:y + height, x:x + width] == index) * 255
+        rectangle = _rectangular_window(component, np.array([x, y]), wall_mask,
+                                         reference_scale, minimum_length, maximum_length)
+        if rectangle is not None:
+            span, footprint = rectangle
+            windows.append(span)
+            footprints.append(footprint)
+            continue
+        skeleton = _thin_binary_mask(component, cancelled) != 0
+        if not skeleton.any():
+            continue
+
+        # Degree-one pixels are true run endpoints; degree-two corner turns
+        # and branch points stay eligible for tracing.
+        binary = skeleton.astype(np.uint8)
+        padded = np.pad(binary, 1)
+        degree = sum(padded[1 + dy:1 + dy + height, 1 + dx:1 + dx + width]
+                     for dy in (-1, 0, 1) for dx in (-1, 0, 1) if dx or dy)
+        terminal_pixels = np.argwhere(skeleton & (degree == 1))
+        if len(terminal_pixels) < 2:
+            continue
+        terminal_points = {(int(column), int(row)) for row, column in terminal_pixels}
+        padded_component = cv2.copyMakeBorder(component, 1, 1, 1, 1, cv2.BORDER_CONSTANT, value=0)
+        distance = cv2.distanceTransform(padded_component, cv2.DIST_L2, 5)[1:-1, 1:-1]
+
+        # A pane or full glazing run must connect to wall at both real ends.
+        # Internal corners are junctions, not artificial jambs.
+        anchored = True
+        terminal_anchors = {}
+        for row, column in terminal_pixels:
+            nearby = [(ny, nx) for ny in range(max(0, row - 1), min(height, row + 2))
+                      for nx in range(max(0, column - 1), min(width, column + 2))
+                      if skeleton[ny, nx] and (ny, nx) != (row, column)]
+            if not nearby:
+                anchored = False
+                break
+            neighbor_y, neighbor_x = nearby[0]
+            vector = np.array([column - neighbor_x, row - neighbor_y], dtype=float)
+            vector /= max(1e-6, np.linalg.norm(vector))
+            reach = max(8.0, 2 * float(distance[row, column]) + 4 * reference_scale)
+            # Distance includes the boundary pixel. Faces use pixel centers,
+            # so a straight 11px band spans 10px rather than 12px.
+            thickness = max(2 * reference_scale, 2 * (float(distance[row, column]) - 1))
+            anchor = _window_jamb(wall_mask, np.array([column + x, row + y]), vector,
+                                  thickness, reach)
+            if anchor is None:
+                anchored = False
+                break
+            terminal_anchors[(int(column), int(row))] = anchor - (x, y)
+        if not anchored:
+            continue
+
+        for path in _trace_mask_skeleton(skeleton, cancelled):
+            if len(path) < 2:
+                continue
+            simplified = cv2.approxPolyDP(path.reshape(-1, 1, 2),
+                                          max(1.0, 1.5 * reference_scale), False).reshape(-1, 2)
+            for start, end in zip(simplified, simplified[1:]):
+                vector = end.astype(float) - start
+                length = np.linalg.norm(vector)
+                if length < minimum_length:
+                    continue
+                axis = vector / length
+                midpoint = np.rint((start + end) / 2).astype(int)
+                local_x = np.clip(midpoint[0], 0, width - 1)
+                local_y = np.clip(midpoint[1], 0, height - 1)
+                thickness = max(2 * reference_scale, 2 * (float(distance[local_y, local_x]) - 1))
+                if thickness > max(16 * reference_scale, length * .45):
+                    continue
+                pieces = max(1, int(math.ceil(length / maximum_length)))
+                start_is_terminal = tuple(np.rint(start).astype(int)) in terminal_points
+                end_is_terminal = tuple(np.rint(end).astype(int)) in terminal_points
+                angle = math.degrees(math.atan2(axis[1], axis[0]))
+                for piece in range(pieces):
+                    first = start + vector * (piece / pieces)
+                    last = start + vector * ((piece + 1) / pieces)
+                    if piece == 0 and start_is_terminal:
+                        first = terminal_anchors[tuple(np.rint(start).astype(int))]
+                    if piece == pieces - 1 and end_is_terminal:
+                        last = terminal_anchors[tuple(np.rint(end).astype(int))]
+                    span_length = np.linalg.norm(last - first)
+                    if span_length < minimum_length:
+                        continue
+                    center = (first + last) / 2
+                    offset = np.array([x, y], dtype=float)
+                    footprint = cv2.boxPoints(((float(center[0] + x), float(center[1] + y)),
+                                               (float(span_length + 4 * reference_scale),
+                                                float(thickness + 4 * reference_scale)), angle))
+                    windows.append((first + offset, last + offset))
+                    footprints.append(footprint)
+    return windows, footprints
 
 
 def _recover_door_jambs(wall_mask, door_mask, weak_wall_mask, settings, reference_scale):
@@ -532,7 +863,7 @@ def _recover_door_jambs(wall_mask, door_mask, weak_wall_mask, settings, referenc
     return wall_mask | (supported & nearby)
 
 
-def _keep_learned_walls(wall_mask, door_mask, hsv, settings, reference_scale):
+def _keep_learned_walls(wall_mask, portal_mask, hsv, settings, reference_scale):
     """Keep small confident jambs that support a complete, valid learned door.
 
     The palette noise-area filter otherwise removes narrow posts before the door
@@ -540,7 +871,7 @@ def _keep_learned_walls(wall_mask, door_mask, hsv, settings, reference_scale):
     jambs are protected; this never fills gaps or invents connecting wall pixels.
     """
     supported, footprints = _detect_doors(hsv, wall_mask, replace(settings, door_wall_support=True),
-                                          reference_scale, candidate_mask=door_mask)
+                                          reference_scale, candidate_mask=portal_mask)
     protected = np.zeros_like(wall_mask)
     for door, box in zip(supported, footprints):
         axis = door[1] - door[0]
@@ -555,6 +886,26 @@ def _keep_learned_walls(wall_mask, door_mask, hsv, settings, reference_scale):
     return _keep_components(wall_mask, max(1, settings.min_wall_area * reference_scale ** 2), protected)
 
 
+def _window_wall_edges(windows, footprints, reference_scale, wall_geometry):
+    """Return proximity lines on both faces of each outlined wall band."""
+    result = []
+    for (start, end), footprint in zip(windows, footprints):
+        if wall_geometry == "centerline":
+            result.append([(start, end)])
+            continue
+        width, height = cv2.minAreaRect(np.asarray(footprint, np.float32))[1]
+        thickness = max(0., min(width, height) - 4 * reference_scale)
+        axis = (np.asarray(end, dtype=float) - start)
+        length = np.linalg.norm(axis)
+        if length <= 1e-6:
+            continue
+        normal = np.array([-axis[1], axis[0]]) / length
+        offset = normal * thickness / 2
+        result.append([(tuple(np.asarray(start) + offset), tuple(np.asarray(end) + offset)),
+                       (tuple(np.asarray(start) - offset), tuple(np.asarray(end) - offset))])
+    return result
+
+
 def detect_map(image, settings=None, progress=None, cancelled=None, prediction=None):
     """Detect without mutating input or touching Qt.
 
@@ -564,6 +915,8 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
     """
     settings = settings or FastSettings()
     settings.validate()
+    if settings.ml_profile == "windows" and not settings.model_path and prediction is None:
+        raise ValueError("The windows profile requires a selected six-class Auto-Wall model.")
     if image is None or image.dtype != np.uint8 or image.ndim != 3 or image.shape[2] != 3 or not image.size:
         raise ValueError("Detection needs a nonempty uint8 BGR image.")
     started = time.perf_counter()
@@ -590,7 +943,10 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
             learned, detector = _learned_masks(working, settings, progress, cancelled)
         timings["inference"] = time.perf_counter() - tick
         tick = time.perf_counter()
-        mask = _keep_learned_walls(learned[0], learned[1], hsv, settings, reference_scale)
+        portal_mask = learned[1]
+        if settings.ml_profile == "windows":
+            portal_mask = cv2.bitwise_or(portal_mask, learned[4])
+        mask = _keep_learned_walls(learned[0], portal_mask, hsv, settings, reference_scale)
     else:
         mask = _wall_mask(working, hsv, settings, reference_scale)
     from src.core.wall_geometry import centerline_backend, centerline_segments, outline_segments
@@ -607,19 +963,24 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
     # Detect footprints even when doors are off, to exclude highlights from lights.
     if settings.doors or settings.lights:
         arguments = {} if learned is None else {"candidate_mask": learned[1]}
-        doors, footprints = _detect_doors(hsv, mask, settings, reference_scale, working, **arguments)
+        doors, door_footprints = _detect_doors(hsv, mask, settings, reference_scale, working, **arguments)
     else:
-        doors, footprints = [], []
+        doors, door_footprints = [], []
+    windows, window_footprints = [], []
+    if learned is not None and settings.ml_profile == "windows":
+        windows, window_footprints = _detect_windows(mask, learned[4], reference_scale, cancelled)
+    light_footprints = door_footprints + window_footprints
     timings["doors"] = time.perf_counter() - tick
     _stage("Detecting lights", progress, cancelled)
     tick = time.perf_counter()
     arguments = {} if learned is None else {"candidate_mask": learned[2]}
     if not settings.lights:
         lights = []
-    elif learned is not None and len(learned) == 5:
-        lights = _detect_light_centers(working, learned[4], footprints, settings)
+    elif learned is not None and len(learned) == (6 if settings.ml_profile == "windows" else 5):
+        heatmap_index = 5 if settings.ml_profile == "windows" else 4
+        lights = _detect_light_centers(working, learned[heatmap_index], light_footprints, settings)
     else:
-        lights = _detect_lights(working, hsv, footprints, settings, reference_scale, **arguments)
+        lights = _detect_lights(working, hsv, light_footprints, settings, reference_scale, **arguments)
     timings["lights"] = time.perf_counter() - tick
     _stage("Building geometry", progress, cancelled)
     tick = time.perf_counter()
@@ -627,18 +988,18 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
     if settings.doors and settings.wall_geometry == "centerline":
         original_walls = walls
         candidate_doors = doors
-        walls = _clip_doorways(original_walls, footprints)
+        walls = _clip_doorways(original_walls, door_footprints)
         walls, doors, rejected_indices = _connect_centerlines(walls, candidate_doors, reference_scale, mask)
         rejected = len(rejected_indices)
         if rejected:
             rejected_indices = set(rejected_indices)
-            footprints = [box for index, box in enumerate(footprints) if index not in rejected_indices]
+            door_footprints = [box for index, box in enumerate(door_footprints) if index not in rejected_indices]
             candidate_doors = [door for index, door in enumerate(candidate_doors) if index not in rejected_indices]
-            walls = _clip_doorways(original_walls, footprints)
+            walls = _clip_doorways(original_walls, door_footprints)
             walls, doors, _ = _connect_centerlines(walls, candidate_doors, reference_scale, mask)
     elif settings.doors:
         original_walls = walls
-        walls = _clip_doorways(original_walls, footprints, preserve_jambs=True)
+        walls = _clip_doorways(original_walls, door_footprints, preserve_jambs=True)
         doors, disconnected = _attach_doors(walls, doors, reference_scale)
         if disconnected and settings.door_wall_support:
             # Pixel-mask support alone is insufficient if simplification removed
@@ -646,30 +1007,49 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
             rejected_indices = set(disconnected)
             rejected = len(rejected_indices)
             doors = [door for index, door in enumerate(doors) if index not in rejected_indices]
-            footprints = [box for index, box in enumerate(footprints) if index not in rejected_indices]
-            walls = _clip_doorways(original_walls, footprints, preserve_jambs=True)
+            door_footprints = [box for index, box in enumerate(door_footprints) if index not in rejected_indices]
+            walls = _clip_doorways(original_walls, door_footprints, preserve_jambs=True)
             doors, disconnected = _attach_doors(walls, doors, reference_scale)
     else:
         doors = []
+    window_faces = []
+    if windows:
+        walls = _clip_doorways(walls, window_footprints,
+                               preserve_jambs=settings.wall_geometry != "centerline")
+        window_faces = _window_wall_edges(windows, window_footprints, reference_scale,
+                                          settings.wall_geometry)
     walls = [(tuple(start * to_original), tuple(end * to_original)) for start, end in walls]
     doors = [(tuple(start * to_original), tuple(end * to_original)) for start, end in doors]
+    windows = [(tuple(start * to_original), tuple(end * to_original)) for start, end in windows]
+    window_faces = [[(tuple(start * to_original), tuple(end * to_original)) for start, end in group]
+                    for group in window_faces]
     for light in lights:
         light["position"]["x"] *= to_original[0]
         light["position"]["y"] *= to_original[1]
-    transparent = []
+    transparent, invisible = [], []
     if learned is not None:
-        transparent = outline_segments(_keep_components(learned[3], max(2, 20 * reference_scale ** 2)),
-                                       settings.simplify * reference_scale, 2)
-        transparent = [(tuple(a * to_original), tuple(b * to_original)) for a, b in transparent]
+        if settings.ml_profile == "windows":
+            invisible = _fence_segments(learned[3], settings.simplify * reference_scale, cancelled)
+            invisible = [(tuple(a * to_original), tuple(b * to_original)) for a, b in invisible]
+        else:
+            transparent = outline_segments(_keep_components(learned[3], max(2, 20 * reference_scale ** 2)),
+                                           settings.simplify * reference_scale, 2)
+            transparent = [(tuple(a * to_original), tuple(b * to_original)) for a, b in transparent]
     timings["geometry"] = time.perf_counter() - tick
     timings["total"] = time.perf_counter() - started
     warnings = []
     if learned is not None:
         warnings.append("Experimental ML: review predictions. Confidence scores are not accuracy guarantees.")
-        if settings.ml_recover_jambs and settings.doors:
-            warnings.append("Shaded jamb recovery is enabled; review the wall edges beside doors.")
+        if settings.ml_recover_jambs and (settings.doors or settings.ml_profile == "windows"):
+            warnings.append("Shaded jamb recovery is enabled; review the wall edges beside doors and windows.")
     if transparent:
         warnings.append("See-through barriers are shown for review and omitted from UVTT vision-blocking walls.")
+    if invisible:
+        warnings.append("High-confidence, wall-like fence predictions are movement-only; review the orange dashed geometry.")
+    elif learned is not None and settings.ml_profile == "windows" and np.any(learned[3]):
+        warnings.append("Barrier pixels found, but none passed the confidence and long, thin fence-shape checks.")
+    if learned is not None and settings.ml_profile == "windows" and np.any(learned[4]) and not windows:
+        warnings.append("Window pixels found, but no spans passed the shape and two-sided wall-jamb checks.")
     if learned is not None and settings.doors and np.any(learned[1]) and not doors:
         warnings.append("Door pixels found, but no candidates passed the size, shape, and wall-jamb checks.")
     if not walls:
@@ -681,7 +1061,8 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
         warnings.append(f"{len(disconnected)} door(s) could not connect to both wall jambs. Review these in the wall editor.")
     _stage("Ready", progress, cancelled)
     return DetectionResult(width, height, walls, doors, lights, timings, (work_w, work_h), warnings, backend,
-                           detector, transparent)
+                           detector, transparent, invisible_walls=invisible, windows=windows,
+                           window_faces=window_faces)
 
 
 def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):
@@ -698,6 +1079,15 @@ def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):
                         "bounds": [point(start), point(end)],
                         "rotation": math.atan2(end[1] - start[1], end[0] - start[0]),
                         "closed": True, "freestanding": False})
+    window_spans = (span for group in result.window_faces for span in group) if result.window_faces else result.windows
+    for start, end in window_spans:
+        portal = {"position": point(((start[0] + end[0]) / 2, (start[1] + end[1]) / 2)),
+                  "bounds": [point(start), point(end)],
+                  "rotation": math.atan2(end[1] - start[1], end[0] - start[0]),
+                  "closed": False, "freestanding": False}
+        if preview:
+            portal["_auto_wall_window"] = True
+        portals.append(portal)
     lights = [{**light, "position": point((light["position"]["x"], light["position"]["y"]))} for light in result.lights]
     data = {"format": 0.3,
             "resolution": {"map_origin": {"x": 0.0, "y": 0.0},

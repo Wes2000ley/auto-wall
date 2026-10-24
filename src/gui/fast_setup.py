@@ -4,6 +4,7 @@ from copy import deepcopy
 from dataclasses import replace
 from pathlib import Path
 
+import numpy as np
 from PyQt6.QtCore import QRectF, Qt, QThread, QTimer, pyqtSignal
 from PyQt6.QtGui import QColor, QImage, QKeySequence, QPainter, QPainterPath, QPen, QPixmap, QShortcut
 from PyQt6.QtWidgets import (
@@ -19,6 +20,30 @@ from src.core.fast_pipeline import (
 from src.core.detection_profiles import PRESETS, load_settings, preset_settings, save_settings
 from src.core.foundry_export import write_map_exports
 from src.core.wall_editing import cut_door_opening, nearest_wall, rectangle_walls, walls_in_rectangle
+
+
+def _cut_windows_by_door(windows, face_groups, door):
+    """Cut a collinear door out of glazing while preserving the remaining glass."""
+    centers, groups = [], []
+    for index, center in enumerate(windows):
+        remaining = cut_door_opening([center], door)
+        for part in remaining:
+            centers.append(part)
+            if not face_groups:
+                continue
+            if part == center:
+                groups.append(face_groups[index])
+                continue
+            start, end = np.asarray(center, dtype=float)
+            axis = end - start
+            fractions = (np.asarray(part) - start) @ axis / np.dot(axis, axis)
+            # Each displayed face shares its window center's endpoint parameters.
+            faces = []
+            for first, last in face_groups[index]:
+                first, last = np.asarray(first), np.asarray(last)
+                faces.append(tuple(tuple(first + fraction * (last - first)) for fraction in fractions))
+            groups.append(faces)
+    return centers, groups
 
 
 class DetectionWorker(QThread):
@@ -88,12 +113,12 @@ class MapView(QGraphicsView):
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate)
         self.bitmap = None
-        self.layers = {"walls": [], "doors": [], "invisible_walls": [], "lights": [], "transparent": []}
+        self.layers = {"walls": [], "doors": [], "windows": [], "invisible_walls": [], "lights": [], "transparent": []}
         self.visibility = {name: True for name in self.layers}
         self.picking = False
         self.removing = False
         self.image_size = (0, 0)
-        self.walls, self.doors, self.invisible_walls = [], [], []
+        self.walls, self.doors, self.windows, self.invisible_walls = [], [], [], []
         self.editing_enabled = False
         self.drawing_mode = None
         self.draw_origin = self.draw_target = None
@@ -111,7 +136,7 @@ class MapView(QGraphicsView):
     def set_image(self, image):
         self.cancel_wall_gesture()
         self.stop_pan()
-        self.walls, self.doors, self.invisible_walls = [], [], []
+        self.walls, self.doors, self.windows, self.invisible_walls = [], [], [], []
         self.editing_enabled = False
         self.update_cursor()
         # QPixmap owns the converted image data after fromImage returns.
@@ -137,7 +162,7 @@ class MapView(QGraphicsView):
 
     def set_result(self, result):
         self.cancel_wall_gesture()
-        self.walls, self.doors = result.walls, result.doors
+        self.walls, self.doors, self.windows = result.walls, result.doors, result.windows
         self.invisible_walls = result.invisible_walls
         for items in self.layers.values():
             for item in items:
@@ -160,6 +185,14 @@ class MapView(QGraphicsView):
             item.setData(1, index)
             item.setToolTip(f"Door {index + 1}")
             self.layers["doors"].append(item)
+        faces = result.window_faces or [[span] for span in result.windows]
+        for index, group in enumerate(faces):
+            for start, end in group:
+                item = self.scene().addLine(*start, *end, self.pen("#ff78c8", 4))
+                item.setData(0, "windows")
+                item.setData(1, index)
+                item.setToolTip(f"Window {index + 1}")
+                self.layers["windows"].append(item)
         radius = max(result.width, result.height) / 300
         for index, light in enumerate(result.lights):
             x, y = light["position"]["x"], light["position"]["y"]
@@ -173,7 +206,7 @@ class MapView(QGraphicsView):
             self.show_layer(name, visible)
 
     def show_layer(self, name, visible):
-        if name in ("walls", "doors", "invisible_walls"):
+        if name in ("walls", "doors", "windows", "invisible_walls"):
             self.cancel_wall_gesture()
         self.visibility[name] = visible
         for item in self.layers[name]:
@@ -206,7 +239,7 @@ class MapView(QGraphicsView):
             event.accept()
             return
         if self.editing_enabled and not self.picking and any(
-                self.visibility[layer] for layer in ("walls", "invisible_walls")):
+                self.visibility[layer] for layer in ("walls", "windows", "invisible_walls")):
             point = self.mapToScene(event.position().toPoint())
             if event.button() == Qt.MouseButton.MiddleButton:
                 self.erase_origin = point
@@ -226,7 +259,7 @@ class MapView(QGraphicsView):
                 return
             if self.removing:
                 for item in self.items(event.position().toPoint()):
-                    if item.data(0) in ("doors", "lights"):
+                    if item.data(0) in ("doors", "windows", "lights"):
                         self.candidate_clicked.emit(item.data(0), item.data(1))
                         break
                 event.accept()
@@ -234,7 +267,7 @@ class MapView(QGraphicsView):
             if self.editing_enabled and self.drawing_mode and self.visibility[self.drawing_mode]:
                 if 0 <= point.x() < self.image_size[0] and 0 <= point.y() < self.image_size[1]:
                     self.snap_walls = []
-                    for layer in ("walls", "doors", "invisible_walls"):
+                    for layer in ("walls", "doors", "windows", "invisible_walls"):
                         if self.visibility[layer]:
                             self.snap_walls.extend(getattr(self, layer))
                     self.draw_origin, _ = self.snapped_point(event.position().toPoint(), self.snap_walls)
@@ -560,6 +593,12 @@ class FastSetupDialog(QDialog):
         model_buttons.addWidget(choose_model)
         model_buttons.addWidget(clear_model)
         ml.addRow(model_buttons)
+        self.ml_profile = QComboBox()
+        self.ml_profile.addItem("Legacy · 5 classes", "legacy")
+        self.ml_profile.addItem("Windows + fences · 6 classes", "windows")
+        self.ml_profile.currentIndexChanged.connect(self.settings_changed)
+        self.ml_profile.setToolTip("The selected profile must match the class list stored in the model file.")
+        ml.addRow("Model classes", self.ml_profile)
         self.ml_device = QComboBox()
         for name, device in (("Automatic", "auto"), ("CPU", "cpu"), ("CUDA GPU", "cuda")):
             self.ml_device.addItem(name, device)
@@ -569,14 +608,20 @@ class FastSetupDialog(QDialog):
         self.ml_door = self._number(.5, 1, .9, decimals=2)
         self.ml_light = self._number(.5, 1, .9, decimals=2)
         self.ml_light.setToolTip("Light-pixel threshold for models without light-center prediction.")
+        self.ml_window = self._number(.5, 1, .93, decimals=2)
+        self.ml_barrier = self._number(.5, 1, .97, decimals=2)
+        self.ml_window.setToolTip("Window pixels must meet this score before shape and wall-jamb checks.")
+        self.ml_barrier.setToolTip("Fence pixels use a high score plus strict long, thin component checks.")
         self.ml_light_center = self._number(.05, 1, .35, decimals=2)
         self.ml_light_center.setToolTip("For models that find whole light sources. Higher scores accept fewer sources; this is not a measured accuracy percentage.")
         ml.addRow("Wall confidence", self.ml_wall)
         ml.addRow("Door confidence", self.ml_door)
         ml.addRow("Light confidence", self.ml_light)
+        ml.addRow("Window confidence", self.ml_window)
+        ml.addRow("Fence confidence", self.ml_barrier)
         ml.addRow("Light center score", self.ml_light_center)
-        self.ml_recover_jambs = QCheckBox("Recover shaded door jambs")
-        self.ml_recover_jambs.setToolTip("Use connected, lower-confidence wall predictions only beside supported doors. Review the result.")
+        self.ml_recover_jambs = QCheckBox("Recover shaded door / window jambs")
+        self.ml_recover_jambs.setToolTip("Use connected, lower-confidence wall predictions beside supported doors and rectangular windows. Review the result.")
         self.ml_recover_jambs.toggled.connect(self.settings_changed)
         ml.addRow(self.ml_recover_jambs)
         ml_note = QLabel("Point models use Light center score. Other models use Light confidence and the Lights tab's area limits.")
@@ -624,7 +669,8 @@ class FastSetupDialog(QDialog):
         self.view.shape_drawn.connect(self.add_shape)
         self.view.drawing_mode_changed.connect(self.drawing_mode_changed)
         self.layer_checks = {}
-        labels = {"walls": "Walls", "doors": "Doors", "invisible_walls": "Invisible walls",
+        labels = {"walls": "Walls", "doors": "Doors", "windows": "Windows",
+                  "invisible_walls": "Invisible walls",
                   "lights": "Lights", "transparent": "ML barriers (review)"}
         for name, label in labels.items():
             check = QCheckBox(label)
@@ -635,11 +681,12 @@ class FastSetupDialog(QDialog):
             self.layer_checks[name] = check
             toolbar.addWidget(check)
         toolbar.addStretch()
-        self.remove_check = QCheckBox("Click to remove door / light")
+        self.remove_check = QCheckBox("Click to remove door / window / light")
+        self.remove_check.setToolTip("Removing a window restores its solid wall. Middle-drag a rectangle to erase the window entirely.")
         self.remove_check.toggled.connect(self.set_removing)
         toolbar.addWidget(self.remove_check)
         self.undo_button = QPushButton("Undo edit")
-        self.undo_button.setToolTip("Undo the last drawing, wall edit, or door/light removal (Ctrl+Z)")
+        self.undo_button.setToolTip("Undo the last drawing, wall edit, or door/window/light removal (Ctrl+Z)")
         self.undo_button.clicked.connect(self.undo_removal)
         self.undo_button.setEnabled(False)
         self.undo_shortcut = QShortcut(QKeySequence.StandardKey.Undo, self)
@@ -810,8 +857,11 @@ class FastSetupDialog(QDialog):
                             light_core_fraction=self.light_core.value(), light_min_fill=self.light_fill.value(),
                             light_saturation=self.saturation.value(), light_range=self.light_range.value(),
                             model_path=self.model_path.text(), ml_device=self.ml_device.currentData(),
+                            ml_profile=self.ml_profile.currentData(),
                             ml_wall_confidence=self.ml_wall.value(), ml_door_confidence=self.ml_door.value(),
-                            ml_light_confidence=self.ml_light.value(), ml_light_center_threshold=self.ml_light_center.value(),
+                            ml_light_confidence=self.ml_light.value(), ml_window_confidence=self.ml_window.value(),
+                            ml_barrier_confidence=self.ml_barrier.value(),
+                            ml_light_center_threshold=self.ml_light_center.value(),
                             ml_recover_jambs=self.ml_recover_jambs.isChecked())
 
     def apply_settings(self, settings):
@@ -832,6 +882,7 @@ class FastSetupDialog(QDialog):
         self.light_mode.setCurrentIndex(self.light_mode.findData(settings.light_mode))
         self.model_path.setText(settings.model_path)
         self.model_path.setToolTip(settings.model_path)
+        self.ml_profile.setCurrentIndex(self.ml_profile.findData(settings.ml_profile))
         self.ml_device.setCurrentIndex(self.ml_device.findData(settings.ml_device))
         for widget, value in ((self.grid, settings.grid_size), (self.wall_tolerance, settings.wall_tolerance),
                               (self.min_area, settings.min_wall_area), (self.simplify, settings.simplify),
@@ -844,6 +895,8 @@ class FastSetupDialog(QDialog):
                               (self.light_core, settings.light_core_fraction), (self.light_fill, settings.light_min_fill),
                               (self.light_range, settings.light_range), (self.ml_wall, settings.ml_wall_confidence),
                               (self.ml_door, settings.ml_door_confidence), (self.ml_light, settings.ml_light_confidence),
+                              (self.ml_window, settings.ml_window_confidence),
+                              (self.ml_barrier, settings.ml_barrier_confidence),
                               (self.ml_light_center, settings.ml_light_center_threshold)):
             # Imported profiles may exceed a control's convenient initial range.
             # Expand it instead of silently changing a valid detector setting.
@@ -942,11 +995,12 @@ class FastSetupDialog(QDialog):
 
     def show_counts(self):
         result = self.result
-        text = (f"{len(result.walls):,} wall segments · {len(result.doors)} doors · {len(result.lights)} lights\n"
+        text = (f"{len(result.walls):,} wall segments · {len(result.doors)} doors · "
+                f"{len(result.windows)} windows · {len(result.lights)} lights\n"
                 f"Detection: {result.timings['total']:.3f} s · {result.working_size[0]} × {result.working_size[1]}\n"
-                "Green: walls · Cyan: doors · Yellow: lights")
+                "Green: walls · Cyan: doors · Magenta: windows · Yellow: lights")
         if result.invisible_walls:
-            text += f"\nOrange dashes: {len(result.invisible_walls)} invisible walls · export Foundry Scene JSON"
+            text += f"\nOrange dashes: {len(result.invisible_walls)} invisible walls/fences · export Foundry Scene JSON"
         if result.detection_backend.startswith("torch-"):
             text += "\nML device: " + ("CUDA GPU" if result.detection_backend == "torch-cuda" else "CPU")
         if result.warnings:
@@ -1001,6 +1055,10 @@ class FastSetupDialog(QDialog):
             return
         changes = {layer: [*values, *additions]}
         if layer == "doors":
+            windows, faces = _cut_windows_by_door(self.result.windows, self.result.window_faces,
+                                                  (source, target))
+            if windows != self.result.windows:
+                changes.update(windows=windows, window_faces=faces)
             for name in ("walls", "invisible_walls"):
                 walls = cut_door_opening(getattr(self.result, name), (source, target))
                 if walls != getattr(self.result, name):
@@ -1017,6 +1075,17 @@ class FastSetupDialog(QDialog):
                 selected = set(walls_in_rectangle(walls, first, second))
                 if selected:
                     changes[name] = [wall for index, wall in enumerate(walls) if index not in selected]
+        if self.view.visibility["windows"]:
+            selected = set(walls_in_rectangle(self.result.windows, first, second))
+            for index, group in enumerate(self.result.window_faces):
+                if any(walls_in_rectangle([span], first, second) for span in group):
+                    selected.add(index)
+            if selected:
+                changes["windows"] = [window for index, window in enumerate(self.result.windows)
+                                      if index not in selected]
+                if self.result.window_faces:
+                    changes["window_faces"] = [group for index, group in enumerate(self.result.window_faces)
+                                                if index not in selected]
         if changes:
             self.apply_edit(**changes)
 
@@ -1025,7 +1094,16 @@ class FastSetupDialog(QDialog):
             return
         values = list(getattr(self.result, layer))
         values.pop(index)
-        self.apply_edit(**{layer: values})
+        changes = {layer: values}
+        if layer == "windows" and self.result.window_faces:
+            faces = list(self.result.window_faces)
+            restored = faces.pop(index)
+            changes["window_faces"] = faces
+            walls = list(self.result.walls)
+            existing = {frozenset(segment) for segment in walls}
+            walls.extend(segment for segment in restored if frozenset(segment) not in existing)
+            changes["walls"] = walls
+        self.apply_edit(**changes)
 
     def undo_removal(self):
         if not self.undo_states or not self.can_edit():

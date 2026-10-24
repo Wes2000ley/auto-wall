@@ -103,6 +103,11 @@ def process(args, settings):
             cv2.line(canvas, point(start), point(end), (110, 225, 70), 1, cv2.LINE_AA)
         for start, end in result.doors:
             cv2.line(canvas, point(start), point(end), (255, 215, 53), 3, cv2.LINE_AA)
+        window_spans = (span for group in result.window_faces for span in group) if result.window_faces else result.windows
+        for start, end in window_spans:
+            cv2.line(canvas, point(start), point(end), (200, 120, 255), 3, cv2.LINE_AA)
+        for start, end in result.invisible_walls:
+            cv2.line(canvas, point(start), point(end), (40, 175, 245), 2, cv2.LINE_AA)
         for start, end in result.transparent_barriers:
             cv2.line(canvas, point(start), point(end), (230, 150, 200), 1, cv2.LINE_AA)
         for light in result.lights:
@@ -113,6 +118,7 @@ def process(args, settings):
         args.preview.write_bytes(buffer.tobytes())
     report = {"image_size": [result.width, result.height], "working_size": result.working_size,
               "walls": len(result.walls), "doors": len(result.doors), "lights": len(result.lights),
+              "windows": len(result.windows), "movement_only_segments": len(result.invisible_walls),
               "decode_seconds": decode_seconds, "export_seconds": export_seconds,
               "runs": runs, "settings": asdict(settings), "opencv": cv2.__version__,
               "geometry_backend": result.geometry_backend, "detection_backend": result.detection_backend,

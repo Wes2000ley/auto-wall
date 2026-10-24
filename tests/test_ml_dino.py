@@ -9,8 +9,11 @@ torch = pytest.importorskip("torch")
 pytest.importorskip("safetensors")
 pytest.importorskip("transformers")
 
+from safetensors import safe_open
+
 from src.ml.dino import DinoBattlemap
-from src.ml.model import load_model, predict, save_model
+from src.ml.model import DINO_LIGHTS_FORMAT, load_model, predict, save_model
+from src.ml.network import WINDOW_CLASSES, expand_legacy_head
 from scripts.train_ml import training_optimizer
 
 
@@ -68,3 +71,28 @@ def test_dino_adapts_only_selected_final_blocks_and_respects_no_grad():
                 model.train_backbone_layers(invalid)
     finally:
         torch.set_num_threads(previous)
+
+
+def test_dino_windows_expansion_preserves_light_center_head(tmp_path):
+    model = DinoBattlemap(light_centers=True).eval()
+    old_weight = model.local.head.weight.detach().clone()
+    old_bias = model.local.head.bias.detach().clone()
+    light_state = {name: value.detach().clone() for name, value in model.light_head.state_dict().items()}
+
+    expand_legacy_head(model)
+    assert model.classes == WINDOW_CLASSES
+    assert model.local.head.out_channels == 6
+    torch.testing.assert_close(model.local.head.weight[:5], old_weight, rtol=0, atol=0)
+    torch.testing.assert_close(model.local.head.bias[:5], old_bias, rtol=0, atol=0)
+    for name, value in model.light_head.state_dict().items():
+        torch.testing.assert_close(value, light_state[name], rtol=0, atol=0)
+
+    path = tmp_path / "dino-windows-lights.safetensors"
+    save_model(path, model, {"class_set": "windows"})
+    with safe_open(path, framework="pt") as source:
+        assert source.metadata()["format"] == DINO_LIGHTS_FORMAT
+    loaded, details = load_model(path, "cpu")
+    assert loaded.classes == WINDOW_CLASSES
+    assert loaded.light_head is not None and details == {"class_set": "windows"}
+    for name, value in loaded.light_head.state_dict().items():
+        torch.testing.assert_close(value, light_state[name], rtol=0, atol=0)

@@ -12,7 +12,7 @@ from safetensors.torch import save_file
 import torch
 from torch.nn import functional as F
 
-from src.ml.network import BattlemapNet, CLASSES
+from src.ml.network import BattlemapNet, validate_classes
 
 
 FORMAT = "auto-wall-unet-v1"
@@ -28,7 +28,8 @@ def save_model(path, model, details):
     model_format = DINO_FORMAT if model.architecture == "dino" else FORMAT
     if model.architecture == "dino" and model.light_head is not None:
         model_format = DINO_SEMANTIC_LIGHTS_FORMAT if model.light_head.semantic_context else DINO_LIGHTS_FORMAT
-    metadata = {"format": model_format, "classes": json.dumps(CLASSES),
+    classes = validate_classes(model.classes)
+    metadata = {"format": model_format, "classes": json.dumps(classes),
                 "width": str(model.width), "context_dilation": str(model.context_dilation),
                 "details": json.dumps(details, allow_nan=False)}
     tensors = {key: value.detach().cpu().contiguous() for key, value in model.state_dict().items()}
@@ -63,8 +64,12 @@ def _cached_model(path, modified, size, device):
     with safe_open(path, framework="pt", device="cpu") as source:
         metadata = source.metadata() or {}
         model_format = metadata.get("format")
+        try:
+            classes = validate_classes(json.loads(metadata.get("classes", "[]")))
+        except (TypeError, ValueError):
+            classes = None
         if (model_format not in (FORMAT, DINO_FORMAT, DINO_LIGHTS_FORMAT, DINO_SEMANTIC_LIGHTS_FORMAT)
-                or json.loads(metadata.get("classes", "[]")) != list(CLASSES)):
+                or classes is None):
             raise ValueError("This is not a compatible Auto-Wall segmentation model.")
         width = int(metadata.get("width", "0"))
         if width not in (8, 16, 24, 32):
@@ -77,9 +82,10 @@ def _cached_model(path, modified, size, device):
                 raise ValueError("Unsupported DINO decoder configuration.")
             from src.ml.dino import DinoBattlemap
             model = DinoBattlemap(light_centers=model_format != DINO_FORMAT,
-                                 semantic_light_context=model_format == DINO_SEMANTIC_LIGHTS_FORMAT)
+                                 semantic_light_context=model_format == DINO_SEMANTIC_LIGHTS_FORMAT,
+                                 classes=classes)
         else:
-            model = BattlemapNet(width, dilation)
+            model = BattlemapNet(width, dilation, classes)
         state = {key: source.get_tensor(key) for key in source.keys()}
         if any(not torch.isfinite(value).all() for value in state.values()):
             raise ValueError("The model contains nonfinite weights.")

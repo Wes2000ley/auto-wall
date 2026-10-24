@@ -1,0 +1,265 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "scope": "Primary second-pass visual review of partial source-assisted weak labels. Every canonical source was viewed. Selected structural cap components, wall/rail/glass crops and background region placement were checked; ambiguous exterior cap sections and background/fence overlap were removed. Not exhaustive, independently human-annotated ground truth. No model prediction supplied any positive or negative training label.",
+  "limitations": [
+    "Artist cutaway caps are weak source supervision, not an exact wall-surface outline.",
+    "Unknown pixels are 255. Missing labels are not evidence of background.",
+    "Glass training covers one new layout; validation glass covers one different layout.",
+    "Partial fence and window material patches do not define complete barrier geometry.",
+    "Whole-layout validation/test splits were frozen before these trials; no derivative crosses a split.",
+    "Possible warm/cool emitters are conservatively excluded from background; new light positives are not claimed."
+  ],
+  "samples": {
+    "antler-crown": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "7a12b0173c91be4a7197b552a57539830aef693c2815d2de4e9fd256e8dc7383",
+      "annotation_sha256": "6485e23067b9b04f799ddf9da16554d128213e7c1b4b16cce788157fb34e93e2",
+      "mask_sha256": "ff8ba2af0ee28acd6bb8bb5c9f59a16534118b29712ca19082c13a2248d084e6",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: validation. Accepted only within the partial weak-supervision scope above."
+    },
+    "ashenwatch-hold": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "e8d0886542a6d633d2627c112e080693fafdf73d07de986761c20fb720548741",
+      "annotation_sha256": "27b71d300e0114e0d30f2771837c12d87b839b46e8c1602133867787b1f0388a",
+      "mask_sha256": "3954d2a9e686f0bc43d8e01be8a709b9487e41618ff070e8ee5343edfcd0cafa",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "blackbriar-kilns": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "a5d370840ef22eed6a2a53be8a45ebfc98c345e82edd0ddd582aceadf7530e31",
+      "annotation_sha256": "34659e529d98c9def5fbe9a5f28ce3762f6c1552133846e923b39594ddf4b48f",
+      "mask_sha256": "94c6d8f7a8651f0f159c25096bd09834cc97142444202da8cd279f8d04583146",
+      "notes": "Only small masonry building cap/door interiors. Kilns and other props not wall positives. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "briarbone-circle": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "c1d1377f27fd1afa8162affdc2927974204ff05a2c213d7966fa27a6e3cfda31",
+      "annotation_sha256": "e9f18f18b5980856832598157b0140d1bb24255f80cf3a27909d339905849a9e",
+      "mask_sha256": "2cea1ed70c408dd78b0f94dd10d40d008517967ce4019d318dd1b1b46da4f4da",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "cloudfall-hermitage": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "748acb6c7dd3d8d91f32bbb4e887535856e5b9788dcde783585546bc13e7d758",
+      "annotation_sha256": "32504095037f15f17d02f43f55d1436b35a36cf6543efc293990974ec2d4a87d",
+      "mask_sha256": "e522514e5cfc0c7523d505194a26b7f3664fe48b74dffc78813208294a278089",
+      "notes": "Test only. Source building cap/door interiors. Bridges, railings and other unreviewed structures remain unknown. Frozen split: test. Accepted only within the partial weak-supervision scope above."
+    },
+    "coppercap-warren": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "c198d040c5450d5e3e8a912b51db765f1390446c40fe8471bd68381b6f95e171",
+      "annotation_sha256": "aa1dd7d036c5b8824a40ddae35cf939b5b25df25ad8d7201e65c6cc0bd6f006a",
+      "mask_sha256": "2822dd9010846422ab923bdaf7b455e0ea1e373f7d7d8f48e0c010102b8e3827",
+      "notes": "Only selected enclosed cave-cap interiors right of x450 and above y780. Outside exit, props and ambiguous terrain border omitted. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "drowned-stair": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "42fb8d43b5c6b5c3531038de400347bdbf9f90b9adac0388011486076b163277",
+      "annotation_sha256": "1492907a2b305e380f01c5dd9298f46b106c58fa5e3ab80000eff8e55ba72495",
+      "mask_sha256": "b7463a104818884aed59fbbba5fd8d77ef559066b0a66306cfc3d0daef6bf52d",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "emberroot-burrow": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "6d9d9d1cf7dc18c0c73d5b40f645bf1c7ad6b0630a7c40c81d291c6d4f156781",
+      "annotation_sha256": "9fbd88aa4e36f309949ca35814c9534dc2faba0b1464056e17158081b941e6c1",
+      "mask_sha256": "08cad3df50697f8ec8cb08e14365b9105b3dbe9262218c8372e892f7dfe28db9",
+      "notes": "Only unambiguous right chamber cap at x>=1000; ambiguous outdoor cutaway outline omitted. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "foxglove-still": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "e2291bb8472cde458a3a36aa9a6f4c2d96c4951bdbf17cd82eb9ac79277167b3",
+      "annotation_sha256": "4b0d9d9889374e4b79186a21faf4d622299d69c26ab8b14743defb8cda339bfc",
+      "mask_sha256": "b9f29a02100b23f899b24dbaed65aacd8616cae2e69ea1bc0a1c03c882f0e93f",
+      "notes": "Narrow traces inside real textured masonry verified in 3x crops; no automatically selected gray components. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "frostwake-beacon": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "37d49cee08e5f1deedcbfdcb37e8f19a52d86290f99ac73a548a747204acc155",
+      "annotation_sha256": "63ed08194eb3364d786edc4ccf4ff027639640fc7da52f03c8dd5e52a82c91df",
+      "mask_sha256": "86f31ad0f6b7fe4a86463e181ccec35d1457cfe11c074cf41e81d94c77e5a7a4",
+      "notes": "Partial source building caps and door panels; narrow real bridge rails measured in native crops. Lens and uncertain lower cliff timber remain unknown. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "gilded-snare": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "5629695eaad0c3bd729a60b11a81b416f5134bcd764902f73f03d6c039c6c3b8",
+      "annotation_sha256": "b411960883039bf473491f4ac06cb3f1cf7791a2a0b9f8c3a22346561bb5f054",
+      "mask_sha256": "1a306a522ac733e20f1244dba670878a7356c8256ae506f758b9a00eb66e8ef2",
+      "notes": "Source masonry caps and door panels, narrow textured garden masonry traces and partial physical glazing. Conservatory cap not assumed opaque. This is the only new training map with glass positives. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "gullthorn-blind": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "e7e179b058d12571f21121a95d7545274b33faa04bb0073150b02f86050c359b",
+      "annotation_sha256": "8bf8de0bcf27b71e98659b617562e66633f0518168200e159af82b280430570d",
+      "mask_sha256": "5ea5b9a41455282e49f049c38323656bf1235ef757c2c0ded68175bbc5dcce8a",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "hourglass-scar": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "fd671fa81fb9a6a72f15eb5466d7c54fed7fbfde9e12c607ef63c5dc632ef8da",
+      "annotation_sha256": "14e92c0767d67062841a3a8965c310154744dbeb8475ee6e92af876591a984ae",
+      "mask_sha256": "5b0ffb62db91766622e5a1b71209fa80703096599e4fb61a459379672162a885",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "lantern-wayshrine": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "e1fefdbd1619e1abcb79caf49a53f959e550c69c6669faae7fee7b5ee45a4d74",
+      "annotation_sha256": "41f5c7d35c72d22bf81246ba15d270af3f25680bde24e475e40f0ce11930f635",
+      "mask_sha256": "34865ed7fc2780565f137fd9fd7ed2ad5e08ecf8bf50d3c0f228e4d27915a423",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "mirrorfen-pool": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "f0955eb60fe77eb18ffd1c13bdd3c21f07764eb0b9780ec5263a15169d495f3a",
+      "annotation_sha256": "66e5f15efe3a4afc73f949a1096ad7a5be7b45aeef50bdb0454293714822dd30",
+      "mask_sha256": "c06d1958de2cc6b556a71a8fab446d622a6ddb5406ff10d48a2db0324fbef76e",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: test. Accepted only within the partial weak-supervision scope above."
+    },
+    "mooncut-cove": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "4086eed3d5984b3f9df0116bad153c4e4b79209e1f0ee73fa004535082957898",
+      "annotation_sha256": "396b0ad61b9666255a6efa983acdad39d485b072fac5b45052e9abc2e9661cc1",
+      "mask_sha256": "d421ed9059fc3282dd1bf4937f25a00c36f23e116ea3f48de0ed448286a2ff96",
+      "notes": "Only the upper cavern-cap interior left of x1000. Beach, coastline and outside corridor border omitted. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "mothveil-lodge": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "50be15cd04a06658458a81268941e6319c81fd32f81f48eb99182ddfde8e46b3",
+      "annotation_sha256": "3402a44b1c2dd1e6768eded1a1f838221cf5b612811269e1361b1ba42e0f9156",
+      "mask_sha256": "77b0cc7edd90cd0ecaedf4f1281c27b1248593119b9f94cf87d26b489c3acbdc",
+      "notes": "Validation only. Source cap/door interiors and two physical blue pane interiors, checked in native crops. Surrounding frame/cap and open gate thresholds remain unknown. Frozen split: validation. Accepted only within the partial weak-supervision scope above. Geometry-only erratum: native source crop verified the complete window span and rays crossing both faces. Training raster unchanged."
+    },
+    "rimebell-refuge": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "c70f1661a5b733ebad492d410338a40424b1717e2043a95ef174603010643678",
+      "annotation_sha256": "d651ad68cb028180d5362a4970ec3a269765a808b5d2012038e9e0b970e08a7c",
+      "mask_sha256": "1e21395b823fbd4f09df97ff5ed5bee3a0a7c020d66203a592959d07821e0b25",
+      "notes": "Validation only. Original source caps, doors and independently measured rail interiors. Lower broken fence fragments remain unknown; the proposed overlapping snow rectangles were removed. Frozen split: validation. Accepted only within the partial weak-supervision scope above."
+    },
+    "rookshade-depot": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "717f3470e0b666cc2b7c720ea88d368e13c357be45a527866bd4e4d98e7b2bfc",
+      "annotation_sha256": "5e842fb4fa8045a6ace186e4b9c3886a63f707096516fb17939e5a6912af52cd",
+      "mask_sha256": "73600fbbed6d6466850548c5fae6e560e4bd03fa1aa3868f129cfed7a749c2a2",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "rootbound-chapel": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "82372e825ca3e10d6230b1c898fd287111d74f3e7bfc6b76bbbe36024287fde1",
+      "annotation_sha256": "ee0471329c20056ed2f0cad7f5380c9a099c4cd98286a131ca9216d1e8920a12",
+      "mask_sha256": "d994d9ec7c6328a6e9217d3ed6f508b4f2ad5ef1cdab4ce184f2bc8a8a166519",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "silkmaw-hollow": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "12ad6b8d5dc03eb2052952982cadf1a203fe09fb58b5e27a450956d32772c72c",
+      "annotation_sha256": "6246f7cadeb0269febbf9fdddcedb77a0dc4a5494ac69e43421fe77c48b0e9ac",
+      "mask_sha256": "1f6a9e34db7c0cb89a5860ba17371a2e865da2c0da53aa7f9d5b5f28d9f58419",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "sirens-teeth": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "1fefd14f0fb957c3bbcce517e0b98ab0ec498bf780b7cb2cce7c486eb113baf7",
+      "annotation_sha256": "79b15543430d03025497e7a3a9ab3d44220276734bad07aa3c6f579f7c3ff449",
+      "mask_sha256": "a3c8f251c8711d3a0d3373db66a8f656e934f052f0c69bbeae63034cb95dd5c0",
+      "notes": "Only upper cave-back cap interiors at x>=600, y<400. Outside rock/coast borders omitted. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "skyfall-reliquary": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "39b942df00cf91d8ba89622a23be0889ee31ecb67af2641a7ec497c5d9443de8",
+      "annotation_sha256": "17f4b3fdcabd652112cc2590c95cc9e26665fecd762a7e5970b792bbfac915a3",
+      "mask_sha256": "64f5544213283d2e66527836aa431014c40a34ead96d0acfdc4496d9ee9269e5",
+      "notes": "Selected source cap/door interiors and explicit non-wall regions only. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "smugglers-orchard": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "c345357070efbe016fdf5565e79972b90af0694df1a3deef091705ee5b3f6ff2",
+      "annotation_sha256": "2b43973029f2d20fe20ce2ca2d5041586cc9e1dce01036818961890bebea0059",
+      "mask_sha256": "7ef828067b28e478cf30199a8c9bb2589c52685b13cf333c96c6fe60202e180c",
+      "notes": "Test only. Source building cap interiors; very dark panel has sparse door supervision. Unmarked lower doorway remains unknown. Frozen split: test. Accepted only within the partial weak-supervision scope above."
+    },
+    "stormglass-roost": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "c5437336d63ed42281edae5adbaec43c8a974923b7c73a3ec1414b182f613e39",
+      "annotation_sha256": "c2945eddd0f4dca5cd35a1400e783661350d393fa0f52ac216e1b0b38e505bdc",
+      "mask_sha256": "8aedff11c0e80da1decbb189ec61c879e8d6de1f36d44932e859e92743a850ba",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "thirteenth-cairn": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "3e29b395945ce948b19137b302cb9400b30f11f721c80959fed4c0c6329f3e75",
+      "annotation_sha256": "de89cdb1c9fdc9f1bf2d1aa8f4459f454e799d1e28f347dea5d96e22d492cb9b",
+      "mask_sha256": "3ae410ae8d2cb5302660af768878397e882ba6eba2e020598cd44fd00ae06248",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "unfinished-stair": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "a4b58764a7f0c92a342563150d2f8940cc56c5c8fb69f0e35cf7be1d35bac6a9",
+      "annotation_sha256": "9659071a6c2d9ce5197f5941f9fbd2db335cb9a71cb42d8dab0596c80501ccd3",
+      "mask_sha256": "f25c3d73c52639608cc730773ddfe19411860c68bc3172ae53489383feb37ad1",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "vesperheart": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "436e7db276240c4660141fce01adc5a2ac71b8091855ece2ef9f441014adb912",
+      "annotation_sha256": "d7c467c6e19dfbe8b089fe95e1447aad0b36273a3723cf4b42579acca66af869",
+      "mask_sha256": "852fed103addef0a9ffb1064b610fd4d4d38b7677cbaef7e3282cbeb4d129e8e",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "whistling-stones": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "31edbcfa12873a57e87e99d117e57d4a9cbc7d392fedd5130fd581bfbf26d6b1",
+      "annotation_sha256": "7071917dd2948c40c0cc6ee333105ef9bfe5dccf62e3cca073f58327fa6d97df",
+      "mask_sha256": "5653c16a3d110aecc9d9854929d7c975550cca71c51644f318bd56d239500a05",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "witness-gate": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "66999792fd0ff1865324b52220449616c4223647ac93bb7728690f23eb11031e",
+      "annotation_sha256": "ee37eaca0ea61a54990f2db947dfa263893d88272ca729795f75cf4097117b45",
+      "mask_sha256": "033d99d73837d394da0ad031424cc8bea9d15421918caa767c23330b39cbfe07",
+      "notes": "Two narrow traces inside actual room side masonry verified in native crops; outside props omitted. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    },
+    "wreck-of-the-pale-comet": {
+      "status": "accepted",
+      "reviewer": "primary second-pass visual review (partial weak supervision only)",
+      "source_sha256": "0c756f8e8823cba55e8ca9a6d899556ff98bc54bb1bdd4c9ee3790b2cb984a81",
+      "annotation_sha256": "f2ac886cd778bbbc089347367dc02432ed39a5ca1ee28157cc2bcc5cdfb4fadf",
+      "mask_sha256": "4605f4445f53366c86d85cf8d30a7c65e4b1213d2e4e24079061d440a19cdd4e",
+      "notes": "Explicit non-wall regions only; all unreviewed structures and possible emitters ignored. Frozen split: train. Accepted only within the partial weak-supervision scope above."
+    }
+  },
+  "geometry_errata": [
+    "Mothveil: original passage rays ended within the glazing assembly. Corrected to cross its full width; the span now covers the whole framed opening. No pixel supervision changed. Historical trial datasets/reports are preserved separately."
+  ]
+}

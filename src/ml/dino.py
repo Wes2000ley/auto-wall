@@ -9,7 +9,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-from src.ml.network import BattlemapNet
+from src.ml.network import BattlemapNet, CLASSES, validate_classes
 
 
 def sample_patch_context(features, target_shape, image_shape):
@@ -28,8 +28,9 @@ class DinoBattlemap(nn.Module):
     width = 16
     context_dilation = 4
 
-    def __init__(self, light_centers=False, semantic_light_context=False):
+    def __init__(self, light_centers=False, semantic_light_context=False, classes=CLASSES):
         super().__init__()
+        classes = validate_classes(classes)
         if semantic_light_context and not light_centers:
             raise ValueError("Semantic light context requires a light-center head.")
         try:
@@ -41,7 +42,7 @@ class DinoBattlemap(nn.Module):
                               use_swiglu_ffn=False)
         self.backbone = Dinov2Model(config).requires_grad_(False)
         self.backbone_training_layers = 0
-        self.local = BattlemapNet(self.width, self.context_dilation)
+        self.local = BattlemapNet(self.width, self.context_dilation, classes)
         self.project = nn.Conv2d(384, 128, 1)
         self.light_head = None
         if light_centers:
@@ -49,6 +50,11 @@ class DinoBattlemap(nn.Module):
             self.light_head = LightCenterHead(semantic_context=semantic_light_context)
         self.register_buffer("mean", torch.tensor([.485, .456, .406])[None, :, None, None])
         self.register_buffer("std", torch.tensor([.229, .224, .225])[None, :, None, None])
+
+    @property
+    def classes(self):
+        """Exact class ordering used by the local segmentation head."""
+        return self.local.classes
 
     def train_backbone_layers(self, count):
         """Optionally adapt the final blocks; loading for inference stays frozen."""

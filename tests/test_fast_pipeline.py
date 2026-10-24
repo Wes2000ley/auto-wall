@@ -229,6 +229,39 @@ def test_atomic_export_preserves_existing_file_on_error(tmp_path):
     assert json.loads(path.read_text()) == {"format": 0.3}
 
 
+def test_public_uvtt_windows_do_not_include_editor_metadata(tmp_path):
+    result = DetectionResult(100, 100, [], [], [], windows=[((50., 20.), (50., 80.))])
+    assert to_uvtt(result, preview=True)["portals"][0]["_auto_wall_window"]
+    public = to_uvtt(result)
+    assert public["portals"][0]["closed"] is False
+    assert not any(key.startswith("_") for portal in public["portals"] for key in portal)
+    path = tmp_path / "map.dd2vtt"
+    write_uvtt(path, public)
+    assert json.loads(path.read_text()) == public
+
+
+def test_cli_preview_and_report_include_window_faces_and_movement_barriers(tmp_path, monkeypatch):
+    from types import SimpleNamespace
+    import fast_auto_wall
+
+    image = np.zeros((64, 64, 3), np.uint8)
+    source = tmp_path / "source.bmp"
+    assert cv2.imwrite(str(source), image)
+    result = DetectionResult(64, 64, [], [], [], timings={"total": 0.0}, working_size=(64, 64),
+                             windows=[((23., 10.), (23., 45.))],
+                             window_faces=[[((20., 10.), (20., 45.)), ((26., 10.), (26., 45.))]],
+                             invisible_walls=[((50., 10.), (50., 45.))])
+    monkeypatch.setattr(fast_auto_wall, "detect_map", lambda *args: result)
+    args = SimpleNamespace(image=source, benchmark=None, export=None,
+                           preview=tmp_path / "preview.bmp", report=tmp_path / "report.json")
+    assert fast_auto_wall.process(args, FastSettings()) == 0
+    report = json.loads(args.report.read_text())
+    assert report["windows"] == report["movement_only_segments"] == 1
+    preview = cv2.imread(str(args.preview))
+    assert preview[25, 20].any() and preview[25, 26].any() and preview[25, 50].any()
+    np.testing.assert_array_equal(cv2.imread(str(source)), image)
+
+
 @pytest.mark.parametrize("wall,door", [((160, 160, 160), (112, 32, 144)),
     ((30, 110, 180), (100, 45, 15)), ((210, 80, 40), (180, 20, 25))])
 def test_dark_doors_and_alternative_palettes(wall, door):

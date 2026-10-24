@@ -45,7 +45,7 @@ def to_foundry_scene(data, name="Auto-Wall map"):
 
     walls = []
 
-    def add_wall(start, end, *, invisible=False, door=False, window=False):
+    def add_wall(start, end, *, invisible=False, door=False, window=False, portal=None):
         first, last = pixel_point(start), pixel_point(end)
         if first == last:
             return  # Foundry uses integer pixels; a subpixel segment can collapse.
@@ -57,6 +57,9 @@ def to_foundry_scene(data, name="Auto-Wall map"):
         if window:
             wall.update(sight=PROXIMITY, light=PROXIMITY,
                         threshold={"attenuation": True, "light": 10, "sight": 10})
+            if portal and portal.get("_auto_wall_window"):
+                wall["sound"] = PROXIMITY
+                wall["threshold"]["sound"] = 10
         walls.append(wall)
 
     for key, invisible in (("line_of_sight", False), ("objects_line_of_sight", False), ("_invisible_walls", True)):
@@ -65,7 +68,7 @@ def to_foundry_scene(data, name="Auto-Wall map"):
                 add_wall(start, end, invisible=invisible)
     for portal in data.get("portals", []):
         closed = portal.get("closed", True)
-        add_wall(*portal["bounds"], door=closed, window=not closed)
+        add_wall(*portal["bounds"], door=closed, window=not closed, portal=portal)
 
     # Match the Universal Battlemap Importer's light mapping, with 5 ft squares.
     lights = []
@@ -92,6 +95,9 @@ def write_map_exports(image_path, data):
     image_path = Path(image_path)
     uvtt_path = image_path.with_suffix(".dd2vtt")
     uvtt = {key: value for key, value in data.items() if not key.startswith("_")}
+    if "portals" in uvtt:
+        uvtt["portals"] = [{key: value for key, value in portal.items() if not key.startswith("_")}
+                           for portal in uvtt["portals"]]
     invisible = data.get("_invisible_walls", [])
     foundry_path = image_path.with_suffix(".foundry.json")
     webp_path = image_path.with_suffix(".foundry.webp")

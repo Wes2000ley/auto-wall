@@ -31,6 +31,8 @@ preview review. [Local ML setup and training](docs/LOCAL_ML.md) covers the optio
 dependencies, model selection, and whole-layout validation. The
 [accuracy assessment](docs/ACCURACY_AND_ML.md) also records the pretrained CubiCasa
 model's failure on these artworks; that unrelated model is not used by the app.
+The opt-in six-class windows/fences work remains experimental; see the
+[encounter label scope, failed trials, and promotion checks](docs/ENCOUNTER_ML.md).
 The upstream downloads linked below do not include these fork changes.
 
 ---

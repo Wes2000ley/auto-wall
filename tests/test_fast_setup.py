@@ -7,7 +7,7 @@ import numpy as np
 import pytest
 
 from src.gui.fast_setup import FastSetupDialog
-from src.core.fast_pipeline import FastSettings
+from src.core.fast_pipeline import DetectionResult, FastSettings
 
 
 def wait_until(app, condition, timeout=10):
@@ -43,6 +43,49 @@ def test_worker_result_layers_removal_and_undo(qt_app):
     assert dialog.result.doors == original
     dialog.view.show_layer("doors", False)
     assert not dialog.view.layers["doors"][0].isVisible()
+    dialog.close()
+
+
+def test_window_face_candidate_editing_restore_delete_and_manual_door(qt_app):
+    dialog = FastSetupDialog()
+    settings = FastSettings()
+    dialog.apply_settings(settings)
+    center = ((40., 50.), (60., 50.))
+    faces = [((40., 47.), (60., 47.)), ((40., 53.), (60., 53.))]
+    result = DetectionResult(100, 100, walls=[], doors=[], lights=[], timings={"total": 0.0},
+                             working_size=(100, 100), windows=[center], window_faces=[faces])
+    dialog.result = result
+    dialog.result_settings = settings
+    dialog.view.set_result(result)
+    assert len(dialog.view.layers["windows"]) == 2
+    assert [item.data(1) for item in dialog.view.layers["windows"]] == [0, 0]
+
+    # Removing a false-positive window turns its paired boundaries back into
+    # ordinary walls, while undo restores the original candidate and geometry.
+    dialog.remove_candidate("windows", 0)
+    assert not result.windows and not result.window_faces and result.walls == faces
+    dialog.undo_removal()
+    assert result.windows == [center] and result.window_faces == [faces] and not result.walls
+
+    # A partial manual door cuts only its own interval. Remaining glazing must
+    # still pass sight, block movement and export as windows rather than walls.
+    dialog.add_shape("doors", (45., 50.), (55., 50.))
+    assert len(result.doors) == 1 and not result.walls
+    assert result.windows == [((40., 50.), (45., 50.)), ((55., 50.), (60., 50.))]
+    assert result.window_faces == [
+        [((40., 47.), (45., 47.)), ((40., 53.), (45., 53.))],
+        [((55., 47.), (60., 47.)), ((55., 53.), (60., 53.))]]
+    from benchmarks.check_geometry import ray_blocked
+    assert not ray_blocked((42., 40.), (42., 60.), result.walls + result.doors)
+    assert ray_blocked((42., 40.), (42., 60.), result.windows)
+    from src.core.fast_pipeline import to_uvtt
+    assert len([portal for portal in to_uvtt(result)["portals"] if not portal["closed"]]) == 4
+    dialog.undo_removal()
+    assert not result.doors and result.windows == [center] and result.window_faces == [faces]
+
+    # Rectangle deletion removes a candidate when either displayed face is hit.
+    dialog.delete_walls_in_rectangle((45., 46.), (55., 48.))
+    assert not result.windows and not result.window_faces
     dialog.close()
 
 

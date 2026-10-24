@@ -120,6 +120,25 @@ def test_legacy_object_walls_and_windows_keep_their_importer_behavior(preview):
     assert window['threshold'] == {'attenuation': True, 'light': 10, 'sight': 10}
 
 
+def test_model_windows_use_proximity_for_sound_and_keep_private_marker_out_of_uvtt(preview, tmp_path):
+    preview['portals'].append({
+        'position': {'x': 2.5, 'y': 2.0},
+        'bounds': [{'x': 2, 'y': 2}, {'x': 3, 'y': 2}],
+        'rotation': 0, 'closed': False, 'freestanding': False,
+        '_auto_wall_window': True,
+    })
+    scene = to_foundry_scene(preview)
+    model_window = scene['walls'][-1]
+    assert model_window['door'] == 0 and model_window['move'] == 20
+    assert model_window['sight'] == model_window['light'] == model_window['sound'] == 30
+    assert model_window['threshold']['sound'] == model_window['threshold']['sight'] == 10
+    paths = write_map_exports(tmp_path / 'map.png', preview)
+    uvtt = json.loads(paths[0].read_text())
+    assert not any(key.startswith('_') for portal in uvtt['portals'] for key in portal)
+    exported_scene = json.loads(paths[1].read_text())
+    assert exported_scene['walls'][-1]['sound'] == 30
+
+
 def test_write_failure_is_reported_and_does_not_damage_existing_export(preview, tmp_path, monkeypatch):
     import src.core.foundry_export as export_module
 

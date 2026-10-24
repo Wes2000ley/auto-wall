@@ -70,13 +70,19 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path, 
     wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
     dialog.add_shape("walls", (100., 150.), (200., 250.))
     dialog.add_shape("doors", (140., 150.), (160., 150.))
+    window_center = ((300., 100.), (340., 100.))
+    window_faces = [[((300., 97.), (340., 97.)), ((300., 103.), (340., 103.))]]
+    dialog.apply_edit(windows=[window_center], window_faces=window_faces)
     if invisible:
         dialog.add_shape('invisible_walls', (300., 150.), (400., 250.))
     assert dialog.undo_states
     expected = deepcopy(dialog.result)
     dialog.use_in_editor()
     assert app.uvtt_preview_active
-    assert len(app.uvtt_walls_preview["portals"]) == len(expected.doors)
+    assert len(app.uvtt_walls_preview["portals"]) == len(expected.doors) + 2
+    preview_windows = [portal for portal in app.uvtt_walls_preview["portals"] if not portal["closed"]]
+    assert len(preview_windows) == 2
+    assert all(portal.get("_auto_wall_window") for portal in preview_windows)
     assert len(app.uvtt_walls_preview["lights"]) == len(expected.lights)
     assert app.uvtt_walls_preview["_preview_pixels"] == [
         [{"x": float(x), "y": float(y)} for x, y in segment] for segment in expected.walls]
@@ -92,9 +98,16 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path, 
     assert base64.b64decode(data['image']) == export_image_bytes(app.original_image)
     assert (tmp_path / 'editor.foundry.webp').read_bytes() == base64.b64decode(data['image'])
     assert data["portals"] and data["lights"]
-    assert data["portals"] == app.uvtt_walls_preview["portals"]
+    assert data["portals"] == [
+        {key: value for key, value in portal.items() if not key.startswith("_")}
+        for portal in app.uvtt_walls_preview["portals"]]
+    assert all("_auto_wall_window" not in portal for portal in data["portals"])
+    scene = json.loads((tmp_path / 'editor.foundry.json').read_text())
+    foundry_windows = [wall for wall in scene["walls"] if wall["sight"] == 30]
+    assert len(foundry_windows) == 2
+    assert all(wall["door"] == 0 and wall["move"] == 20 and wall["light"] == 30
+               and wall["sound"] == 30 for wall in foundry_windows)
     if invisible:
-        scene = json.loads((tmp_path / 'editor.foundry.json').read_text())
         invisible_walls = [wall for wall in scene['walls'] if wall['sight'] == 0]
         assert len(invisible_walls) == 4 and all(wall['move'] == 20 for wall in invisible_walls)
         app.export_panel.save_wall_state_for_undo(force=True)

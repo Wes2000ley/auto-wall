@@ -4,6 +4,7 @@
 import argparse
 import copy
 import json
+from dataclasses import replace
 
 import cv2
 import numpy as np
@@ -15,12 +16,13 @@ pytest.importorskip("transformers")
 
 from scripts.train_light_centers import center_focal_loss, light_optimizer, local_light_hashes, segmentation_hashes, train
 from benchmarks.evaluate_lights import run as evaluate_checkpoint
-from src.core.fast_pipeline import DetectionCancelled
+from src.core.fast_pipeline import DetectionCancelled, FastSettings, detect_map
 from src.core.light_geometry import light_center_points
 from src.ml.dino import DinoBattlemap, sample_patch_context
 from src.ml.light_centers import LightCenterHead
 from src.ml.light_data import LightCropSampler, center_heatmap, read_light_dataset, transform_points
 from src.ml.model import load_model, predict, save_model
+from src.ml.network import WINDOW_CLASSES
 
 
 @pytest.fixture(autouse=True)
@@ -257,6 +259,44 @@ def test_actual_light_training_changes_only_head_and_saves_loadable_checkpoints(
         assert all(not p.requires_grad and p.grad is None for name, p in trained.light_head.named_parameters()
                    if not name.startswith("context_projection.") and name != "layers.0.weight")
     assert segmentation_hashes(saved) == before
+
+
+def test_six_class_base_can_train_and_deploy_a_new_light_head(tmp_path):
+    manifest, _ = light_manifest(tmp_path)
+    base = DinoBattlemap(classes=WINDOW_CLASSES).eval()
+    before = segmentation_hashes(base)
+    base_path = tmp_path / "windows-base.safetensors"
+    save_model(base_path, base, {})
+    args = argparse.Namespace(
+        manifest=manifest, output=tmp_path / "windows-light-run", init_model=base_path,
+        steps=1, batch_size=1, synthetic_per_batch=0, crop_size=32, seed=2, lr=.001,
+        threshold=.35, device="cpu", loss_normalization="sample", semantic_context=False,
+        context_only=False, cutmix_probability=0.,
+    )
+
+    trained = train(args)
+    assert trained.classes == WINDOW_CLASSES
+    assert trained.local.head.out_channels == len(WINDOW_CLASSES)
+    assert segmentation_hashes(trained) == before
+    assert any(parameter.grad is not None and parameter.grad.abs().sum() > 0
+               for parameter in trained.light_head.parameters())
+
+    checkpoint = args.output / "best.safetensors"
+    loaded, details = load_model(checkpoint, "cpu")
+    assert loaded.classes == WINDOW_CLASSES and loaded.local.head.out_channels == 6
+    assert loaded.light_head is not None and details["selected_step"] == 1
+    assert segmentation_hashes(loaded) == before
+
+    evaluation = evaluate_checkpoint(
+        manifest, checkpoint, tmp_path / "windows-light-evaluation", ["validation"],
+        threshold=1., device="cpu",
+    )
+    assert evaluation["splits"] == ["validation"]
+    deployed = detect_map(
+        np.full((64, 64, 3), 90, np.uint8),
+        replace(FastSettings(), model_path=str(checkpoint), ml_device="cpu", ml_profile="windows"),
+    )
+    assert deployed.detection_backend == "torch-cpu" and deployed.width == 64
 
 
 def test_context_only_training_requires_semantic_inputs():

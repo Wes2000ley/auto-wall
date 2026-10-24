@@ -1,0 +1,95 @@
+{
+  "format": "auto-wall-structure-regressions-v1",
+  "description": "Manual negative passage checks added after visually reviewing validation prediction failures. Not an independent test set and not used as training labels. Selected source crops were inspected at native pixels. Window frame movement rays guard against unconnected portal ends.",
+  "samples": {
+    "mothveil-lodge": {
+      "source_pixels_sha256": "b9e1524f4fe5bc47feb48bdbf14932bd88ff36d681b440596907a56dd17f84c2",
+      "checks": {
+        "format": "auto-wall-structure-checks-v1",
+        "reference_size": [
+          1536,
+          1024
+        ],
+        "rays": [
+          {
+            "id": "bedroom-rug-edge-is-not-a-wall",
+            "from": [
+              435,
+              825
+            ],
+            "to": [
+              435,
+              858
+            ],
+            "sense": "movement",
+            "expect": "open"
+          },
+          {
+            "id": "window-upper-frame-has-no-movement-gap",
+            "from": [
+              710,
+              718
+            ],
+            "to": [
+              825,
+              718
+            ],
+            "sense": "movement",
+            "expect": "blocked"
+          },
+          {
+            "id": "window-lower-frame-has-no-movement-gap",
+            "from": [
+              710,
+              812
+            ],
+            "to": [
+              825,
+              812
+            ],
+            "sense": "movement",
+            "expect": "blocked"
+          }
+        ]
+      }
+    },
+    "rimebell-refuge": {
+      "source_pixels_sha256": "d4147c29900abb02b723a760c6ccae370ecb72bdad70c43bc6f95cce95347b6d",
+      "checks": {
+        "format": "auto-wall-structure-checks-v1",
+        "reference_size": [
+          1536,
+          1024
+        ],
+        "rays": [
+          {
+            "id": "snow-cliff-left-is-not-opaque",
+            "from": [
+              260,
+              635
+            ],
+            "to": [
+              285,
+              635
+            ],
+            "sense": "sight",
+            "expect": "open"
+          },
+          {
+            "id": "snow-cliff-middle-is-not-opaque",
+            "from": [
+              700,
+              690
+            ],
+            "to": [
+              780,
+              690
+            ],
+            "sense": "sight",
+            "expect": "open"
+          }
+        ]
+      }
+    }
+  }
+}
