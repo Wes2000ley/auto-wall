@@ -1,0 +1,263 @@
+{
+  "purpose": "throughput and prediction equivalence, not accuracy",
+  "model_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+  "original_predict_sha256": "06d6c8054934d06d40fd0cf0757329281d771bcf4bfde2bca2a6e482b30388a3",
+  "probe_sha256": "26f945f36894dc919db3dc9bbfea6c0bd5776fcd9ad25c5bc903aefaf74202cd",
+  "device": "NVIDIA GeForce RTX 3080",
+  "torch": "2.11.0+cu128",
+  "threads": 4,
+  "concurrent_load": "User chess workload left running; no Auto-Wall training during timing.",
+  "warm_runs_per_method": 5,
+  "samples": [
+    {
+      "id": "antler-crown",
+      "pixels_sha256": "3d5cf08663902cb40d1c784a9200b8cdd0bf2a5e116c5f401ae67e679ca21085",
+      "class_differences": 0,
+      "max_confidence_difference": 0.0,
+      "max_light_heatmap_difference": 0.0,
+      "thresholded_class_differences": {
+        "0.5": 0,
+        "0.9": 0,
+        "0.93": 0,
+        "0.97": 0
+      },
+      "exact_export_geometry_equal": true,
+      "counts": [
+        {
+          "walls": 0,
+          "doors": 0,
+          "lights": 1
+        },
+        {
+          "walls": 0,
+          "doors": 0,
+          "lights": 1
+        }
+      ],
+      "warm_inference_seconds": {
+        "single": [
+          0.4290031000273302,
+          0.4334066000301391,
+          0.44448139995802194,
+          0.43626350001432,
+          0.4346747000236064
+        ],
+        "queued": [
+          0.4110183999873698,
+          0.3669414999894798,
+          0.41526210005395114,
+          0.4332857000408694,
+          0.43528969993349165
+        ]
+      },
+      "median_warm_seconds": {
+        "single": 0.4346747000236064,
+        "queued": 0.41526210005395114
+      },
+      "peak_allocated_bytes": {
+        "single": 402082304,
+        "queued": 402255872
+      }
+    },
+    {
+      "id": "mothveil-lodge",
+      "pixels_sha256": "b9e1524f4fe5bc47feb48bdbf14932bd88ff36d681b440596907a56dd17f84c2",
+      "class_differences": 0,
+      "max_confidence_difference": 0.0,
+      "max_light_heatmap_difference": 0.0,
+      "thresholded_class_differences": {
+        "0.5": 0,
+        "0.9": 0,
+        "0.93": 0,
+        "0.97": 0
+      },
+      "exact_export_geometry_equal": true,
+      "counts": [
+        {
+          "walls": 558,
+          "doors": 0,
+          "lights": 7
+        },
+        {
+          "walls": 558,
+          "doors": 0,
+          "lights": 7
+        }
+      ],
+      "warm_inference_seconds": {
+        "single": [
+          0.4117146000498906,
+          0.4346873000031337,
+          0.43459590000566095,
+          0.4803707000100985,
+          0.45658989995718
+        ],
+        "queued": [
+          0.39629710000008345,
+          0.4268384000752121,
+          0.4273869999451563,
+          0.39534799999091774,
+          0.4147617999697104
+        ]
+      },
+      "median_warm_seconds": {
+        "single": 0.4346873000031337,
+        "queued": 0.4147617999697104
+      },
+      "peak_allocated_bytes": {
+        "single": 402082304,
+        "queued": 402255872
+      }
+    },
+    {
+      "id": "rimebell-refuge",
+      "pixels_sha256": "d4147c29900abb02b723a760c6ccae370ecb72bdad70c43bc6f95cce95347b6d",
+      "class_differences": 0,
+      "max_confidence_difference": 0.0,
+      "max_light_heatmap_difference": 0.0,
+      "thresholded_class_differences": {
+        "0.5": 0,
+        "0.9": 0,
+        "0.93": 0,
+        "0.97": 0
+      },
+      "exact_export_geometry_equal": true,
+      "counts": [
+        {
+          "walls": 444,
+          "doors": 0,
+          "lights": 15
+        },
+        {
+          "walls": 444,
+          "doors": 0,
+          "lights": 15
+        }
+      ],
+      "warm_inference_seconds": {
+        "single": [
+          0.4138989000348374,
+          0.40598869998939335,
+          0.41968559997621924,
+          0.4056452000513673,
+          0.41954659996554255
+        ],
+        "queued": [
+          0.4118890999816358,
+          0.3906150000402704,
+          0.4121347999898717,
+          0.4018330000108108,
+          0.3962197999935597
+        ]
+      },
+      "median_warm_seconds": {
+        "single": 0.4138989000348374,
+        "queued": 0.4018330000108108
+      },
+      "peak_allocated_bytes": {
+        "single": 402082304,
+        "queued": 402255872
+      }
+    },
+    {
+      "id": "stone",
+      "pixels_sha256": "59b73eea960a0524ffed302c59f01c94ac4daf65617d7ce2ed4f7c7bfc9da9a9",
+      "class_differences": 0,
+      "max_confidence_difference": 0.0,
+      "max_light_heatmap_difference": 0.0,
+      "thresholded_class_differences": {
+        "0.5": 0,
+        "0.9": 0,
+        "0.93": 0,
+        "0.97": 0
+      },
+      "exact_export_geometry_equal": true,
+      "counts": [
+        {
+          "walls": 1673,
+          "doors": 4,
+          "lights": 12
+        },
+        {
+          "walls": 1673,
+          "doors": 4,
+          "lights": 12
+        }
+      ],
+      "warm_inference_seconds": {
+        "single": [
+          0.4180039999773726,
+          0.42638969991821796,
+          0.4194224999519065,
+          0.424272199976258,
+          0.4164213000331074
+        ],
+        "queued": [
+          0.4079012000001967,
+          0.4217228000052273,
+          0.41429290000814945,
+          0.40785289998166263,
+          0.4025050000054762
+        ]
+      },
+      "median_warm_seconds": {
+        "single": 0.4194224999519065,
+        "queued": 0.4079012000001967
+      },
+      "peak_allocated_bytes": {
+        "single": 403490816,
+        "queued": 403118592
+      }
+    },
+    {
+      "id": "dyson-14",
+      "pixels_sha256": "9b9c48ee22dc87b78f7b9855c73af083d023633b2489606e17c18fc348ebd7b5",
+      "class_differences": 0,
+      "max_confidence_difference": 0.0,
+      "max_light_heatmap_difference": 0.0,
+      "thresholded_class_differences": {
+        "0.5": 0,
+        "0.9": 0,
+        "0.93": 0,
+        "0.97": 0
+      },
+      "exact_export_geometry_equal": true,
+      "counts": [
+        {
+          "walls": 3237,
+          "doors": 1,
+          "lights": 0
+        },
+        {
+          "walls": 3237,
+          "doors": 1,
+          "lights": 0
+        }
+      ],
+      "warm_inference_seconds": {
+        "single": [
+          0.39978690003044903,
+          0.4033083999529481,
+          0.4035410999786109,
+          0.3849594999337569,
+          0.40124930010642856
+        ],
+        "queued": [
+          0.38297559996135533,
+          0.39391799992881715,
+          0.38262299995403737,
+          0.40380059997551143,
+          0.3976309000281617
+        ]
+      },
+      "median_warm_seconds": {
+        "single": 0.40124930010642856,
+        "queued": 0.39391799992881715
+      },
+      "peak_allocated_bytes": {
+        "single": 402082304,
+        "queued": 402255872
+      }
+    }
+  ]
+}

@@ -220,3 +220,36 @@ and fences, reject walls on floor/props/terrain, compare older style performance
 and preserve lights with a newly trained head when required. Keep failed trial
 weights, reports and provenance separate from the installed model. Do not lower
 confidence or geometric checks merely to make a preview look complete.
+
+## CUDA transfer queue and replay consistency
+
+CUDA inference now queues two tiles before downloading results, while retaining
+single-image model calls, the existing tile order, halos and thresholds. CPU
+execution completes each tile. Cancellation stops result delivery, including
+already queued tiles, and the complete probability/light output of each tile
+is checked for nonfinite values before use.
+
+`ML_CUDA_PIPELINE_BENCHMARK.json` records five alternating warm runs per method
+on each of the five validation maps with the installed lights-v2 checkpoint on
+an RTX 3080. All class IDs, winning probabilities, light heatmaps and extracted
+exports matched the archived runtime exactly. Median inference times fell by
+1.8–4.6%, with essentially unchanged peak allocated GPU memory. Another user
+GPU workload remained active; these are local measurements, not isolated
+hardware benchmarks or whole-application latency claims. A faster two-image
+batch experiment was rejected because floating-point changes altered exported
+walls on three maps.
+
+The trainer optionally accepts `--teacher-model`, `--teacher-groups` and
+`--teacher-weight` (default 0.5 when enabled). The frozen five-class reference
+regularizes predictions only on the named training layout groups. Explicit
+labels must agree with its argmax; ignored pixels require reference confidence
+of at least 0.9. Window labels are never overridden by the legacy reference.
+Temperature-2 KL divergence includes all student classes, with zero reference
+probability assigned to windows. This is a regularizer, not corrected training
+truth or a guarantee of unchanged detections. Validation and test groups cannot
+be selected for replay. Initialization uses a separate model object so training
+does not change the inference loader's cached model.
+
+The complete local test suite passed: `python -B -m pytest -q tests` reported
+326 passed and three dependency deprecation warnings in 49.69 seconds. CUDA
+was available, so the new CUDA checks ran rather than being skipped.

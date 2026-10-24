@@ -100,8 +100,10 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384, include_
     Output is (class IDs, winning probabilities); the caller decides thresholds.
     With include_light_centers, append a heatmap, or None for older models.
     Segmentation uses the same features and tiles regardless of this option.
-    Compact CNN halos exceed its receptive radius and are discarded. DINO uses
-    bounded attention windows with this overlap; its predictions can vary with
+    Compact CNN halos exceed its receptive radius and are discarded.
+    CUDA queues two single-image tiles before downloading their results; model
+    batch shape and tile order are unchanged. CPU execution completes each tile.
+    DINO uses bounded attention windows with this overlap; its predictions can vary with
     tile context and are not identical to whole-image transformer inference.
     """
     if tile_size < 8 or tile_size % 8:
@@ -117,16 +119,47 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384, include_
     halo = 64 if model.context_dilation == 1 else 128
     tiles = ((height + tile_size - 1) // tile_size) * ((width + tile_size - 1) // tile_size)
     completed = 0
+    is_cuda = device.type == "cuda"
+    pending = []
+
+    def check_cancelled():
+        if cancelled and cancelled():
+            from src.core.fast_pipeline import DetectionCancelled
+            raise DetectionCancelled()
+
+    def flush():
+        nonlocal completed
+        for output_region, labels, probabilities, light_scores, finite, light_finite, source in pending:
+            check_cancelled()
+            # Downloading waits for the queued operations. Keep each pinned
+            # input alive until its asynchronous device transfer has completed.
+            labels = labels.cpu().numpy()
+            probabilities = probabilities.cpu().numpy()
+            if not bool(finite):
+                raise RuntimeError("The model produced nonfinite probabilities.")
+            classes[output_region] = labels
+            confidence[output_region] = probabilities
+            if light_scores is not None:
+                light_scores = light_scores.cpu().numpy()
+                if not bool(light_finite):
+                    raise RuntimeError("The model produced nonfinite light scores.")
+                light_heatmap[output_region] = light_scores
+            completed += 1
+            if progress:
+                progress(f"ML segmentation: {completed}/{tiles} tiles")
+        pending.clear()
+
     with torch.inference_mode():
         for y in range(0, height, tile_size):
             for x in range(0, width, tile_size):
-                if cancelled and cancelled():
-                    from src.core.fast_pipeline import DetectionCancelled
-                    raise DetectionCancelled()
+                check_cancelled()
                 y0, x0 = max(0, y - halo), max(0, x - halo)
                 y1, x1 = min(height, y + tile_size + halo), min(width, x + tile_size + halo)
                 rgb = np.ascontiguousarray(image[y0:y1, x0:x1, ::-1].transpose(2, 0, 1))
-                tensor = torch.from_numpy(rgb).to(device=device, dtype=torch.float32).unsqueeze(0) / 255
+                source = torch.from_numpy(rgb)
+                if is_cuda:
+                    source = source.pin_memory()
+                tensor = source.to(device=device, dtype=torch.float32, non_blocking=is_cuda).unsqueeze(0) / 255
                 tensor = F.pad(tensor, (0, (-tensor.shape[3]) % 8, 0, (-tensor.shape[2]) % 8), mode="replicate")
                 with torch.autocast(device_type=device.type, enabled=device.type == "cuda"):
                     if light_head is None:
@@ -138,19 +171,18 @@ def predict(model, image, cancelled=None, progress=None, tile_size=384, include_
                         light_scores = F.interpolate(light_scores, size=tensor.shape[-2:],
                                                      mode="bilinear", align_corners=False)[0, 0]
                 probabilities, labels = logits[0].float().softmax(0).max(0)
-                if not torch.isfinite(probabilities).all():
-                    raise RuntimeError("The model produced nonfinite probabilities.")
+                finite = torch.isfinite(probabilities).all()
                 end_y, end_x = min(height, y + tile_size), min(width, x + tile_size)
                 region = np.s_[y - y0:end_y - y0, x - x0:end_x - x0]
-                classes[y:end_y, x:end_x] = labels[region].cpu().numpy().astype(np.uint8)
-                confidence[y:end_y, x:end_x] = probabilities[region].cpu().numpy()
+                output_light_scores = light_finite = None
                 if light_heatmap is not None:
-                    if not torch.isfinite(light_scores).all():
-                        raise RuntimeError("The model produced nonfinite light scores.")
-                    light_heatmap[y:end_y, x:end_x] = light_scores[region].cpu().numpy()
-                completed += 1
-                if progress:
-                    progress(f"ML segmentation: {completed}/{tiles} tiles")
+                    light_finite = torch.isfinite(light_scores).all()
+                    output_light_scores = light_scores[region]
+                pending.append((np.s_[y:end_y, x:end_x], labels[region].to(torch.uint8),
+                                probabilities[region], output_light_scores, finite, light_finite, source))
+                if len(pending) == (2 if is_cuda else 1):
+                    flush()
+        flush()
     if include_light_centers:
         return classes, confidence, light_heatmap
     return classes, confidence

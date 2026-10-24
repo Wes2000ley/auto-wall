@@ -111,8 +111,8 @@ class CropSampler:
             fallback_weights = np.asarray(self.class_probabilities)[self.available_classes]
             self.fallback_class_probabilities = fallback_weights / fallback_weights.sum()
 
-    def batch(self, batch_size):
-        images, labels = [], []
+    def batch(self, batch_size, return_indices=False):
+        images, labels, indices = [], [], []
         for _ in range(batch_size):
             if self.classes == LEGACY_CLASSES:
                 index = int(self.rng.choice(len(self.samples), p=self.sample_weights / self.sample_weights.sum())
@@ -175,7 +175,9 @@ class CropSampler:
                 image = self._apply_window_tint(image)
             images.append(image.transpose(2, 0, 1))
             labels.append(mask)
-        return np.ascontiguousarray(images, dtype=np.float32), np.ascontiguousarray(labels, dtype=np.int64)
+            indices.append(index)
+        batch = (np.ascontiguousarray(images, dtype=np.float32), np.ascontiguousarray(labels, dtype=np.int64))
+        return (*batch, np.asarray(indices, dtype=np.int64)) if return_indices else batch
 
     def _apply_window_tint(self, image):
         """Blend one bounded RGB tint over a whole crop, without moving pixels."""

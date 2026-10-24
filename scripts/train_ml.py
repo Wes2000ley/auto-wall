@@ -1,6 +1,7 @@
 """Train a battlemap decoder from local annotations and optional local weights."""
 
 import argparse
+from copy import deepcopy
 from dataclasses import asdict, replace
 import hashlib
 import json
@@ -125,6 +126,26 @@ def training_optimizer(model, learning_rate, backbone_layers=0):
     return torch.optim.AdamW(groups, weight_decay=.0001)
 
 
+def teacher_consistency_loss(logits, teacher_logits, labels, selected, temperature=2.):
+    """Preserve legacy probabilities on selected training maps where labels agree.
+
+    Explicit labels override a wrong teacher. Unknown pixels are used only when
+    the teacher is confident. New windows remain supervised by their explicit
+    labels. This is a training
+    regularizer, not a guarantee of unchanged detections.
+    """
+    teacher_logits = teacher_logits.detach().float()
+    probability, prediction = teacher_logits.softmax(1).max(1)
+    mask = selected[:, None, None] & ((prediction == labels) | ((labels == 255) & (probability >= .9)))
+    student = F.log_softmax(logits.float() / temperature, dim=1)
+    teacher = F.softmax(teacher_logits / temperature, dim=1)
+    # The legacy teacher assigns no mass to the new window class. Pixels
+    # explicitly labelled as windows are excluded by the agreement mask above.
+    teacher = F.pad(teacher, (0, 0, 0, 0, 0, logits.shape[1] - teacher.shape[1]))
+    divergence = F.kl_div(student, teacher, reduction="none").sum(1) * temperature ** 2
+    return (divergence * mask).sum() / mask.sum().clamp_min(1)
+
+
 def train(args):
     if min(args.steps, args.batch_size, args.validate_every, args.threads) < 1:
         raise ValueError("Steps, batch size, validation interval, and threads must be positive.")
@@ -153,6 +174,18 @@ def train(args):
             raise ValueError("Windows training needs reviewed class-5 pixels in the training split.")
         if not any(np.any(sample["labels"] == window_id) for sample in validation):
             raise ValueError("Windows training needs reviewed class-5 pixels in validation for checkpoint selection.")
+    teacher_path = getattr(args, "teacher_model", None)
+    teacher_groups = getattr(args, "teacher_groups", None) or []
+    teacher_weight = getattr(args, "teacher_weight", None)
+    if teacher_path is None and (teacher_groups or teacher_weight is not None):
+        raise ValueError("Teacher groups/weight require --teacher-model.")
+    if teacher_path is not None:
+        if (not teacher_groups or len(teacher_groups) != len(set(teacher_groups))
+                or not set(teacher_groups).issubset({sample["group"] for sample in training})):
+            raise ValueError("Teacher groups must name unique groups in the training split only.")
+        teacher_weight = .5 if teacher_weight is None else teacher_weight
+        if type(teacher_weight) not in (int, float) or not np.isfinite(teacher_weight) or teacher_weight <= 0:
+            raise ValueError("Teacher weight must be positive and finite.")
     geometry_settings = None
     if args.selection == "geometry":
         from src.core.detection_profiles import load_settings
@@ -172,7 +205,8 @@ def train(args):
     if args.init_model:
         if args.backbone:
             raise ValueError("Choose --init-model or --backbone, not both.")
-        model, _ = load_model(args.init_model, "cpu")
+        # Training must not mutate the inference loader's cached model object.
+        model = deepcopy(load_model(args.init_model, "cpu")[0])
         if getattr(model, "light_head", None) is not None:
             raise ValueError("Use the segmentation-only base for segmentation training; changing its features would invalidate the trained light head.")
         if (model.architecture, model.width, model.context_dilation) != (args.architecture, args.width, args.context_dilation):
@@ -199,6 +233,18 @@ def train(args):
             raise ValueError("--backbone is only supported with --architecture dino.")
         model = BattlemapNet(args.width, args.context_dilation, classes)
     model = model.to(device)
+    teacher, teacher_record = None, None
+    teacher_samples = np.array([sample["group"] in teacher_groups for sample in training])
+    if teacher_path is not None:
+        teacher = deepcopy(load_model(teacher_path, "cpu")[0])
+        if teacher.classes != LEGACY_CLASSES:
+            raise ValueError("The teacher must use the five-class legacy ordering.")
+        teacher = teacher.to(device).requires_grad_(False).eval()
+        teacher_record = {"sha256": hashlib.sha256(Path(teacher_path).read_bytes()).hexdigest(),
+                          "groups": list(teacher_groups), "weight": teacher_weight, "temperature": 2.,
+                          "scope": ("Training groups only. Known labels must agree with teacher argmax; "
+                                    "unknown pixels require teacher confidence >=0.9. "
+                                    "KL includes all student classes; the legacy teacher assigns zero window mass.")}
     optimizer = training_optimizer(model, args.learning_rate, args.backbone_layers)
     scaler = torch.amp.GradScaler(device, enabled=device == "cuda")
     class_weights = torch.tensor([1., 2., 4., 4., 2., 4.][:len(classes)], device=device)
@@ -215,6 +261,7 @@ def train(args):
                   "backbone_learning_rate": args.learning_rate * .1 if args.backbone_layers else None,
                   "trainable_parameters": sum(p.numel() for p in model.parameters() if p.requires_grad),
                   "selection": args.selection,
+                  "teacher": teacher_record,
                   "geometry_settings": asdict(geometry_settings) if geometry_settings else None,
                   "data_hashes": [{key: sample[key] for key in ("id", "pixels_sha256", "labels_sha256", "geometry_sha256")
                                    if key in sample} for sample in samples],
@@ -240,7 +287,7 @@ def train(args):
     print(json.dumps({"parameters": sum(p.numel() for p in model.parameters()), **provenance}), flush=True)
     for step in range(1, args.steps + 1):
         model.train()
-        images, labels = sampler.batch(args.batch_size)
+        images, labels, indices = sampler.batch(args.batch_size, return_indices=True)
         images = torch.from_numpy(images).to(device)
         labels = torch.from_numpy(labels).to(device)
         optimizer.zero_grad(set_to_none=True)
@@ -255,6 +302,13 @@ def train(args):
             denominator = (probabilities + targets).sum((0, 2, 3))
             dice = 1 - ((2 * intersection + 1) / (denominator + 1))[1:].mean()
             loss = ce + dice
+            selected = teacher_samples[indices]
+            if teacher is not None and selected.any():
+                with torch.no_grad():
+                    teacher_logits = teacher(images)
+                consistency = teacher_consistency_loss(
+                    logits, teacher_logits, labels, torch.from_numpy(selected).to(device))
+                loss = loss + teacher_weight * consistency
         if not torch.isfinite(loss):
             raise RuntimeError(f"Nonfinite training loss at step {step}.")
         scaler.scale(loss).backward()
@@ -303,6 +357,9 @@ def main():
     parser.add_argument("--backbone-layers", type=int, choices=range(5), default=0,
                         help="Fine-tune this many final DINO blocks at 0.1x decoder learning rate (default: frozen)")
     parser.add_argument("--init-model", type=Path, help="Start from an Auto-Wall checkpoint with a fresh optimizer")
+    parser.add_argument("--teacher-model", type=Path, help="Optional frozen legacy model for replay consistency")
+    parser.add_argument("--teacher-groups", nargs="+", help="Exact training layout groups to preserve; never validation/test")
+    parser.add_argument("--teacher-weight", type=float, help="Replay consistency weight (default with teacher: 0.5)")
     parser.add_argument("--classes", choices=tuple(CLASS_PROFILES), default="legacy",
                         help="Classes to train (default: legacy; windows adds ID 5; mark unreviewed pixels 255)")
     parser.add_argument("--learning-rate", type=float, default=.001)

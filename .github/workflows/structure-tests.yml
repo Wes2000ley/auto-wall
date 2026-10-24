@@ -49,6 +49,7 @@ jobs:
         run: >-
           python -B -m pytest -q
           tests/test_ml.py tests/test_ml_dino.py tests/test_ml_lights.py
+          tests/test_ml_teacher.py tests/test_ml_runtime_queue.py
           tests/test_ml_pipeline.py tests/test_structure_metrics.py
           tests/test_fast_pipeline.py
           tests/test_encounter_corpus.py tests/test_encounter_training.py
