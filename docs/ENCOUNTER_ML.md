@@ -426,3 +426,80 @@ light head, completed real-map CUDA inference, round-tripped dialog settings,
 closed before queued detection and generated the 11-wall synthetic export
 fixture. The real source map was unchanged. These checks validate software
 integration; both new ML candidates remain rejected for promotion.
+
+## SAM 2.1 door-boundary research
+
+The [SAM 2.1 probe record](ENCOUNTER_ML_SAM2_RESULTS.json) preserves the raw
+results, artifact hashes and exact experiment source. These are unshipped
+experiments. No installed model, runtime detector or training annotation changed.
+SAM proposal masks never supplied training labels. The four reserved final-test
+layouts remain unevaluated.
+
+The public Apache-2.0 [tiny checkpoint](https://huggingface.co/facebook/sam2.1-hiera-tiny)
+is pinned to revision `de431c4043854a71d8101e17995dfe596bf101a5`.
+Only safetensors, processor/config JSON and the model card were downloaded.
+The 155,908,064-byte model matches SHA-256
+`48c14467e5cf9e51870511feb72c89688e82dd74523142c0538b663e193ac2a7`.
+The checkpoint config emits a `sam2_video`/`sam2` warning when loading the image
+model. A separate loading audit found no missing, unexpected or mismatched keys;
+all 31,440,721 image-model parameters loaded.
+
+Prompts use only strong door predictions, with bounded neighborhoods and no
+reference-label assistance. Existing confidence, shape, wall-support and jamb
+attachment rules remain in place. Full-image point/box prompts fail to recover
+Mothveil's door in either appearance. Native crop point prompts recover it, but
+also turn a plain gray Stone wall indentation into a door. Native source and
+proposal crops were reviewed: a good class-agnostic object mask does not establish
+that its object is a door. Real Stone gate endpoints can still cross solid jambs.
+
+A separate linear door verifier uses the existing frozen DINO image features.
+It trains on 160 explicit door anchors and 448 explicit negative anchors from
+30 real training maps. Six deterministic hue rotations produce 3,648 feature
+rows; these are correlated augmentations, not 3,648 independent examples.
+Unknown labels never supply a target or enter the class-specific feature pool.
+Synthetic examples and validation/test maps are excluded from this training.
+
+At the initial 0.9 cutoff the verifier rejects the gray false door and Mothveil's
+real door. Pooling the original semantic seed instead of the whole SAM mask
+does not resolve that cutoff's recall loss. Five folds of training-map groups
+then set a cutoff strictly above every out-of-fold explicit negative score,
+with a minimum of 0.5. Every hue variant of a map stays in the same fold.
+This selects `0.7464216947555543`, with 931/960 augmented door rows retained and
+zero observed calibration false positives. Neither calibration nor the high
+training score establishes precision on unseen maps.
+
+The calibrated seed verifier was checked on all 32 cached cases across the
+installed segmentation model, v9 and v13, in original and recolored appearances.
+Each unfiltered SAM result was replayed and checked before applying the verifier.
+
+| Segmentation model | Mothveil original | Mothveil recolored |
+| --- | --- | --- |
+| Installed model | One span, matches the annotated door | Door remains missing |
+| v9 | One span, matches the annotated door | One span, fails endpoint tolerance |
+| v13 | One span, matches the annotated door | One span, matches the annotated door |
+
+On v13, mean endpoint errors are 1.12 and 1.00 original-image pixels. Its original
+door-verifier score is only about 0.00575 above the calibrated cutoff. The gray
+wall detail is rejected, but that narrow margin does not establish robustness.
+The expanded legacy cases expose remaining misses, misplaced endpoints and
+pre-existing false doors that this growth-only verifier leaves unchanged.
+Mothveil's window and Rimebell's railing failures also remain unresolved.
+The research remains unpromoted. Extra SAM processing adds work; timings collected
+alongside another GPU workload are not an end-to-end speed benchmark.
+
+The current native asset labels were also checked. All 30 current
+`wall-review.json` files explicitly mark provisional Auto-Wall candidates awaiting
+manual review. Ashenwatch's reconciliation export identifies four protected user
+wall IDs. Those IDs do not establish that its whole export was hand-corrected.
+No provisional export was admitted as exhaustive truth. Existing partial
+source-assisted labels retain their recorded weak-supervision limitations.
+
+The first verifier-training invocation stopped before loading the model because
+the script used the wrong checkpoint filename. The corrected invocation uses
+the existing `battlemap-dino-v1.safetensors`; the failed log and manifest are
+preserved. Successful training emitted a scalar-conversion warning while
+recording the loss, which does not change the trained tensors. The artifact audit
+checks source/model/mask hashes, split membership, calibration folds and counts.
+The full application suite was not rerun for this research-only documentation
+change; the last functional source validation remains the 348-test CUDA run and
+the targeted remote CI results above.
