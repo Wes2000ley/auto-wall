@@ -62,7 +62,7 @@ class ExportWorker(QThread):
                 self.encoded = export_image_bytes(self.image)
             data = to_uvtt(self.result, self.settings.grid_size, self.encoded, preview=True)
             paths = write_map_exports(self.image_path, data)
-            message = "Saved " + " and ".join(str(path) for path in paths)
+            message = "Saved beside the image:\n" + "\n".join(path.name for path in paths)
             if self.result.invisible_walls:
                 message += "\nUse the Foundry Scene JSON to import invisible walls."
             self.completed.emit(message)
@@ -1045,6 +1045,7 @@ class FastSetupDialog(QDialog):
         self.export_button.setEnabled(False)
         self.editor_button.setEnabled(False)
         self.status.setText("Exporting WebP at quality 85, UVTT, and Foundry Scene JSON…")
+        self.status.setToolTip(str(self.source_path.parent))
         self.export_worker = ExportWorker(self.source_path, self.image, self.result, self.result_settings, self,
                                           encoded=self.export_image_cache)
         self.export_worker.completed.connect(self.status.setText)

@@ -95,7 +95,7 @@ def write_map_exports(image_path, data):
     invisible = data.get("_invisible_walls", [])
     foundry_path = image_path.with_suffix(".foundry.json")
     webp_path = image_path.with_suffix(".foundry.webp")
-    # Convert before writing either file, so invalid grid settings write nothing.
+    # Convert before writing any file, so invalid grid settings write nothing.
     scene = to_foundry_scene(data, image_path.stem)
     image_bytes = base64.b64decode(data["image"], validate=True)
     if not image_bytes.startswith(b"RIFF") or image_bytes[8:12] != b"WEBP":
