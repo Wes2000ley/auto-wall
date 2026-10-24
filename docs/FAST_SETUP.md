@@ -23,7 +23,8 @@ Omit the image argument to open a file picker through **Open map**. On Windows,
 The full editor uses the original `requirements.txt`. Launch `python auto_wall.py`,
 choose **Auto setup**, and use **Continue in wall editor** for individual wall and
 door edits. The standalone Fast Setup launcher needs only `requirements-fast.txt`;
-its review tools toggle layers and remove/undo individual door or light candidates.
+its review tools draw walls and doors, stretch wall junctions, erase walls by
+rectangle, toggle layers, and remove/undo individual door or light candidates.
 
 For optional single centerlines, install `requirements-centerline.txt`. This adds
 scikit-image's skeletonization; outlines need only the fast requirements. A missing
@@ -100,7 +101,7 @@ structural. **Save settings** retains all detection controls for another session
    Door footprints are excluded. These remain candidates: a screen, magical eye,
    or bright prop can still look like a light. Range is in grid squares. Toggle layers
    to inspect the output, and remove false candidates.
-6. Scroll to zoom, drag to pan, and choose **Export UVTT**. The `.dd2vtt` file includes
+6. Scroll to zoom, left-drag to pan, and choose **Export UVTT**. The `.dd2vtt` file includes
    walls, closed door portals, lights, and the original map image.
 
 Lengths and areas use a 2048-pixel reference edge: lengths scale linearly with
@@ -112,6 +113,41 @@ Settings changes debounce for 200 ms. One detection job runs at a time; a newer
 request supersedes the old job. Cancellation happens between native processing
 stages. Export runs in another worker and writes atomically. Closing waits for active
 workers to finish safely. Panning and zooming use cached pixels and vector overlays.
+
+### Correct walls directly in the preview
+
+Choose **1 · Draw wall** or **2 · Draw door**, then **left-click and drag** to
+draw a segment. While the map has focus, **1** and **2** toggle those same tools;
+press the active number again to return to panning. Numeric inputs keep their
+normal typing behavior. Both ends snap to visible walls and doors, preferring
+existing endpoints, with a live preview before release. The tool stays selected
+so you can draw several segments. Selecting a drawing tool reveals its layer.
+Drawing a door directly along an existing wall replaces the overlapping wall
+portion with an openable door; neighboring and crossing walls stay intact.
+Draw doors across their opening, from jamb to jamb. Manually drawn doors do not
+need to pass the automatic detector's color, length, or wall-support checks.
+
+**Right-click and drag a green wall** to stretch its nearest endpoint. Grabbing
+near an endpoint selects that junction directly. Release near another wall to
+snap onto its endpoint or its edge; a green circle marks a snap. The pick and
+snap distance stays ten screen pixels as you zoom. Shared corners and door jambs
+move together so an existing connection does not open into a crack. Collapsing
+a segment onto its other end removes the zero-length segment.
+
+**Middle-click and drag** draws a red rectangle. On release, it deletes whole
+wall segments touching the box, including segments crossing it with both ends
+outside. Draw the box in any direction. Doors, lights, and see-through barriers
+remain separate. A middle click without dragging does not delete anything.
+
+**Undo edit** or **Ctrl+Z** restores the last drawing, stretch, rectangle deletion,
+or door/light removal. Each gesture is one undo step, including wall portions
+replaced by a door. **Escape** cancels a gesture before release; pressing it
+without an active gesture returns to panning. Left dragging pans when no drawing
+tool is selected, and the scroll wheel zooms.
+Only visible walls can be edited; detection, pending settings changes, and export
+temporarily disable edits. Export UVTT and Continue in wall editor use the edited
+geometry. Running Detect all produces a fresh detection and clears manual edits
+and their undo history.
 
 ## Headless export and timing
 

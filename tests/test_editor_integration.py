@@ -66,11 +66,18 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path):
     app = app_module.WallDetectionApp(version="test-dev-fast")
     dialog = FastSetupDialog(app, image=make_image())
     wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
+    source = tuple(dialog.result.walls[0][0])
+    dialog.stretch_wall(source, (source[0] + 10, source[1] + 5))
+    dialog.add_segment("walls", (100., 150.), (200., 150.))
+    dialog.add_segment("doors", (140., 150.), (160., 150.))
+    assert dialog.undo_states
     expected = deepcopy(dialog.result)
     dialog.use_in_editor()
     assert app.uvtt_preview_active
     assert len(app.uvtt_walls_preview["portals"]) == len(expected.doors)
     assert len(app.uvtt_walls_preview["lights"]) == len(expected.lights)
+    assert app.uvtt_walls_preview["_preview_pixels"] == [
+        [{"x": float(x), "y": float(y)} for x, y in segment] for segment in expected.walls]
     assert len(app.wall_edit_history) == 2
     path = tmp_path / "editor.uvtt"
     monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
@@ -80,6 +87,7 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path):
     pixels = cv2.imdecode(np.frombuffer(base64.b64decode(data["image"]), np.uint8), 1)
     np.testing.assert_array_equal(pixels, app.original_image)
     assert data["portals"] and data["lights"]
+    assert data["portals"] == app.uvtt_walls_preview["portals"]
     app.image_processor.debounced_update.timer.stop()
     app.close()
 
