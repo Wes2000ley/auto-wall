@@ -6,13 +6,38 @@ import cv2
 import numpy as np
 
 
-def outline_segments(mask, tolerance, minimum_area):
+def _simplify_around_openings(contour, tolerance, detail_tolerance, protected_regions):
+    """Retain detailed edges near openings; simplify the intervening closed arcs."""
+    points = cv2.approxPolyDP(contour, detail_tolerance, True).reshape(-1, 2)
+    ends = np.roll(points, -1, axis=0)
+    lower, upper = np.minimum(points, ends), np.maximum(points, ends)
+    protected_edges = np.zeros(len(points), dtype=bool)
+    for left, top, right, bottom in protected_regions:
+        protected_edges |= ((lower[:, 0] <= right) & (upper[:, 0] >= left)
+                            & (lower[:, 1] <= bottom) & (upper[:, 1] >= top))
+    anchors = np.flatnonzero(protected_edges | np.roll(protected_edges, 1))
+    if not len(anchors):
+        return cv2.approxPolyDP(contour, tolerance, True).reshape(-1, 2)
+    simplified = []
+    for start, end in zip(anchors, np.roll(anchors, -1)):
+        if end <= start:
+            end += len(points)
+        arc = points[np.arange(start, end + 1) % len(points)]
+        simplified.extend(cv2.approxPolyDP(arc, tolerance, False).reshape(-1, 2)[:-1])
+    return np.asarray(simplified).reshape(-1, 2)
+
+
+def outline_segments(mask, tolerance, minimum_area, *, protected_regions=(), detail_tolerance=None):
+    """Trace closed boundaries, optionally keeping finer detail around portals."""
     contours, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
     walls = []
     for contour in contours:
         if cv2.contourArea(contour) < minimum_area:
             continue
-        points = cv2.approxPolyDP(contour, tolerance, True).reshape(-1, 2)
+        if len(protected_regions) and detail_tolerance is not None and detail_tolerance < tolerance:
+            points = _simplify_around_openings(contour, tolerance, detail_tolerance, protected_regions)
+        else:
+            points = cv2.approxPolyDP(contour, tolerance, True).reshape(-1, 2)
         walls.extend((start.astype(float), end.astype(float))
                      for start, end in zip(points, np.roll(points, -1, axis=0)) if np.any(start != end))
     return walls

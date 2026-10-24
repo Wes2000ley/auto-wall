@@ -86,6 +86,51 @@ def test_portal_stops_at_inner_faces_when_endpoints_extend_into_thick_posts():
     np.testing.assert_allclose(attached, [[[30, 10], [4, 10]]])
 
 
+def test_outline_smoothing_keeps_a_small_opening_and_closed_boundaries():
+    from collections import Counter
+
+    from benchmarks.check_geometry import ray_blocked
+    from src.core.wall_geometry import outline_segments
+
+    mask = np.zeros((120, 320), np.uint8)
+    # A shallow opening that ordinary coarse simplification would seal, with
+    # unrelated one-pixel boundary noise along the far side of the wall.
+    points = [(20, 30), (135, 30), (135, 35), (143, 35), (143, 30), (280, 30)]
+    points += [(x, 80 + (x // 4) % 2) for x in range(280, 19, -4)]
+    cv2.fillPoly(mask, [np.asarray(points, np.int32)], 255)
+    detailed = outline_segments(mask, .25, 1)
+    coarse = outline_segments(mask, 8, 1)
+    protected = outline_segments(mask, 8, 1, protected_regions=[(133, 28, 145, 36)],
+                                 detail_tolerance=.25)
+    assert not ray_blocked((139, 20), (139, 33), detailed)
+    assert ray_blocked((139, 20), (139, 33), coarse)
+    assert not ray_blocked((139, 20), (139, 33), protected)
+    assert len(protected) < len(detailed) / 3
+    # The protected arc and simplified remainder still share every endpoint.
+    degrees = Counter(tuple(point) for segment in protected for point in segment)
+    assert set(degrees.values()) == {2}
+    assert len({tuple(sorted(map(tuple, edge))) for edge in protected}) == len(protected)
+    distant = outline_segments(mask, 8, 1, protected_regions=[(400, 400, 410, 410)],
+                               detail_tolerance=.25)
+    np.testing.assert_array_equal(distant, coarse)
+
+
+def test_learned_outline_smoothing_preserves_detailed_door_jambs():
+    labels = np.zeros((1024, 1536), np.uint8)
+    cv2.rectangle(labels, (150, 300), (1350, 316), 1, -1)
+    cv2.rectangle(labels, (700, 300), (750, 316), 2, -1)
+    # A narrow shaded indentation at the inner jamb is significant to the door
+    # intersection even when the rest of the wall is safe to simplify.
+    labels[307:310, 694:700] = 0
+    prediction = (labels, np.ones(labels.shape, np.float32))
+    image = np.zeros((*labels.shape, 3), np.uint8)
+    settings = FastSettings(lights=False, ml_recover_jambs=True)
+    detailed = detect_map(image, settings, prediction=prediction)
+    simplified = detect_map(image, replace(settings, simplify=6), prediction=prediction)
+    assert len(detailed.doors) == 1
+    np.testing.assert_array_equal(simplified.doors, detailed.doors)
+
+
 def test_unattached_candidate_is_rejected_without_cutting_walls(dungeon, monkeypatch):
     from src.core import fast_pipeline
 

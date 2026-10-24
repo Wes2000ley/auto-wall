@@ -949,14 +949,6 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
         mask = _keep_learned_walls(learned[0], portal_mask, hsv, settings, reference_scale)
     else:
         mask = _wall_mask(working, hsv, settings, reference_scale)
-    from src.core.wall_geometry import centerline_backend, centerline_segments, outline_segments
-    backend = "opencv"
-    if settings.wall_geometry == "centerline":
-        backend = centerline_backend()
-        walls = centerline_segments(mask, settings.simplify * reference_scale, cancelled, backend)
-    else:
-        walls = outline_segments(mask, settings.simplify * reference_scale,
-                                 max(2, settings.min_wall_area * reference_scale ** 2 * 0.1))
     timings["walls"] = time.perf_counter() - tick
     _stage("Detecting doors", progress, cancelled)
     tick = time.perf_counter()
@@ -971,6 +963,30 @@ def detect_map(image, settings=None, progress=None, cancelled=None, prediction=N
         windows, window_footprints = _detect_windows(mask, learned[4], reference_scale, cancelled)
     light_footprints = door_footprints + window_footprints
     timings["doors"] = time.perf_counter() - tick
+    _stage("Tracing walls", progress, cancelled)
+    tick = time.perf_counter()
+    from src.core.wall_geometry import centerline_backend, centerline_segments, outline_segments
+    backend = "opencv"
+    if settings.wall_geometry == "centerline":
+        backend = centerline_backend()
+        walls = centerline_segments(mask, settings.simplify * reference_scale, cancelled, backend)
+    else:
+        # Coarse outlines must not change the inner jamb that a portal meets.
+        # Cover the same axial search distance used by _attach_doors, retaining
+        # default contour detail there while simplifying the remaining wall runs.
+        protected_regions = []
+        if learned is not None:
+            portals = list(zip(doors, door_footprints)) if settings.doors else []
+            for span, footprint in portals + list(zip(windows, window_footprints)):
+                lower = np.minimum(footprint.min(axis=0), np.min(span, axis=0))
+                upper = np.maximum(footprint.max(axis=0), np.max(span, axis=0))
+                padding = max(3 * reference_scale, np.linalg.norm(span[1] - span[0]) * 0.4)
+                protected_regions.append((*tuple(lower - padding), *tuple(upper + padding)))
+        walls = outline_segments(mask, settings.simplify * reference_scale,
+                                 max(2, settings.min_wall_area * reference_scale ** 2 * 0.1),
+                                 protected_regions=protected_regions,
+                                 detail_tolerance=FastSettings.simplify * reference_scale)
+    timings["walls"] += time.perf_counter() - tick
     _stage("Detecting lights", progress, cancelled)
     tick = time.perf_counter()
     arguments = {} if learned is None else {"candidate_mask": learned[2]}

@@ -779,3 +779,31 @@ doors fitted to real openings take priority. The new label-provenance regression
 passes; the full local suite passes 355 tests with three dependency warnings in
 58.66 seconds. Ruff passes on the changed test. No live Foundry import was rerun
 for this research/data update, and all four production model hashes are intact.
+
+## Preserve door frames during manual wall simplification
+
+Increasing the wall Simplify control could move a door endpoint by 7.12 pixels
+in the fixed cached cases. Coarse outlines could even remove a previously
+matched door. The detector now measures openings before tracing walls, retains
+default contour detail around their jambs, and simplifies the intervening arcs.
+This applies to learned outlines when the user raises Simplify above its
+default; palette and centerline behavior retain their existing algorithms.
+
+The [geometry record](ENCOUNTER_ML_WALL_DOOR_GEOMETRY_RESULTS.json) preserves the
+final source hashes, complete-geometry comparison and rejected trials. Across
+44 repeated model/color cases on six validation and two training-fit layouts,
+default geometry, lights and warnings remain exactly equal to the committed
+detector. Manual setting 3 retains every baseline door/window coordinate and all
+324 repeated passage-check outcomes. Two focused regressions exercise closed
+contour arcs and a narrow shaded jamb. These checks establish this geometry
+fix, not exhaustive accuracy or newly recognized doors.
+
+The proposed increase to the shipped default is rejected. Although it reduced
+segment counts substantially, plain coarse simplification sealed tiny unmarked
+open recesses. A material-constrained variant fixes those cases but is slower
+and retains nearly all the original segments. Its source, timing results and
+failed attempts remain recorded; it is not included in the runtime. The shipped
+profile and all model weights stay unchanged. Missed doors, false wall pixels
+and fragmented predictions still require ML work. The final local suite passes
+357 tests with three dependency warnings in 64.85 seconds; Ruff passes on all
+three changed Python files. A live Foundry world import was not rerun.

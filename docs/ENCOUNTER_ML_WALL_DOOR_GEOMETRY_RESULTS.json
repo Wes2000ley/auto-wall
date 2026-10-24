@@ -1,0 +1,162 @@
+{
+  "date": "2026-10-24",
+  "status": "Bounded manual-simplification door-jamb fix; broader accuracy goal incomplete.",
+  "reference_head": "8f828a7887c9d40423cc0c045a88a5621dab73af",
+  "runtime_sources": [
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\src\\core\\wall_geometry.py",
+      "sha256": "c86033f52780fe34d003f402f0c5b02ea45e1768ac038271de0768fd0c2b82cb"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\src\\core\\fast_pipeline.py",
+      "sha256": "297b827871bff8953d70dccfdaa6568ea285cdc4b7f0a2534c473c0db17c1395"
+    }
+  ],
+  "behavior": "Detect opening footprints before wall tracing. Keep default contour detail for wall edges within the portal attachment search region, and simplify the closed arcs between those protected vertices. Active for learned outline geometry above the existing default tolerance; no new settings or dependencies.",
+  "defaults": {
+    "profile": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\profiles\\ml-light-centers.json",
+      "sha256": "d1f35d6519a5c6cee3f21ffae0bae6a01fd45c908439efc8e42b860d94179e89"
+    },
+    "before_profile": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-profile-before.json",
+      "sha256": "d1f35d6519a5c6cee3f21ffae0bae6a01fd45c908439efc8e42b860d94179e89"
+    },
+    "unchanged": true,
+    "complete_default_geometry_exact_cases": 44,
+    "manual_3_door_window_coordinates_exact_cases": 44,
+    "manual_3_repeated_ray_outcomes_unchanged": 324
+  },
+  "evidence": {
+    "complete_parity": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-jamb-complete-parity.json",
+      "sha256": "253437df86790fa4746fec76b79208b03a80be3bb4bb07c1cb97e07c6aa33d3d"
+    },
+    "final_evaluation": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-jamb-final-evaluation.json",
+      "sha256": "43bf1a9bcaddc3ac0990bf2d954da3fce9f9a65e3342a5ff2308cfe206988c75"
+    },
+    "evaluation_script": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\evaluate_wall_jamb_final.py",
+      "sha256": "518261aea3d015e466236cc421406c396dc46ebdaf5f73b0085c4c78348bd51e"
+    },
+    "parity_script": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\verify_wall_jamb_parity.py",
+      "sha256": "8925f3a36e02a0852dbccb7e41b9848639209fc5ff288febd6f5aa059e2b5d58"
+    },
+    "manifest": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-door-outline-probe-manifest.json",
+      "sha256": "514af955a2db911aecd243c29247d6477402023e71ca0f5c0c7fe0f710d139ae"
+    },
+    "scope": "Six fixed validation and two separate training-fit layouts, repeated across cached models and original/recolored appearances. Final-test images absent before reading. Exact output parity is not independent accuracy validation. Old caches omit light-center heatmaps; light parity here covers the supplied cached inputs.",
+    "native_reviews": [
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-1.bmp",
+        "sha256": "3e5654fa5195cfef0cf0f1a63ec2d11d18f0c55b23e8f9998d281d6a1843760f"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-2.bmp",
+        "sha256": "1c24bd5a82f0b119b2699f07f4bfb79cf4082854c7cbb62736477261fb3053bd"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-3.bmp",
+        "sha256": "07d8febef131216b33d3647073bfcad5aef0157b202154ec1293da8269ac06fd"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-4.bmp",
+        "sha256": "1057f6c3758febcd999ef8cd356b3d83035b2b761819857334c2035893bce1bd"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-5.bmp",
+        "sha256": "84db127d9de6d8edb95c3d504ea2ce7174d54fe3fb194d53919122aae7c238ac"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-6.bmp",
+        "sha256": "a9a578fc2b3786b2b69bc8d3fb24a232610ee569e7bd13ea91cc11709c49a336"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-protected-native-review-7.bmp",
+        "sha256": "d101b70c251cb2b34c9b03b59ad3c0695d70d32a945c0d6b67e72680f78a2b3a"
+      }
+    ],
+    "review_script": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\render_wall_outline_protected.py",
+      "sha256": "47abd79c8b7b50f3d1d1fb5e8cbc8388c2a54a08ca874bf48ef32ad910523f70"
+    }
+  },
+  "rejected_defaults": {
+    "plain_simplification": {
+      "evaluation": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-tolerance-probe-v1.json",
+        "sha256": "b428c218eb30b2f5d238de3b4e3682b66e1c4d46cc30e503a20d11834c97e9fb"
+      },
+      "reason": "Setting 3 reduced segment count by about 55 percent, but moved a portal endpoint by 7.117647 pixels. More aggressive setting 6 lost existing matched doors. Opening protection fixes these door regressions, but plain smoothing still seals small unmarked open recesses, so the default remains 1.25."
+    },
+    "material_constrained_chords": {
+      "initial_evaluation": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-tolerance-probe-v3.json",
+        "sha256": "ea906337464255a07a14669b618f3a4351bdd91a552c395028877fc35fcbddf3"
+      },
+      "initial_benchmark": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-benchmark-v2.json",
+        "sha256": "7e89025b4499ef006b81b4c04d5772e1cb58aed6a26571f8e81a9a8195a29043"
+      },
+      "revised_benchmark": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-benchmark-v3.json",
+        "sha256": "e12ab14e5c5db02aa08019241f7c406d750a26ddb7c48fa874f1013ba6b89115"
+      },
+      "rejected_patch": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\rejected-outline-material-fitting.patch",
+        "sha256": "794a347c9870150c3f2ae8f1fdf7c8a34fa07237677b68ae08d6c293b1d72cf8"
+      },
+      "revised_source": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\rejected-outline-material-fitting\\src\\core\\wall_geometry.py",
+        "sha256": "3fc647c870c8f04581f83b8b4e528f2ffaf78fcc0bd385a23d311fa979654573"
+      },
+      "recess_probe": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-outline-open-recess-probe.json",
+        "sha256": "6f2393a740b072b9b691d0c485f9d334df1ef485494b97ffe1864f0f881fc5f3"
+      },
+      "reason": "Per-chord foreground checks preserve open pixels. A revised version also fits short interior offsets and uses indexed vertex lookup. It fixes all 46 newly blocked recesses among 319 fixed synthetic cases, but retains nearly all real-map segments and is slower. Four original-map geometry medians increase from 58.87-69.81ms to 80.97-150.05ms. The revised material-fitting method was benchmarked on four maps, not rerun as a full accuracy trial; no runtime promotion."
+    },
+    "speed_scope": "Timings use fixed segmentation caches, eight alternating pairs after warmup, four OpenCV threads and an offscreen Qt preview. No ML inference, image encoding, disk export or live Foundry-world speed claim."
+  },
+  "harness_corrections": [
+    "Initial outline preflight used the wrong training-map ID and stopped before reading any dataset images. Corrected the ID; the completed manifest contains eight allowed layouts.",
+    "An initial parity assertion compared the legacy wall-segment count as well as passage outcomes. Corrected the comparison to inspect complete portal metrics and actual rays; final exact-default parity separately checks every output field except timings.",
+    "The first protected-review render loaded the newly edited profile for both panels. Those unused renders are retained with invalid-same-setting filenames. The corrected renderer loads the frozen prior profile, and all seven corrected comparisons were inspected.",
+    "A synthetic test initially assumed every coarse boundary would reduce segment count substantially. The safety guard correctly retained an unsupported noisy arc; removed that performance assumption while evaluating the rejected guard. The final shipped opening-preservation test and implementation were restored together and rerun."
+  ],
+  "validation": {
+    "focused_command": "python -B -m pytest tests/test_fast_pipeline.py tests/test_wall_geometry.py tests/test_detection_profiles.py -q",
+    "focused_result": "68 passed in 1.23s",
+    "full_command": "python -B -m pytest tests -q",
+    "full_result": "357 passed, 3 dependency warnings in 64.85s",
+    "full_log": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\wall-jamb-full-tests.log",
+      "sha256": "73abb8632b22605cac964fc617f5ebe7aa1a26597af7b673baec1efd36f25f8f"
+    },
+    "ruff_command": "python -B -m ruff check src/core/wall_geometry.py src/core/fast_pipeline.py tests/test_fast_pipeline.py",
+    "ruff_result": "All checks passed!",
+    "live_foundry_world_import": "Not rerun; unit/native-export checks and installed-copy smoke are distinct from importing into a live world."
+  },
+  "limits": "No newly recognized door or wall accuracy improvement is claimed. Missed doors, false wall pixels and fragmented segmentation remain. No model, confidence threshold, palette preset, centerline algorithm or shipped simplify default changes.",
+  "production_models": [
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-lights-v1.safetensors",
+      "sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-lights-v2.safetensors",
+      "sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-v1.safetensors",
+      "sha256": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-v1.safetensors",
+      "sha256": "cf7a10498fa9c938ce96f68fded84632c9e70fe4115f7a46f71edd777aca4bbe"
+    }
+  ]
+}
