@@ -1181,10 +1181,9 @@ class FastSetupDialog(QDialog):
         self._finish_close()
 
     def closeEvent(self, event):
+        # Mark the dialog closed even before its queued initial detection runs.
+        self.reject()
         if self.worker or self.export_worker:
-            self.reject()
             event.ignore()
         else:
-            self.timer.stop()
-            self.view.set_editing_enabled(False)
             event.accept()

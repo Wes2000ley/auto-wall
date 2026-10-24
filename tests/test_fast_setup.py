@@ -112,6 +112,25 @@ def test_closing_cancels_worker_without_destroying_running_thread(qt_app):
     assert not dialog.isVisible()
 
 
+@pytest.mark.parametrize("source", ("image", "path"))
+def test_closing_before_queued_detection_does_not_start_worker(qt_app, monkeypatch, source):
+    started = []
+    monkeypatch.setattr("src.gui.fast_setup.DetectionWorker.start", lambda worker: started.append(worker))
+    arguments = {"image": make_image()} if source == "image" else {"path": "unopened-map.bmp"}
+    dialog = FastSetupDialog(**arguments)
+    dialog.close()
+    qt_app.processEvents()  # Deliver the constructor's queued detection callback.
+    try:
+        assert not started
+        assert dialog.worker is None
+        assert dialog.closing
+        assert not dialog.view.editing_enabled
+    finally:
+        # The spy never starts a thread, including when reproducing the failure.
+        dialog.worker = None
+        dialog.reject()
+
+
 def test_export_roundtrip(qt_app, monkeypatch, tmp_path):
     from PyQt6.QtWidgets import QFileDialog
     import base64
