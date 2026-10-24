@@ -847,3 +847,69 @@ place. The full local suite passes 359 tests with three dependency warnings in
 49.17 seconds; the focused annotation suite passes 27 tests and Ruff passes.
 No inference speedup is claimed, and a live Foundry world import was not rerun
 for this research/data/test update. Reserved final-test inputs were not read.
+
+## Door refinement against the installed model
+
+Walls and doors remain the priority. The
+[installed-model refinement record](ENCOUNTER_ML_INSTALLED_REFINEMENT_RESULTS.json)
+contains four completed variants, exact experiment sources, artifact hashes,
+native export checks and timings. No production code, profile, checkpoint or
+training annotation changes in this update. No new fence experiment was run.
+
+The first variant runs fresh inference with the selected five-class semantic
+and light-center model, then tests the earlier growth-only SAM/SigLIP approach.
+It keeps every original strict door seed and uses the training-calibrated
+semantic verifier plus unchanged shape/jamb checks to admit added panels. The
+later variants replay these exact predictions, including the real light heatmap.
+Each variant has 16 color cases on the same six validation and two training-fit
+layouts: 64 executions, not 64 independent maps. The final-test split is excluded
+before decoding. Model predictions never become training labels.
+
+Changing SAM's input from 1,024 to 512 pixels, with consistent prompt coordinates
+and feature grids, preserves every checked door match from the larger variant.
+Both raise the repeated validation matched-span count from 9 to 14 of 22 annotated
+color/layout instances. Training-fit matches rise from 5 to 13 of 20. These partial
+checks do not establish whole-map precision or independent style generalization.
+
+Replacing strong proposals with lower-confidence connected components loses one
+recovered Frostwake door because the weaker mask merges components. Keeping all
+strong prompts intact and adding only weak components without strong seed support
+fixes that regression and recovers one additional Gilded color-control span.
+Its training-fit total is 14 of 20; validation stays 14 of 22. All strong 512-pixel
+SAM masks remain byte-identical in this additive version.
+
+| Layout | Original: production to additive refinement | Recolored: production to additive refinement |
+| --- | --- | --- |
+| Mothveil | 0 to 1 of 1 | 0 to 1 of 1 |
+| Rimebell | 0 to 2 of 3 | 0 to 1 of 3 |
+| Stone | 4 to 4 of 4 | 3 to 3 of 4 |
+| Dyson drawing | 1 to 1 of 3 | 1 to 1 of 3 |
+| Frostwake, training fit | 0 to 2 of 3 | 0 to 0 of 3 |
+| Gilded, training fit | 4 to 6 of 7 | 1 to 6 of 7 |
+
+Primary review inspected 43 source/export closeups across repeated variants.
+The added spans follow real visible doors in those views; jagged and missing
+wall outlines remain. Recolored Frostwake has no usable door prompts, and the
+drawn-map failures persist. Do not promote this as a complete wall/door solution.
+
+All 64 cases preserve original matched annotations and previously passing rays.
+Light output and non-wall/door geometry remain identical; all 36 cases without
+mask changes have exact geometry parity. The audit verifies 531 artifact hashes.
+Its first version incorrectly required a stale no-valid-door warning to remain
+after recovering a door; the corrected audit allows only that expected status
+removal and preserves every other warning. The initial failure is retained.
+
+Observed median SAM time is 0.20 seconds at 1,024 pixels and 0.12 seconds at 512;
+verification plus repeated geometry adds median 0.13 and 0.14 seconds respectively.
+These are single runs on a shared GPU, with warmup and different execution times,
+not a controlled speedup result. Only the first variant recomputes semantic/light
+inference; cached replays are not packaged end-to-end latency measurements.
+Additive weak proposals raise the observed median SAM time to 0.24 seconds while
+adding only one further repeated training-map match. No inference speedup or
+default deployment is justified by this trial.
+
+Only this research record and documentation are committed. Unit tests and a live
+Foundry world import were not rerun for the documentation update; the earlier
+359-test result belongs to commit `84db03d`. The active goal remains incomplete:
+improve native wall boundaries, missing doors and color/style robustness before
+resuming lower-priority barrier work.
