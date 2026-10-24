@@ -257,7 +257,7 @@ was available, so the new CUDA checks ran rather than being skipped.
 ## Follow-up trials and additional reviewed data
 
 The [follow-up trial record](ENCOUNTER_ML_FOLLOWUP_RESULTS.json) preserves
-checkpoint, dataset, source and evaluation hashes for v6–v12. None is promoted.
+checkpoint, dataset, source and evaluation hashes for v6–v13. None is promoted.
 Pixel precision below refers only to reviewed pixels. Runtime results use the
 unchanged per-class profile thresholds: wall/door 0.90, window 0.93, fence 0.97.
 
@@ -270,12 +270,15 @@ unchanged per-class profile thresholds: wall/door 0.90, window 0.93, fence 0.97.
 | v10 | Add 16 constructed replacement windows in training-only building bays | Better glass pixels do not produce a matched runtime window or door in Mothveil. Rimebell still has no exported fence. |
 | v11 | Add four reviewed Frostwake rail/post strokes and increase that map's sampling | Some held-out fence pixels return. Original Rimebell exports no fence; recolored fragments fail the fence movement ray. Mothveil has no matched door/window. |
 | v12 | Permit aspect-ratio crop augmentation up to 2 | No matched Mothveil door/window; recolored Rimebell fails both negative cliff rays. A new recolored landscape acquires 107 false opaque wall segments. |
+| v13 | Add reviewed Sunspoke landscape negatives, retaining square crops | All three annotated Rimebell doors match in both appearances and Cinderglass has zero exported structures in both. Mothveil still has no extracted door/window; Rimebell still has no fence. |
 
 Trials v6–v8 failed pixel checks; their actual exports and recolors were not
 evaluated. Trials v9–v11 were evaluated on the same five validation maps in both
 appearances. Trial v12 selected checkpoints on those five maps, then also ran
 on the newly reserved Cinderglass validation map. These iterative validation
-experiments are not an independent final test. The four final-test layouts
+experiments are not an independent final test. Trial v13 also selects on
+Cinderglass, making its selection average cover six maps rather than five;
+compare shared-map metrics separately. The four final-test layouts
 remain reserved. None of these candidates has a new production light-center
 head, and the installed five-class light model remains unchanged.
 
@@ -323,3 +326,12 @@ three dependency warnings, 48.25 seconds. The portable runtime alone could not
 collect two legacy image-utils tests because it lacks `requests`; the complete
 development environment supplied that dependency. Software-test success does
 not establish model quality.
+
+The first follow-up commit failed two remote annotation-integrity tests because
+Git converted the reviewed JSON line endings. Scoped `.gitattributes` files now
+preserve exact annotation bytes, and the staged blob hashes match the reviews.
+Corrected commit `e89ac84` passes remote CI: 259 tests and four CUDA-only skips
+in 31.66 seconds. Its installed smoke check verified 80 file hashes, preserved
+the legacy light head, ran real-map CUDA inference, checked dialog settings and
+shutdown, and generated the 11-wall synthetic Foundry fixture. This is functional
+validation, not an accuracy or speed benchmark.

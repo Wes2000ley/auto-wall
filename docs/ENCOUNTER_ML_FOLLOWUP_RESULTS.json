@@ -14,6 +14,7 @@
     "Trials v6-v8 failed pixel-level checks; their exported geometry and recolors were not evaluated.",
     "Trials v9-v11 were additionally evaluated through the actual runtime at per-class profile thresholds on all five validation maps, original and recolored.",
     "Trial v12 selected checkpoints on the same five validation maps; its post-selection runtime evaluation also includes newly reserved Cinderglass, for six maps total. It did not train on either new landscape.",
+    "Trial v13 adds Sunspoke training negatives and selects checkpoints on six validation layouts including Cinderglass. Its aggregate selection score is not comparable to prior five-layout selection scores; inspect the shared-layout metrics and actual exports.",
     "The explicit structure-free export assertion evaluates whole maps independently of partial pixel labels. Cached Cinderglass re-extraction matches the original structural counts; lights are outside this assertion.",
     "Geometry timing during other work is not used as a speed comparison."
   ],
@@ -8017,6 +8018,1873 @@
           ]
         }
       ]
+    },
+    {
+      "id": "trial-v13-new-landscapes",
+      "decision": "rejected_for_promotion",
+      "reason": "Adding reviewed Sunspoke negatives with square crops exports no structures on Cinderglass in either appearance and matches all three annotated Rimebell doors in both appearances. It still extracts no Mothveil door/window and no Rimebell fence; older-map door precision remains weak. These class failures block promotion.",
+      "training_record": "work/encounter-ml/trial-v13-new-landscapes/training.json",
+      "training_record_sha256": "779332e72ba2685fb8b8fe1de1208ec60a29b2524b25f7cbf145a16c22d3d0cd",
+      "dataset_sha256": "e1708ead9f9b637e8ab9cd6072cc616ae87fe430297d87b68d849be8f84ba31f",
+      "initial_model_sha256": "19c18b89656570470d4a01cddf61d8d0ac40754a8f95933b217b7d8c325eb211",
+      "best_checkpoint_sha256": "005fe8c626ade07b0098a6597d5621384519f1771fcbeb470dd455f1261fec25",
+      "last_checkpoint_sha256": "b981614e6ea8007c58ea014cd221942c372856112d05f562c904ecca250c01be",
+      "selected_step": 1600,
+      "selected_score": 0.6341809315039729,
+      "elapsed_seconds": 454.22445690003224,
+      "peak_allocated_bytes": 1113543168,
+      "configuration": {
+        "training_steps": 2400,
+        "batch_size": 4,
+        "crop_size": 384,
+        "seed": 1729,
+        "learning_rate": 4e-05,
+        "architecture": "dino",
+        "backbone_training_layers": 0,
+        "sampling_weights": {
+          "ashenwatch-hold": 1,
+          "blackbriar-kilns": 1,
+          "briarbone-circle": 1,
+          "coppercap-warren": 1,
+          "drowned-stair": 1,
+          "emberroot-burrow": 1,
+          "foxglove-still": 1,
+          "frostwake-beacon": 10,
+          "gilded-snare": 1,
+          "gullthorn-blind": 1,
+          "hourglass-scar": 1,
+          "lantern-wayshrine": 1,
+          "mooncut-cove": 1,
+          "rookshade-depot": 1,
+          "rootbound-chapel": 1,
+          "silkmaw-hollow": 1,
+          "sirens-teeth": 1,
+          "skyfall-reliquary": 1,
+          "stormglass-roost": 1,
+          "thirteenth-cairn": 1,
+          "unfinished-stair": 1,
+          "vesperheart": 1,
+          "whistling-stones": 1,
+          "witness-gate": 1,
+          "wreck-of-the-pale-comet": 1,
+          "temple": 10,
+          "ship": 10,
+          "wood": 10,
+          "dyson-13": 10,
+          "synthetic-structure-00": 0.0625,
+          "synthetic-structure-01": 0.0625,
+          "synthetic-structure-02": 0.0625,
+          "synthetic-structure-03": 0.0625,
+          "synthetic-structure-04": 0.0625,
+          "synthetic-structure-05": 0.0625,
+          "synthetic-structure-06": 0.0625,
+          "synthetic-structure-07": 0.0625,
+          "synthetic-structure-08": 0.0625,
+          "synthetic-structure-09": 0.0625,
+          "synthetic-structure-10": 0.0625,
+          "synthetic-structure-11": 0.0625,
+          "synthetic-structure-12": 0.0625,
+          "synthetic-structure-13": 0.0625,
+          "synthetic-structure-14": 0.0625,
+          "synthetic-structure-15": 0.0625,
+          "synthetic-structure-16": 0.0625,
+          "synthetic-structure-17": 0.0625,
+          "synthetic-structure-18": 0.0625,
+          "synthetic-structure-19": 0.0625,
+          "synthetic-structure-20": 0.0625,
+          "synthetic-structure-21": 0.0625,
+          "synthetic-structure-22": 0.0625,
+          "synthetic-structure-23": 0.0625,
+          "synthetic-structure-24": 0.0625,
+          "synthetic-structure-25": 0.0625,
+          "synthetic-structure-26": 0.0625,
+          "synthetic-structure-27": 0.0625,
+          "synthetic-structure-28": 0.0625,
+          "synthetic-structure-29": 0.0625,
+          "synthetic-structure-30": 0.0625,
+          "synthetic-structure-31": 0.0625,
+          "constructed-context-00-0": 0.125,
+          "constructed-context-00-1": 0.125,
+          "constructed-context-00-2": 0.125,
+          "constructed-context-00-3": 0.125,
+          "constructed-context-01-0": 0.125,
+          "constructed-context-01-1": 0.125,
+          "constructed-context-01-2": 0.125,
+          "constructed-context-01-3": 0.125,
+          "constructed-context-02-0": 0.125,
+          "constructed-context-02-1": 0.125,
+          "constructed-context-02-2": 0.125,
+          "constructed-context-02-3": 0.125,
+          "constructed-context-03-0": 0.125,
+          "constructed-context-03-1": 0.125,
+          "constructed-context-03-2": 0.125,
+          "constructed-context-03-3": 0.125,
+          "sunspoke-shoals": 5.0
+        },
+        "teacher": {
+          "sha256": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c",
+          "groups": [
+            "temple_family",
+            "spaceship",
+            "wood_camp",
+            "dyson-index-card-II-13"
+          ],
+          "weight": 2.0,
+          "temperature": 2.0,
+          "scope": "Training groups only. Known labels must agree with teacher argmax; unknown pixels require teacher confidence >=0.9. KL includes all student classes; the legacy teacher assigns zero window mass."
+        },
+        "source_sha256": {
+          "scripts\\train_ml.py": "87ef3760d39f9195cb7b32be94dde6a645aef8826e4a9d80f1bcd5dc7dd5ebb1",
+          "src\\ml\\data.py": "026f87d7a66ce25bef778f2192846873fd0c2ea97544d662d4b92956309c355d",
+          "src\\ml\\dino.py": "3b3500ca19f228806ae7b06e68ccc848bf4c2b31473514cb2e5d9f221cd8fd27",
+          "src\\ml\\encounter_data.py": "cfc39153d8597e58af1799f609900e8a411f7a86c8b61869f442ea107a588335",
+          "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+          "src\\ml\\light_data.py": "61afa28137ebc04c70f851f28547bff41f9692e6c0534ec6468ac87ec3e2a10e",
+          "src\\ml\\model.py": "26f945f36894dc919db3dc9bbfea6c0bd5776fcd9ad25c5bc903aefaf74202cd",
+          "src\\ml\\network.py": "8333ac6a6ca3c1a52bd8e3fc0a495dff99fa77a7c09e11875ef0f28333d790f1"
+        },
+        "crop_aspect_ratio": 1.0
+      },
+      "checkpoint_history": [
+        {
+          "step": 400,
+          "selection_score": 0.4652127136644398
+        },
+        {
+          "step": 800,
+          "selection_score": 0.4339632620823874
+        },
+        {
+          "step": 1200,
+          "selection_score": 0.623921600184082
+        },
+        {
+          "step": 1600,
+          "selection_score": 0.6341809315039729
+        },
+        {
+          "step": 2000,
+          "selection_score": 0.4753594953041471
+        },
+        {
+          "step": 2400,
+          "selection_score": 0.47927398421893036
+        }
+      ],
+      "selected_validation_pixels_at_0_9": {
+        "antler-crown": {
+          "wall": {
+            "precision": 0.0,
+            "recall": null,
+            "iou": 0.0,
+            "truth_pixels": 0,
+            "predicted_pixels": 10,
+            "true_positive_pixels": 0
+          },
+          "door": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "window": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          }
+        },
+        "mothveil-lodge": {
+          "wall": {
+            "precision": 0.9911588913309399,
+            "recall": 0.9999197367364957,
+            "iou": 0.9910800409701574,
+            "truth_pixels": 99672,
+            "predicted_pixels": 100553,
+            "true_positive_pixels": 99664
+          },
+          "door": {
+            "precision": 1.0,
+            "recall": 0.06619385342789598,
+            "iou": 0.06619385342789598,
+            "truth_pixels": 846,
+            "predicted_pixels": 56,
+            "true_positive_pixels": 56
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": 0.0,
+            "recall": null,
+            "iou": 0.0,
+            "truth_pixels": 0,
+            "predicted_pixels": 211,
+            "true_positive_pixels": 0
+          },
+          "window": {
+            "precision": 0.7743330930064888,
+            "recall": 0.7793904208998549,
+            "iou": 0.6351271437019516,
+            "truth_pixels": 1378,
+            "predicted_pixels": 1387,
+            "true_positive_pixels": 1074
+          }
+        },
+        "rimebell-refuge": {
+          "wall": {
+            "precision": 1.0,
+            "recall": 0.9211339542469634,
+            "iou": 0.9211339542469634,
+            "truth_pixels": 46598,
+            "predicted_pixels": 42923,
+            "true_positive_pixels": 42923
+          },
+          "door": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "iou": 1.0,
+            "truth_pixels": 1386,
+            "predicted_pixels": 1386,
+            "true_positive_pixels": 1386
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": 1.0,
+            "recall": 0.15145631067961166,
+            "iou": 0.15145631067961166,
+            "truth_pixels": 1030,
+            "predicted_pixels": 156,
+            "true_positive_pixels": 156
+          },
+          "window": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          }
+        },
+        "stone": {
+          "wall": {
+            "precision": 0.9898409893992933,
+            "recall": 0.8065226519052965,
+            "iou": 0.7999014167098677,
+            "truth_pixels": 116701,
+            "predicted_pixels": 95088,
+            "true_positive_pixels": 94122
+          },
+          "door": {
+            "precision": 0.9740658114891244,
+            "recall": 0.41573434896453226,
+            "iou": 0.41118304885226603,
+            "truth_pixels": 8402,
+            "predicted_pixels": 3586,
+            "true_positive_pixels": 3493
+          },
+          "light": {
+            "precision": 1.0,
+            "recall": 0.9156976744186046,
+            "iou": 0.9156976744186046,
+            "truth_pixels": 1376,
+            "predicted_pixels": 1260,
+            "true_positive_pixels": 1260
+          },
+          "transparent_barrier": {
+            "precision": 0.9764017033356991,
+            "recall": 0.3897860886811163,
+            "iou": 0.38614834046733565,
+            "truth_pixels": 14118,
+            "predicted_pixels": 5636,
+            "true_positive_pixels": 5503
+          },
+          "window": {
+            "precision": 0.0,
+            "recall": null,
+            "iou": 0.0,
+            "truth_pixels": 0,
+            "predicted_pixels": 1598,
+            "true_positive_pixels": 0
+          }
+        },
+        "dyson-14": {
+          "wall": {
+            "precision": 0.9207882534775889,
+            "recall": 0.6209887573523937,
+            "iou": 0.589497119836025,
+            "truth_pixels": 26862,
+            "predicted_pixels": 18116,
+            "true_positive_pixels": 16681
+          },
+          "door": {
+            "precision": 0.7378694924707194,
+            "recall": 0.7495750708215297,
+            "iou": 0.5919463087248322,
+            "truth_pixels": 1765,
+            "predicted_pixels": 1793,
+            "true_positive_pixels": 1323
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "window": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          }
+        },
+        "cinderglass-basin": {
+          "wall": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "door": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "light": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "transparent_barrier": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          },
+          "window": {
+            "precision": null,
+            "recall": null,
+            "iou": null,
+            "truth_pixels": 0,
+            "predicted_pixels": 0,
+            "true_positive_pixels": 0
+          }
+        }
+      },
+      "runtime_evaluations": [
+        {
+          "appearance": "original",
+          "report": "outputs/Encounter ML review/v13-runtime-original/report.json",
+          "report_sha256": "38edf569847995ae4233aeb364aba2cbee8c3db1c0b25bab498b1af3b6c17c4d",
+          "experiment": {
+            "split": "validation",
+            "threshold": 0.9,
+            "geometry_thresholds": "profile",
+            "runs": 1,
+            "threads": 4,
+            "runtime_profile": "windows",
+            "settings": {
+              "max_dimension": 1536,
+              "grid_size": 70.0,
+              "wall_mode": "color",
+              "wall_color": [
+                160,
+                160,
+                160
+              ],
+              "wall_tolerance": 24,
+              "min_wall_area": 1000.0,
+              "simplify": 1.25,
+              "wall_gap_close": 0.0,
+              "wall_geometry": "outline",
+              "void_color": [
+                0,
+                0,
+                0
+              ],
+              "doors": true,
+              "door_color": [
+                112,
+                32,
+                144
+              ],
+              "door_match": "hue",
+              "door_color_tolerance": 24,
+              "door_hue_tolerance": 16,
+              "door_min_length": 12.0,
+              "door_max_length": 160.0,
+              "door_gap_close": 2.0,
+              "door_rectangularity": 0.78,
+              "door_wall_support": true,
+              "lights": true,
+              "light_mode": "warm",
+              "light_color": [
+                255,
+                190,
+                50
+              ],
+              "light_threshold": 190,
+              "light_min_area": 3,
+              "light_max_area": 5000.0,
+              "light_core_fraction": 0.06,
+              "light_min_fill": 0.25,
+              "light_saturation": 60,
+              "light_range": 6.0,
+              "model_path": "",
+              "ml_device": "auto",
+              "ml_profile": "windows",
+              "ml_wall_confidence": 0.9,
+              "ml_door_confidence": 0.9,
+              "ml_light_confidence": 0.9,
+              "ml_window_confidence": 0.93,
+              "ml_barrier_confidence": 0.97,
+              "ml_light_center_threshold": 0.35,
+              "ml_recover_jambs": true
+            },
+            "regression_checks_sha256": "ff4f316c5a5aaea2c944ca59ba87c246884fcac9ce360ea3b7168ae6ca7a65a2",
+            "appearance": {
+              "mode": "original",
+              "seed": null,
+              "operation": "identity"
+            }
+          },
+          "dataset": {
+            "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\dataset-v13-new-landscapes-v2\\combined-manifest.json",
+            "sha256": "e1708ead9f9b637e8ab9cd6072cc616ae87fe430297d87b68d849be8f84ba31f",
+            "classes": [
+              "background",
+              "wall",
+              "door",
+              "light",
+              "transparent_barrier",
+              "window"
+            ],
+            "evaluated_classes": [
+              "background",
+              "wall",
+              "door",
+              "light",
+              "transparent_barrier",
+              "window"
+            ]
+          },
+          "software": {
+            "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+            "torch": "2.11.0+cu128",
+            "opencv": "4.11.0",
+            "numpy": "2.2.2",
+            "cuda_device": "NVIDIA GeForce RTX 3080",
+            "source_sha256": {
+              "benchmarks\\evaluate_structures.py": "e96b5689ddf61b3acde579b7ceca5e90dcbe3efc2c172ef978068c157b3f2fce",
+              "src\\ml\\data.py": "026f87d7a66ce25bef778f2192846873fd0c2ea97544d662d4b92956309c355d",
+              "src\\ml\\dino.py": "3b3500ca19f228806ae7b06e68ccc848bf4c2b31473514cb2e5d9f221cd8fd27",
+              "src\\ml\\encounter_data.py": "cfc39153d8597e58af1799f609900e8a411f7a86c8b61869f442ea107a588335",
+              "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+              "src\\ml\\light_data.py": "61afa28137ebc04c70f851f28547bff41f9692e6c0534ec6468ac87ec3e2a10e",
+              "src\\ml\\model.py": "26f945f36894dc919db3dc9bbfea6c0bd5776fcd9ad25c5bc903aefaf74202cd",
+              "src\\ml\\network.py": "8333ac6a6ca3c1a52bd8e3fc0a495dff99fa77a7c09e11875ef0f28333d790f1",
+              "src\\core\\background_remover.py": "e184a80276f68fc24021a56980d22ac3a6cf569081bc9beedb282639650008ea",
+              "src\\core\\contour_processor.py": "c3e5d562d8723f182762abd2bcd8b0ee7e727ef90fb1c5786df0db209d74433c",
+              "src\\core\\detection_profiles.py": "6ba56e6ba1e8849779f9f0e6ad3a48dd8e539fb86ce511383d8b87574cb2e596",
+              "src\\core\\fast_pipeline.py": "c4fe68d45c269c7424dcc6f2a134d0f4f8fe721015d750ef558b30ef5e8dad6d",
+              "src\\core\\foundry_export.py": "3372ce883757e1687428468e266bb76c8d89e420324a45e24013e7c41e454117",
+              "src\\core\\image_processor.py": "4e2b51b892a4efe5042fa10cdfdc590208e2d5ffeb9904c2c29e27b16e060109",
+              "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+              "src\\core\\mask_processor.py": "dc6405d50a153f9ce32e58859580f68c3d684ad1d494806af19d491641d3c716",
+              "src\\core\\mode_manager.py": "beac0b09f142b9b36c758fbefebfbce8509a75fd1356391c51beef217d5ce232",
+              "src\\core\\native_geometry.py": "3df7b3c57e01b6148f351f8f72eaf82676c75d67eb0ca288d79719a1e92fe022",
+              "src\\core\\selection.py": "66eaa0a9b43e0d887aaf076974283e3cce60116eefa8319e15e7807529f21d40",
+              "src\\core\\wall_editing.py": "ef84c8a96d286acdf1ac727e65a981455c96f0044cf98beeecac5ebb86de691f",
+              "src\\core\\wall_geometry.py": "2c95dbd38bcdfdf1215f3c15b4361bd897972d5f35f0d75d94080d4ff4b30ee3"
+            }
+          },
+          "samples": [
+            {
+              "id": "antler-crown",
+              "source_hashes": {
+                "image_file_sha256": "7a12b0173c91be4a7197b552a57539830aef693c2815d2de4e9fd256e8dc7383",
+                "decoded_image_sha256": "3d5cf08663902cb40d1c784a9200b8cdd0bf2a5e116c5f401ae67e679ca21085",
+                "label_file_sha256": "8f8f928ac0801fd2301c502999d2aaa0502ac7860af1db09c6bd13de12aaa853",
+                "decoded_label_sha256": "ff8ba2af0ee28acd6bb8bb5c9f59a16534118b29712ca19082c13a2248d084e6",
+                "evaluated_image_sha256": "3d5cf08663902cb40d1c784a9200b8cdd0bf2a5e116c5f401ae67e679ca21085",
+                "structure_annotations_sha256": "7c44caa7a2f1c0ef7ed52a270bfa4833ed9ba9082f1c9cb1a64250f3d3ee3b44"
+              },
+              "geometry": {
+                "opaque_wall_segments": 0,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "forest-clearing",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "no-object-walls",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 1,
+                    "total": 1
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 1
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "mothveil-lodge",
+              "source_hashes": {
+                "image_file_sha256": "50be15cd04a06658458a81268941e6319c81fd32f81f48eb99182ddfde8e46b3",
+                "decoded_image_sha256": "b9e1524f4fe5bc47feb48bdbf14932bd88ff36d681b440596907a56dd17f84c2",
+                "label_file_sha256": "318baf8c5d824e38e40d8b0f5844dd6dd963c71a8cb0344e4d9e41cf09dbd8dd",
+                "decoded_label_sha256": "77b0cc7edd90cd0ecaedf4f1281c27b1248593119b9f94cf87d26b489c3acbdc",
+                "evaluated_image_sha256": "b9e1524f4fe5bc47feb48bdbf14932bd88ff36d681b440596907a56dd17f84c2",
+                "structure_annotations_sha256": "3aaa24ab9bbcf01a0b39863f00c96063d7e3918d46499f32cee7e6c4e47b3991"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1579,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 3,
+                "lights": 1
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 1,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 0.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [
+                      0
+                    ],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 1,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 0.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [
+                      0
+                    ],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "main-west-wall",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "source-door",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "blue-window-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "blue-window-movement",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  },
+                  {
+                    "id": "courtyard-floor",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "bedroom-floor",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 4,
+                    "total": 4
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 2
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              },
+              "regression_checks": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "bedroom-rug-edge-is-not-a-wall",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "window-upper-frame-has-no-movement-gap",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  },
+                  {
+                    "id": "window-lower-frame-has-no-movement-gap",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 0,
+                    "total": 0
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 3
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "rimebell-refuge",
+              "source_hashes": {
+                "image_file_sha256": "c70f1661a5b733ebad492d410338a40424b1717e2043a95ef174603010643678",
+                "decoded_image_sha256": "d4147c29900abb02b723a760c6ccae370ecb72bdad70c43bc6f95cce95347b6d",
+                "label_file_sha256": "8318a5984ee836f4fb5980cccad4f1a712fa1a260af00b977a6b410af0407402",
+                "decoded_label_sha256": "1e21395b823fbd4f09df97ff5ed5bee3a0a7c020d66203a592959d07821e0b25",
+                "evaluated_image_sha256": "d4147c29900abb02b723a760c6ccae370ecb72bdad70c43bc6f95cce95347b6d",
+                "structure_annotations_sha256": "40504bafce2fd04545de5c639290b168321cc4062d0d873e1b89a1a235d91d3c"
+              },
+              "geometry": {
+                "opaque_wall_segments": 370,
+                "door_spans": 3,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 1
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 3,
+                    "truth_count": 3,
+                    "prediction_count": 3,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 1.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": 3.155953347592084,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "main-west-wall",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "south-door",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "canvas-and-rocks",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "fence-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "fence-movement",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 3,
+                    "total": 3
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 2
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              },
+              "regression_checks": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 3,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": [
+                      0,
+                      1,
+                      2
+                    ]
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "snow-cliff-left-is-not-opaque",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "snow-cliff-middle-is-not-opaque",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 2,
+                    "total": 2
+                  },
+                  "movement": {
+                    "passed": 0,
+                    "total": 0
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "stone",
+              "source_hashes": {
+                "image_file_sha256": "af61029dec1e45b55ba61343755714e5103fcaba9bbc1726ea4a664a2ca0111e",
+                "decoded_image_sha256": "59b73eea960a0524ffed302c59f01c94ac4daf65617d7ce2ed4f7c7bfc9da9a9",
+                "label_file_sha256": "cf12c065ef41283482cf090180cc003518ea7fe7d6151af2deca85539bcdef32",
+                "decoded_label_sha256": "2553747dad458c6f2262d8721aa55f84e63b038786fdb623b0d303bc007b9af1",
+                "evaluated_image_sha256": "59b73eea960a0524ffed302c59f01c94ac4daf65617d7ce2ed4f7c7bfc9da9a9"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1654,
+                "door_spans": 2,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 29,
+                "lights": 10
+              }
+            },
+            {
+              "id": "dyson-14",
+              "source_hashes": {
+                "image_file_sha256": "4ace0a00828f531a224cdc90b3ff6ea0721d5cf3e6afc34423d303669f8232cc",
+                "decoded_image_sha256": "9b9c48ee22dc87b78f7b9855c73af083d023633b2489606e17c18fc348ebd7b5",
+                "label_file_sha256": "40e5d056c8871fd3a6d1b24fcdc021b3910fa677acb03ec7653348c30f4d6c3f",
+                "decoded_label_sha256": "bf4ae8996415b4ca9424c2df1134376151148d70b82a93b028c7b389520fde14",
+                "evaluated_image_sha256": "9b9c48ee22dc87b78f7b9855c73af083d023633b2489606e17c18fc348ebd7b5"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1445,
+                "door_spans": 1,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              }
+            },
+            {
+              "id": "cinderglass-basin",
+              "source_hashes": {
+                "image_file_sha256": "4755bcdf638b46daf12ebf664954ac31348fa06bcc0add5edb3c239afdeee9b5",
+                "decoded_image_sha256": "c3585bca39db5783ea755b9f8039c8d7e1766c2d3e8d08f88a8b5dfe52f6a2d2",
+                "label_file_sha256": "91d08608d22c351342f29e2bf60327177cce5cbfa5004187ae7215160d921d97",
+                "decoded_label_sha256": "ddef25397d3761fdb84426418b8eefc32c98bcccfff32979664faa5710c8459f",
+                "evaluated_image_sha256": "c3585bca39db5783ea755b9f8039c8d7e1766c2d3e8d08f88a8b5dfe52f6a2d2",
+                "structure_annotations_sha256": "b4f5088eb089000985427f27aada48b60315f621a92ac0dba50905f1e1c2f566"
+              },
+              "geometry": {
+                "opaque_wall_segments": 0,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": true,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "false_positive_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": true,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "false_positive_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "landscape-center-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "landscape-center-movement",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 1,
+                    "total": 1
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 1
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives.",
+                "structure_free": {
+                  "passed": true,
+                  "exported_counts": {
+                    "opaque_wall_segments": 0,
+                    "door_spans": 0,
+                    "window_spans": 0,
+                    "window_face_segments": 0,
+                    "movement_only_segments": 0
+                  },
+                  "scope": "All exported structures across the full image, including pixels with unknown segmentation labels. Lights and review-only barrier candidates are not assessed."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "appearance": "recolored",
+          "report": "outputs/Encounter ML review/v13-runtime-recolored/report.json",
+          "report_sha256": "b5994a6933a6c508df02b6be221602618cf76931374cd9808cf8377ccf34a05f",
+          "experiment": {
+            "split": "validation",
+            "threshold": 0.9,
+            "geometry_thresholds": "profile",
+            "runs": 1,
+            "threads": 4,
+            "runtime_profile": "windows",
+            "settings": {
+              "max_dimension": 1536,
+              "grid_size": 70.0,
+              "wall_mode": "color",
+              "wall_color": [
+                160,
+                160,
+                160
+              ],
+              "wall_tolerance": 24,
+              "min_wall_area": 1000.0,
+              "simplify": 1.25,
+              "wall_gap_close": 0.0,
+              "wall_geometry": "outline",
+              "void_color": [
+                0,
+                0,
+                0
+              ],
+              "doors": true,
+              "door_color": [
+                112,
+                32,
+                144
+              ],
+              "door_match": "hue",
+              "door_color_tolerance": 24,
+              "door_hue_tolerance": 16,
+              "door_min_length": 12.0,
+              "door_max_length": 160.0,
+              "door_gap_close": 2.0,
+              "door_rectangularity": 0.78,
+              "door_wall_support": true,
+              "lights": true,
+              "light_mode": "warm",
+              "light_color": [
+                255,
+                190,
+                50
+              ],
+              "light_threshold": 190,
+              "light_min_area": 3,
+              "light_max_area": 5000.0,
+              "light_core_fraction": 0.06,
+              "light_min_fill": 0.25,
+              "light_saturation": 60,
+              "light_range": 6.0,
+              "model_path": "",
+              "ml_device": "auto",
+              "ml_profile": "windows",
+              "ml_wall_confidence": 0.9,
+              "ml_door_confidence": 0.9,
+              "ml_light_confidence": 0.9,
+              "ml_window_confidence": 0.93,
+              "ml_barrier_confidence": 0.97,
+              "ml_light_center_threshold": 0.35,
+              "ml_recover_jambs": true
+            },
+            "regression_checks_sha256": "ff4f316c5a5aaea2c944ca59ba87c246884fcac9ce360ea3b7168ae6ca7a65a2",
+            "appearance": {
+              "mode": "recolored",
+              "name": "seeded_bgr_mix_gain_tint_v1",
+              "seed": 20261024,
+              "channel_order_bgr": [
+                0,
+                2,
+                1
+              ],
+              "mixing_matrix": [
+                [
+                  0.5667464137077332,
+                  0.2972317636013031,
+                  0.13602185249328613
+                ],
+                [
+                  0.16633370518684387,
+                  0.618232250213623,
+                  0.21543407440185547
+                ],
+                [
+                  0.27193117141723633,
+                  0.0918416678905487,
+                  0.6362271904945374
+                ]
+              ],
+              "gains_bgr": [
+                1.2488281791706117,
+                0.7550297021144718,
+                1.1190652555319047
+              ],
+              "tint_bgr": [
+                22.0,
+                -12.0,
+                13.0
+              ],
+              "formula": "clip((mix(permuted_BGR) * gains_BGR) + tint_BGR, 0, 255), rounded to uint8",
+              "paired_test_caveat": "This deterministic global color transform tests color robustness on the same maps; it is not an independent art style or map-layout evaluation."
+            }
+          },
+          "dataset": {
+            "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\dataset-v13-new-landscapes-v2\\combined-manifest.json",
+            "sha256": "e1708ead9f9b637e8ab9cd6072cc616ae87fe430297d87b68d849be8f84ba31f",
+            "classes": [
+              "background",
+              "wall",
+              "door",
+              "light",
+              "transparent_barrier",
+              "window"
+            ],
+            "evaluated_classes": [
+              "background",
+              "wall",
+              "door",
+              "light",
+              "transparent_barrier",
+              "window"
+            ]
+          },
+          "software": {
+            "python": "3.13.1 (tags/v3.13.1:0671451, Dec  3 2024, 19:06:28) [MSC v.1942 64 bit (AMD64)]",
+            "torch": "2.11.0+cu128",
+            "opencv": "4.11.0",
+            "numpy": "2.2.2",
+            "cuda_device": "NVIDIA GeForce RTX 3080",
+            "source_sha256": {
+              "benchmarks\\evaluate_structures.py": "e96b5689ddf61b3acde579b7ceca5e90dcbe3efc2c172ef978068c157b3f2fce",
+              "src\\ml\\data.py": "026f87d7a66ce25bef778f2192846873fd0c2ea97544d662d4b92956309c355d",
+              "src\\ml\\dino.py": "3b3500ca19f228806ae7b06e68ccc848bf4c2b31473514cb2e5d9f221cd8fd27",
+              "src\\ml\\encounter_data.py": "cfc39153d8597e58af1799f609900e8a411f7a86c8b61869f442ea107a588335",
+              "src\\ml\\light_centers.py": "306c549eb9336123180f6a9c828703f1015963965f8aa6cc5b56f630c1058844",
+              "src\\ml\\light_data.py": "61afa28137ebc04c70f851f28547bff41f9692e6c0534ec6468ac87ec3e2a10e",
+              "src\\ml\\model.py": "26f945f36894dc919db3dc9bbfea6c0bd5776fcd9ad25c5bc903aefaf74202cd",
+              "src\\ml\\network.py": "8333ac6a6ca3c1a52bd8e3fc0a495dff99fa77a7c09e11875ef0f28333d790f1",
+              "src\\core\\background_remover.py": "e184a80276f68fc24021a56980d22ac3a6cf569081bc9beedb282639650008ea",
+              "src\\core\\contour_processor.py": "c3e5d562d8723f182762abd2bcd8b0ee7e727ef90fb1c5786df0db209d74433c",
+              "src\\core\\detection_profiles.py": "6ba56e6ba1e8849779f9f0e6ad3a48dd8e539fb86ce511383d8b87574cb2e596",
+              "src\\core\\fast_pipeline.py": "c4fe68d45c269c7424dcc6f2a134d0f4f8fe721015d750ef558b30ef5e8dad6d",
+              "src\\core\\foundry_export.py": "3372ce883757e1687428468e266bb76c8d89e420324a45e24013e7c41e454117",
+              "src\\core\\image_processor.py": "4e2b51b892a4efe5042fa10cdfdc590208e2d5ffeb9904c2c29e27b16e060109",
+              "src\\core\\light_geometry.py": "89827de42d912f55095cef0e1570da2e7e5f12032e0aace86eb18d92c014910f",
+              "src\\core\\mask_processor.py": "dc6405d50a153f9ce32e58859580f68c3d684ad1d494806af19d491641d3c716",
+              "src\\core\\mode_manager.py": "beac0b09f142b9b36c758fbefebfbce8509a75fd1356391c51beef217d5ce232",
+              "src\\core\\native_geometry.py": "3df7b3c57e01b6148f351f8f72eaf82676c75d67eb0ca288d79719a1e92fe022",
+              "src\\core\\selection.py": "66eaa0a9b43e0d887aaf076974283e3cce60116eefa8319e15e7807529f21d40",
+              "src\\core\\wall_editing.py": "ef84c8a96d286acdf1ac727e65a981455c96f0044cf98beeecac5ebb86de691f",
+              "src\\core\\wall_geometry.py": "2c95dbd38bcdfdf1215f3c15b4361bd897972d5f35f0d75d94080d4ff4b30ee3"
+            }
+          },
+          "samples": [
+            {
+              "id": "antler-crown",
+              "source_hashes": {
+                "image_file_sha256": "7a12b0173c91be4a7197b552a57539830aef693c2815d2de4e9fd256e8dc7383",
+                "decoded_image_sha256": "3d5cf08663902cb40d1c784a9200b8cdd0bf2a5e116c5f401ae67e679ca21085",
+                "label_file_sha256": "8f8f928ac0801fd2301c502999d2aaa0502ac7860af1db09c6bd13de12aaa853",
+                "decoded_label_sha256": "ff8ba2af0ee28acd6bb8bb5c9f59a16534118b29712ca19082c13a2248d084e6",
+                "evaluated_image_sha256": "6d49221f6f54c5980ae8fd0d5c8e8ed155886ffd6f1b7126b23ffc159da12154",
+                "structure_annotations_sha256": "7c44caa7a2f1c0ef7ed52a270bfa4833ed9ba9082f1c9cb1a64250f3d3ee3b44"
+              },
+              "geometry": {
+                "opaque_wall_segments": 0,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "forest-clearing",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "no-object-walls",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 1,
+                    "total": 1
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 1
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "mothveil-lodge",
+              "source_hashes": {
+                "image_file_sha256": "50be15cd04a06658458a81268941e6319c81fd32f81f48eb99182ddfde8e46b3",
+                "decoded_image_sha256": "b9e1524f4fe5bc47feb48bdbf14932bd88ff36d681b440596907a56dd17f84c2",
+                "label_file_sha256": "318baf8c5d824e38e40d8b0f5844dd6dd963c71a8cb0344e4d9e41cf09dbd8dd",
+                "decoded_label_sha256": "77b0cc7edd90cd0ecaedf4f1281c27b1248593119b9f94cf87d26b489c3acbdc",
+                "evaluated_image_sha256": "5d83c21cf18bfd02685c72cbd28c437be82af748fbf73d268216f1e5da2750c7",
+                "structure_annotations_sha256": "3aaa24ab9bbcf01a0b39863f00c96063d7e3918d46499f32cee7e6c4e47b3991"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1426,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 3,
+                "lights": 1
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 1,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 0.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [
+                      0
+                    ],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 1,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 0.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [
+                      0
+                    ],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "main-west-wall",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "source-door",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "blue-window-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "blue-window-movement",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  },
+                  {
+                    "id": "courtyard-floor",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "bedroom-floor",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 4,
+                    "total": 4
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 2
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              },
+              "regression_checks": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "bedroom-rug-edge-is-not-a-wall",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "window-upper-frame-has-no-movement-gap",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  },
+                  {
+                    "id": "window-lower-frame-has-no-movement-gap",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 0,
+                    "total": 0
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 3
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "rimebell-refuge",
+              "source_hashes": {
+                "image_file_sha256": "c70f1661a5b733ebad492d410338a40424b1717e2043a95ef174603010643678",
+                "decoded_image_sha256": "d4147c29900abb02b723a760c6ccae370ecb72bdad70c43bc6f95cce95347b6d",
+                "label_file_sha256": "8318a5984ee836f4fb5980cccad4f1a712fa1a260af00b977a6b410af0407402",
+                "decoded_label_sha256": "1e21395b823fbd4f09df97ff5ed5bee3a0a7c020d66203a592959d07821e0b25",
+                "evaluated_image_sha256": "f7282ab0288409016a627dff277039b6c96602821db3174c8344df5b85a53a9f",
+                "structure_annotations_sha256": "40504bafce2fd04545de5c639290b168321cc4062d0d873e1b89a1a235d91d3c"
+              },
+              "geometry": {
+                "opaque_wall_segments": 379,
+                "door_spans": 3,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 3,
+                    "truth_count": 3,
+                    "prediction_count": 3,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": 1.0,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": 3.0591329992558474,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "main-west-wall",
+                    "sense": "sight",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "south-door",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "blocked",
+                    "passed": true
+                  },
+                  {
+                    "id": "canvas-and-rocks",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "fence-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "fence-movement",
+                    "sense": "movement",
+                    "expect": "blocked",
+                    "actual": "open",
+                    "passed": false
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 3,
+                    "total": 3
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 2
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              },
+              "regression_checks": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 3,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": [
+                      0,
+                      1,
+                      2
+                    ]
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": false,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "unassessed_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "snow-cliff-left-is-not-opaque",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "snow-cliff-middle-is-not-opaque",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 2,
+                    "total": 2
+                  },
+                  "movement": {
+                    "passed": 0,
+                    "total": 0
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives."
+              }
+            },
+            {
+              "id": "stone",
+              "source_hashes": {
+                "image_file_sha256": "af61029dec1e45b55ba61343755714e5103fcaba9bbc1726ea4a664a2ca0111e",
+                "decoded_image_sha256": "59b73eea960a0524ffed302c59f01c94ac4daf65617d7ce2ed4f7c7bfc9da9a9",
+                "label_file_sha256": "cf12c065ef41283482cf090180cc003518ea7fe7d6151af2deca85539bcdef32",
+                "decoded_label_sha256": "2553747dad458c6f2262d8721aa55f84e63b038786fdb623b0d303bc007b9af1",
+                "evaluated_image_sha256": "cc92accfa64808e405d2f3f561bf43953db20471b839da02e5651ce729f1fc2a"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1794,
+                "door_spans": 2,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 30,
+                "lights": 9
+              }
+            },
+            {
+              "id": "dyson-14",
+              "source_hashes": {
+                "image_file_sha256": "4ace0a00828f531a224cdc90b3ff6ea0721d5cf3e6afc34423d303669f8232cc",
+                "decoded_image_sha256": "9b9c48ee22dc87b78f7b9855c73af083d023633b2489606e17c18fc348ebd7b5",
+                "label_file_sha256": "40e5d056c8871fd3a6d1b24fcdc021b3910fa677acb03ec7653348c30f4d6c3f",
+                "decoded_label_sha256": "bf4ae8996415b4ca9424c2df1134376151148d70b82a93b028c7b389520fde14",
+                "evaluated_image_sha256": "89dcce75c17d95cc368890032eb1a442655ce0beb9fcc92c4936813da120aae7"
+              },
+              "geometry": {
+                "opaque_wall_segments": 1367,
+                "door_spans": 2,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              }
+            },
+            {
+              "id": "cinderglass-basin",
+              "source_hashes": {
+                "image_file_sha256": "4755bcdf638b46daf12ebf664954ac31348fa06bcc0add5edb3c239afdeee9b5",
+                "decoded_image_sha256": "c3585bca39db5783ea755b9f8039c8d7e1766c2d3e8d08f88a8b5dfe52f6a2d2",
+                "label_file_sha256": "91d08608d22c351342f29e2bf60327177cce5cbfa5004187ae7215160d921d97",
+                "decoded_label_sha256": "ddef25397d3761fdb84426418b8eefc32c98bcccfff32979664faa5710c8459f",
+                "evaluated_image_sha256": "b9665ada5ff4f9c1d932b020790678eb7a80ade033c3b2f8eb90f98bc6914a4b",
+                "structure_annotations_sha256": "b4f5088eb089000985427f27aada48b60315f621a92ac0dba50905f1e1c2f566"
+              },
+              "geometry": {
+                "opaque_wall_segments": 0,
+                "door_spans": 0,
+                "window_spans": 0,
+                "transparent_barrier_segments": 0,
+                "movement_only_segments": 0,
+                "lights": 0
+              },
+              "geometry_annotations": {
+                "reference_size": [
+                  1536.0,
+                  1024.0
+                ],
+                "coordinate_size": [
+                  1536,
+                  1024
+                ],
+                "spans": {
+                  "doors": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": true,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "false_positive_prediction_indices": []
+                  },
+                  "windows": {
+                    "matched": 0,
+                    "truth_count": 0,
+                    "prediction_count": 0,
+                    "complete_annotation": true,
+                    "tolerance_pixels": 8.0,
+                    "precision": null,
+                    "recall": null,
+                    "f0_5": null,
+                    "mean_endpoint_error_pixels": null,
+                    "missed_annotated_indices": [],
+                    "false_positive_prediction_indices": []
+                  }
+                },
+                "rays": [
+                  {
+                    "id": "landscape-center-sight",
+                    "sense": "sight",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  },
+                  {
+                    "id": "landscape-center-movement",
+                    "sense": "movement",
+                    "expect": "open",
+                    "actual": "open",
+                    "passed": true
+                  }
+                ],
+                "ray_summary": {
+                  "sight": {
+                    "passed": 1,
+                    "total": 1
+                  },
+                  "movement": {
+                    "passed": 1,
+                    "total": 1
+                  }
+                },
+                "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
+                "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives.",
+                "structure_free": {
+                  "passed": true,
+                  "exported_counts": {
+                    "opaque_wall_segments": 0,
+                    "door_spans": 0,
+                    "window_spans": 0,
+                    "window_face_segments": 0,
+                    "movement_only_segments": 0
+                  },
+                  "scope": "All exported structures across the full image, including pixels with unknown segmentation labels. Lights and review-only barrier candidates are not assessed."
+                }
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "validation": {
@@ -8074,26 +9942,36 @@
       "command": "python -B -m ruff check src/ml/data.py src/ml/encounter_data.py scripts/train_ml.py benchmarks/evaluate_structures.py tests/test_ml.py tests/test_ml_teacher.py tests/test_encounter_training.py tests/test_structure_metrics.py",
       "result": "All checks passed."
     },
-    "remote_ci": {
-      "source_head": "8788d7c1ef0bae6a92b3209e2b0d2f03e7616894",
-      "url": "https://github.com/Wes2000ley/auto-wall/actions/runs/40086187954",
-      "result": "success",
-      "passed": 240,
+    "previous_packaging_ci_failure": {
+      "source_head": "39655ec539ff80cddee9bea471dcf89a58303cbc",
+      "url": "https://github.com/Wes2000ley/auto-wall/actions/runs/40090531397",
+      "result": "failure",
+      "passed": 257,
+      "failed": 2,
       "skipped_cuda_checks": 4,
-      "seconds": 31.91
+      "seconds": 35.42,
+      "cause": "Git line-ending conversion changed stored annotation bytes, invalidating review hashes outside the working checkout. Fixed with scoped JSON -text attributes and renormalization; exact staged bytes were then checked against the review hashes."
+    },
+    "remote_ci": {
+      "source_head": "e89ac844b0fe3cb29732951be3d2c5e9a2c3f6e5",
+      "url": "https://github.com/Wes2000ley/auto-wall/actions/runs/40090627502",
+      "result": "success",
+      "passed": 259,
+      "skipped_cuda_checks": 4,
+      "seconds": 31.66
     },
     "installed_smoke": {
-      "source_head": "8788d7c1ef0bae6a92b3209e2b0d2f03e7616894",
+      "source_head": "e89ac844b0fe3cb29732951be3d2c5e9a2c3f6e5",
       "installed_model_sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
       "legacy_light_head_preserved": true,
       "actual_map_inference_backend": "torch-cuda",
-      "actual_map_inference_seconds": 2.6911194999702275,
+      "actual_map_inference_seconds": 2.5822418000316247,
       "real_map_source_modified": false,
       "gui_settings_roundtrip": true,
       "close_before_queued_detection": true,
       "synthetic_export_walls": 11,
       "model_accuracy_claim": false,
-      "checked_installed_file_hashes": 68
+      "checked_installed_file_hashes": 80
     }
   },
   "additional_training_data": {
