@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import cv2
 import json
+import hashlib
 
 from benchmarks.evaluate_structures import (
     background_false_structural,
@@ -19,7 +20,7 @@ from benchmarks.evaluate_structures import (
     summarize_maps,
 )
 from src.core.fast_pipeline import DetectionResult
-from src.core.fast_pipeline import FastSettings
+from src.core.fast_pipeline import FastSettings, detect_map
 from src.ml.network import BattlemapNet, LEGACY_CLASSES, WINDOW_CLASSES
 import torch
 
@@ -262,6 +263,38 @@ def test_geometry_preview_shows_exported_window_faces_instead_of_editing_axis(tm
     assert not np.array_equal(preview[84 + 50, 45], image[50, 45])
     assert not np.array_equal(preview[84 + 50, 55], image[50, 55])
     np.testing.assert_array_equal(preview[84 + 50, 50], image[50, 50])
+
+
+def test_downscaled_map_cache_replays_exact_geometry_and_preserves_source_coordinates(tmp_path):
+    image = np.zeros((512, 768, 3), np.uint8)
+    truth = np.full(image.shape[:2], 255, np.uint8)
+    raw = np.zeros((256, 384), np.uint8)
+    raw[32:160, 80:120] = 1
+    raw[200:224, 120:320] = 4
+    confidence = np.linspace(.90001, .99991, raw.size, dtype=np.float32).reshape(raw.shape)
+    settings = FastSettings(max_dimension=384, ml_profile="windows", lights=False, min_wall_area=0)
+    original = detect_map(image, settings, prediction=(raw, confidence))
+    assert original.walls and original.invisible_walls
+
+    artifacts = _write_sample_visuals(tmp_path, "scaled", image, truth, raw, confidence, .9,
+                                      WINDOW_CLASSES, original)
+    cache = artifacts["working_prediction"]
+    saved_labels = cv2.imread(str(tmp_path / cache["labels"]["path"]), cv2.IMREAD_UNCHANGED)
+    saved_confidence = np.load(tmp_path / cache["confidence"]["path"], allow_pickle=False)
+    assert cache["size"] == [384, 256]
+    np.testing.assert_array_equal(saved_labels, raw)
+    np.testing.assert_array_equal(saved_confidence, confidence)
+    assert saved_confidence.dtype == confidence.dtype
+    assert cv2.imread(str(tmp_path / "scaled-raw-labels.bmp"), 0).shape == image.shape[:2]
+    replay = detect_map(image, settings, prediction=(saved_labels, saved_confidence))
+    geometry = json.loads((tmp_path / artifacts["source_geometry"]["path"]).read_text())
+    assert geometry["coordinate_system"] == "source_image_pixels"
+    assert [geometry["width"], geometry["height"]] == [768, 512]
+    for field in ("walls", "doors", "windows", "window_faces", "invisible_walls"):
+        np.testing.assert_array_equal(getattr(replay, field), getattr(original, field))
+        np.testing.assert_array_equal(geometry[field], getattr(original, field))
+    for item in (cache["labels"], cache["confidence"], artifacts["source_geometry"]):
+        assert hashlib.sha256((tmp_path / item["path"]).read_bytes()).hexdigest() == item["sha256"]
 
 
 def test_recolored_appearance_is_seeded_and_turns_gray_and_purple_into_other_colors():

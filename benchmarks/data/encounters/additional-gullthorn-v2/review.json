@@ -1,0 +1,21 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "parent_annotation_sha256": "ef133da995c3f93b0785495ff3e1bb4be78552299084a7aae807980954de772d",
+  "parent_split_sha256": "1d820811535ba352107f76052164271725370e4d863fcd753cc926ec4bfae3ff",
+  "scope": "Primary source-reviewed platform floor and crate interiors. Failure analysis motivated the areas to inspect; source artwork determined every label. All earlier partial supervision and splits preserved. No claim of independent human correction or complete topology.",
+  "source_crop_sha256": "989d0beeb156358bd859d87d2814415bedfea68e8a97d55d984077708d4a272d",
+  "preview_sha256": "5329dca2267dc2603910e6dee97a08ca67ed03a1d515ef9f02be367039fd071a",
+  "samples": {
+    "gullthorn-blind": {
+      "status": "accepted",
+      "reviewer": "primary native-coordinate source and 5x raster-overlay review",
+      "source_sha256": "e7e179b058d12571f21121a95d7545274b33faa04bb0073150b02f86050c359b",
+      "annotation_sha256": "08cc4dcfed89ff7fdb2b4659b22a0643f8ca4248a1fcbcc88b6319572179fb8b",
+      "mask_sha256": "79f272c64a494c0e1e8f6a3ff0776ee874a35d0ebc859587cc6d5b69078fe0c2",
+      "added_background_pixels": 2697,
+      "added_fence_pixels": 0,
+      "notes": "Three negative polygons change only unknown pixels to background. Existing 1622 guardrail-positive pixels remain unchanged. Tree, ladder, lantern and unreviewed boundaries stay outside the new polygons. Training layout only; validation and final-test annotations unchanged."
+    }
+  }
+}

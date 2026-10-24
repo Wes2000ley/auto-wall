@@ -288,3 +288,83 @@ def test_new_landscape_negatives_preserve_splits_and_exclude_uncertain_emitters(
             assert len(item["regions"]) == 9 and mask[750, 830] == mask[670, 0] == 255
         else:
             assert mask[670, 625] == 255  # Ambiguous bright treasure stays unlabelled.
+
+
+def test_additional_gullthorn_rails_preserve_supervision_and_full_span_passages():
+    from benchmarks.evaluate_structures import evaluate_structure_annotations
+    from src.core.fast_pipeline import FastSettings, detect_map
+
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    parent_path = root / "partial-source-v2/annotations/gullthorn-blind.json"
+    split_path = root / "partial-source-v2/splits.json"
+    addition = root / "additional-gullthorn-v1"
+    path = addition / "gullthorn-blind.json"
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    split = json.loads((addition / "splits.json").read_text(encoding="utf-8"))
+    assert split == {"gullthorn-blind": "train"}
+    assert split["gullthorn-blind"] == json.loads(split_path.read_text())["gullthorn-blind"]
+    assert review["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    assert review["parent_split_sha256"] == hashlib.sha256(split_path.read_bytes()).hexdigest()
+    inherited = {**item, "strokes": item["strokes"][:-11], "regions": item["regions"][:-2],
+                 "rays": item["rays"][:-2], "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    assert all(stroke["class"] == "transparent_barrier" for stroke in item["strokes"][-11:])
+    assert all(region["class"] == "background" for region in item["regions"][-2:])
+    size = (item["width"], item["height"])
+    before, after = (rasterize_annotation(annotation, size) for annotation in (parent, item))
+    changed = before != after
+    assert np.all(before[changed] == 255)
+    assert int((changed & (after == 4)).sum()) == 1622
+    assert int((changed & (after == 0)).sum()) == 884
+    accepted = review["samples"]["gullthorn-blind"]
+    assert accepted["status"] == "accepted" and accepted["source_sha256"] == item["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+    # Unknown pixels are neutral only for this partial-label extraction oracle;
+    # they remain 255 in the training raster and are never assumed correct.
+    detection = detect_map(np.zeros((*after.shape, 3), np.uint8),
+                           FastSettings(ml_profile="windows", lights=False, min_wall_area=0, max_dimension=0),
+                           prediction=(np.where(after == 255, 0, after).astype(np.uint8),
+                                       np.full(after.shape, .99, np.float32)))
+    checks = evaluate_structure_annotations(detection, structure_checks(item), (*after.shape, 3))
+    assert checks["ray_summary"] == {"sight": {"passed": 1, "total": 1},
+                                      "movement": {"passed": 1, "total": 1}}
+
+
+def test_gullthorn_boundary_negatives_preserve_rails_and_exclude_only_reviewed_floor_and_crates():
+    from benchmarks.evaluate_structures import evaluate_structure_annotations
+    from src.core.fast_pipeline import FastSettings, detect_map
+
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    parent_path = root / "additional-gullthorn-v1/gullthorn-blind.json"
+    addition = root / "additional-gullthorn-v2"
+    path = addition / "gullthorn-blind.json"
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    assert review["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    assert review["parent_split_sha256"] == hashlib.sha256(
+        (root / "additional-gullthorn-v1/splits.json").read_bytes()).hexdigest()
+    assert json.loads((addition / "splits.json").read_text()) == {"gullthorn-blind": "train"}
+    inherited = {**item, "regions": item["regions"][:-3], "rays": item["rays"][:-2],
+                 "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    before, after = (rasterize_annotation(a, (item["width"], item["height"])) for a in (parent, item))
+    changed = before != after
+    assert changed.sum() == 2697 and np.all(before[changed] == 255) and np.all(after[changed] == 0)
+    assert np.array_equal(after[before != 255], before[before != 255])
+    assert (after == 4).sum() == 1622 and after[285, 840] == 255  # Ladder stays unlabelled.
+    accepted = review["samples"]["gullthorn-blind"]
+    assert accepted["status"] == "accepted" and accepted["source_sha256"] == item["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+    # This oracle checks the annotation/extraction interface, not model accuracy.
+    detection = detect_map(np.zeros((*after.shape, 3), np.uint8),
+                           FastSettings(ml_profile="windows", lights=False, min_wall_area=0, max_dimension=0),
+                           prediction=(np.where(after == 255, 0, after).astype(np.uint8),
+                                       np.full(after.shape, .99, np.float32)))
+    checks = evaluate_structure_annotations(detection, structure_checks(item), (*after.shape, 3))
+    assert checks["ray_summary"] == {"sight": {"passed": 1, "total": 1},
+                                      "movement": {"passed": 3, "total": 3}}

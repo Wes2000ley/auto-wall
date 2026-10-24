@@ -446,6 +446,23 @@ def _preview_banner(image, title, detail):
 
 def _write_sample_visuals(output, sample_id, image, truth, raw_labels, confidence, threshold,
                           classes, detection=None):
+    """Save source-size previews and exact working-size data for geometry replay."""
+    label_path = output / f"{sample_id}-working-labels.bmp"
+    confidence_path = output / f"{sample_id}-working-confidence.npy"
+    _write_bmp(label_path, raw_labels)
+    with confidence_path.open("wb") as stream:
+        np.save(stream, confidence, allow_pickle=False)
+    artifacts = {"working_prediction": {
+        "size": [raw_labels.shape[1], raw_labels.shape[0]],
+        "labels": {"path": label_path.name, "sha256": _sha256(label_path)},
+        "confidence": {"path": confidence_path.name, "sha256": _sha256(confidence_path)},
+        "scope": "Exact class IDs and winning probabilities before display resizing; no light-center heatmap."}}
+    if detection is not None:
+        geometry_path = output / f"{sample_id}-detection.json"
+        geometry_path.write_text(json.dumps({"format": "auto-wall-detection-v1",
+            "coordinate_system": "source_image_pixels", **asdict(detection)},
+            indent=2, allow_nan=False) + "\n", encoding="utf-8")
+        artifacts["source_geometry"] = {"path": geometry_path.name, "sha256": _sha256(geometry_path)}
     size = (image.shape[1], image.shape[0])
     labels = cv2.resize(raw_labels, size, interpolation=cv2.INTER_NEAREST)
     scores = cv2.resize(confidence, size, interpolation=cv2.INTER_NEAREST)
@@ -483,6 +500,7 @@ def _write_sample_visuals(output, sample_id, image, truth, raw_labels, confidenc
             f"{sample_id} | green wall, purple door, cyan movement barrier, yellow exported window faces"))
     with (output / f"{sample_id}-confidence.npy").open("wb") as stream:
         np.save(stream, scores.astype(np.float32), allow_pickle=False)
+    return artifacts
 
 
 def evaluate_sample(model, sample, classes, settings, threshold, runs, device):
@@ -658,8 +676,9 @@ def main():
         if sample["id"] in regressions:
             result["regression_checks"] = evaluate_structure_annotations(
                 detection, regressions[sample["id"]], evaluated_image.shape)
-        _write_sample_visuals(args.output, sample["id"], evaluated_image, sample["labels"],
-                              raw_labels, confidence, args.threshold, classes, detection)
+        result["artifacts"] = _write_sample_visuals(
+            args.output, sample["id"], evaluated_image, sample["labels"],
+            raw_labels, confidence, args.threshold, classes, detection)
         (args.output / f"{sample['id']}.json").write_text(
             json.dumps(result, indent=2, allow_nan=False) + "\n", encoding="utf-8")
         report["samples"].append(result)

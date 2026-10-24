@@ -257,7 +257,7 @@ was available, so the new CUDA checks ran rather than being skipped.
 ## Follow-up trials and additional reviewed data
 
 The [follow-up trial record](ENCOUNTER_ML_FOLLOWUP_RESULTS.json) preserves
-checkpoint, dataset, source and evaluation hashes for v6–v13. None is promoted.
+checkpoint, dataset, source and evaluation hashes for v6–v15. None is promoted.
 Pixel precision below refers only to reviewed pixels. Runtime results use the
 unchanged per-class profile thresholds: wall/door 0.90, window 0.93, fence 0.97.
 
@@ -271,6 +271,8 @@ unchanged per-class profile thresholds: wall/door 0.90, window 0.93, fence 0.97.
 | v11 | Add four reviewed Frostwake rail/post strokes and increase that map's sampling | Some held-out fence pixels return. Original Rimebell exports no fence; recolored fragments fail the fence movement ray. Mothveil has no matched door/window. |
 | v12 | Permit aspect-ratio crop augmentation up to 2 | No matched Mothveil door/window; recolored Rimebell fails both negative cliff rays. A new recolored landscape acquires 107 false opaque wall segments. |
 | v13 | Add reviewed Sunspoke landscape negatives, retaining square crops | All three annotated Rimebell doors match in both appearances and Cinderglass has zero exported structures in both. Mothveil still has no extracted door/window; Rimebell still has no fence. |
+| v14 | Add a second real training railing layout and increase its sampling | Learns some Gullthorn wood pixels but fails its full-span movement check. Rimebell still exports no fence, and original door matches fall to 2/3. Mothveil has no matched door/window. |
+| v15 | Add source-reviewed floor/crate negatives on the same training layout | Fewer false fence pixels in the new negative patches, but the training railing movement check still fails. Validation still has no Rimebell fence or matched Mothveil door/window. |
 
 Trials v6–v8 failed pixel checks; their actual exports and recolors were not
 evaluated. Trials v9–v11 were evaluated on the same five validation maps in both
@@ -281,6 +283,11 @@ Cinderglass, making its selection average cover six maps rather than five;
 compare shared-map metrics separately. The four final-test layouts
 remain reserved. None of these candidates has a new production light-center
 head, and the installed five-class light model remains unchanged.
+
+Trials v14 and v15 retain those six validation layouts. Their selected scores
+are 0.659960 and 0.661577, both at step 1,200. Those aggregate pixel scores do
+not establish usable geometry. Both retain zero exported structures on
+Cinderglass in both appearances, but still fail the class-specific checks above.
 
 The [additional Frostwake annotations](../benchmarks/data/encounters/additional-rails-v1/README.md)
 add exactly 613 previously unknown pixels as fence labels. All existing
@@ -320,12 +327,86 @@ recolor. An added Stone gate is visibly real yet exceeds the existing endpoint
 tolerance, and accepted spans can move. Those probes need further work;
 neither their thresholds nor the reference annotations were relaxed to pass.
 
+Later unshipped probes recover the Mothveil door in both appearances on the
+installed segmentation model and two candidates. They still fail precision:
+one creates a door on a plain gray wall indentation, and real Stone gates can
+extend through their solid jambs. Comparing a seed with the median local wall
+color does not remove that false door. Comparing against a local wall-color
+subset removes it for v13, but it remains on recolored v9. Re-running existing
+weak-jamb recovery fixes some attachments, leaving other endpoint failures.
+All of these probes remain outside production. The first expanded probe also
+had a harness error: it called public UVTT conversion for movement-only walls.
+The corrected diagnostic uses internal preview conversion for legacy door
+metrics and assesses movement separately; the initial failure log is retained.
+
+The [Gullthorn railing extension](../benchmarks/data/encounters/additional-gullthorn-v1/README.md)
+adds eleven narrow wood interiors and two clear floor/crate patches. Exactly
+1,622 unknown pixels become fence and 884 become background. Earlier labels
+remain unchanged. Its training sampling weight changes from 1 to 10 for its
+represented background and fence targets. Fence-target shares become Frostwake
+10/32, Gullthorn 10/32, the legacy wood camp 10/32 and procedural examples 2/32.
+Source-coordinate crops and raster overlays were reviewed before admission;
+these remain partial source-assisted labels, not complete independently
+corrected truth. Trees, ladders, lanterns and props are not positive barriers.
+
+Inspection of v14 motivated [additional boundary negatives](../benchmarks/data/encounters/additional-gullthorn-v2/README.md).
+Three polygons add 2,697 background pixels on clear platform floor and two
+crate interiors. The source artwork determines these labels; predictions only
+identified areas needing inspection. All earlier supervised pixels, images,
+sampling weights and splits stay unchanged. The v15 trial changes only this
+training mask, using the same initializer, optimizer, seed and crop settings.
+
+Training-fit comparisons use identical v2 labels for v13, v14 and v15. At the
+working resolution, 2,581 pixels belong to the added negatives. False fence
+pixels there at the unchanged 0.97 geometry threshold fall from 1 to 0 in the
+original appearance and from 15 to 2 after recoloring, comparing v14 with v15.
+Reviewed fence recall also falls: 59.7% to 54.4% originally and 82.0% to 80.1%
+after recoloring. All three models fail the full railing movement check.
+These are training-layout diagnostics on partial supervision, not held-out
+accuracy. They do not justify promotion.
+
+The unchanged component filter also explains part of the loss. In v15 the
+front-left Gullthorn component has area 748 originally and 1,551 after
+recoloring, with oriented aspect ratios about 1.45 and 2.24. Those broad
+predictions fail the existing compact-region/width checks. Some visible wood
+faces are real barriers, but this does not certify every rejected pixel as
+fence. Rimebell has a separate confidence problem: only 70 and 161 pixels
+reach the 0.97 fence cutoff, and no component passes filtering. Removing the
+filter would not establish accurate delineation across these cases.
+
+Future benchmark runs save exact working-size class IDs and winning confidence
+as separate `*-working-labels.bmp` and `*-working-confidence.npy` files. The
+source-size preview rasters remain available for display. A separate
+`*-detection.json` stores exact source-coordinate geometry, including window
+faces, movement-only barriers and emitted lights. Each sample report records
+artifact paths, sizes and hashes. The prediction cache has no light-center
+heatmap; it cannot reproduce that head's output by itself.
+
+This corrects an audit limitation: source-size preview caches on downscaled maps
+must not be resized back and described as exact working predictions. Original
+inference and geometry metrics were computed before display resizing and remain
+valid. Earlier six-map cached probes asserted that no input was downscaled.
+New real-map replay on all six Gullthorn fit cases reproduces every geometry
+coordinate and passage check exactly. The four final-test layouts remain unused.
+
 After the augmentation, data-integrity and whole-map checks, the full CUDA
 development environment ran `python -B -m pytest -q tests`: **345 passed**,
 three dependency warnings, 48.25 seconds. The portable runtime alone could not
 collect two legacy image-utils tests because it lacks `requests`; the complete
 development environment supplied that dependency. Software-test success does
 not establish model quality.
+
+After adding both Gullthorn data-integrity checks and exact prediction replay,
+the workspace's `work/ml-training-venv/Scripts/python.exe` ran with the
+`outputs/auto-wall` repository as its working directory.
+`-B -m pytest -q tests/test_encounter_training.py tests/test_structure_metrics.py`
+passed all 46 tests in 3.69 seconds. The full CUDA suite, `-B -m pytest -q tests`,
+passed **348 tests**, with three dependency warnings, in 40.45 seconds. The
+machine-readable record includes the full executable path and working directory.
+Ruff passed on all three changed Python files. The first
+replay fixture failed because it requested an unsupported 48-pixel detector
+resolution; the fixture was enlarged to a valid resolution and rerun, preserving
+the production resolution check.
 
 The first follow-up commit failed two remote annotation-integrity tests because
 Git converted the reviewed JSON line endings. Scoped `.gitattributes` files now

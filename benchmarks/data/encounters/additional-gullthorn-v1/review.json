@@ -1,0 +1,21 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "parent_annotation_sha256": "8bf8de0bcf27b71e98659b617562e66633f0518168200e159af82b280430570d",
+  "parent_split_sha256": "890ebc7497dc9b74cfbb7531f026a22aa661f6327061973c0d6b1228c7592339",
+  "scope": "Primary reviewed eleven narrow visible wood interiors and two explicit non-structure patches on a different real guardrail layout. Prior partial annotations inherited unchanged, not certified as complete truth. No predictions used for labels.",
+  "source_crop_sha256": "989d0beeb156358bd859d87d2814415bedfea68e8a97d55d984077708d4a272d",
+  "preview_sha256": "a64d3b3ba436878e546967b54fab4043fc40fbbc43271c2337c04b2c56a736db",
+  "samples": {
+    "gullthorn-blind": {
+      "status": "accepted",
+      "reviewer": "primary native-source and 5x raster-overlay review",
+      "source_sha256": "e7e179b058d12571f21121a95d7545274b33faa04bb0073150b02f86050c359b",
+      "annotation_sha256": "ef133da995c3f93b0785495ff3e1bb4be78552299084a7aae807980954de772d",
+      "mask_sha256": "fca4adda48886e449b161e72b27537f58a43cd64393c92d1d8c359df43a0ef34",
+      "added_fence_pixels": 1622,
+      "added_background_pixels": 884,
+      "notes": "Eleven rail/post interiors: visible wood only. Excludes tree, ladder and lantern. Two negative patches are clear platform floor and a crate, not structures. All 2506 changed pixels were previously unknown. Passage checks cross the full selected front-left guardrail; perfect partial labels pass sight-open/movement-blocked extraction. Training layout only; final tests unchanged."
+    }
+  }
+}
