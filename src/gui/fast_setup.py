@@ -10,7 +10,7 @@ from PyQt6.QtGui import QColor, QImage, QKeySequence, QPainter, QPainterPath, QP
 from PyQt6.QtWidgets import (
     QCheckBox, QColorDialog, QComboBox, QDialog, QDoubleSpinBox, QFileDialog,
     QFormLayout, QGraphicsScene, QGraphicsView, QHBoxLayout, QLabel, QLineEdit, QPushButton,
-    QSpinBox, QTabWidget, QVBoxLayout, QWidget,
+    QScrollArea, QSpinBox, QTabWidget, QVBoxLayout, QWidget,
 )
 
 from src.core.fast_pipeline import (
@@ -21,6 +21,21 @@ from src.core.detection_profiles import PRESETS, load_settings, preset_settings,
 from src.core.foundry_export import write_map_exports
 from src.core.wall_editing import cut_door_opening, nearest_wall, rectangle_walls, walls_in_rectangle
 from src.gui.paint_geometry import PaintGeometry
+
+
+BUNDLED_MODEL_DIRECTORY = Path(__file__).resolve().parents[2] / "models"
+BUNDLED_MODELS = (
+    ("battlemap-dino-lights-v2.safetensors", "DINO + light centers v2",
+     "Current Foundry launcher selection. Broader light-color recognition; "
+     "the same DINO walls and doors as v1. Still misses structures and accepts false lights."),
+    ("battlemap-dino-lights-v1.safetensors", "DINO + light centers v1",
+     "The same DINO walls and doors, with a light-center head for torches and campfires. Misses many cool emitters."),
+    ("battlemap-dino-v1.safetensors", "DINO base",
+     "Pretrained visual context with a locally trained decoder. "
+     "No separate light-center head; missed doors and false walls remain."),
+    ("battlemap-v1.safetensors", "Compact U-Net",
+     "Smallest and fastest ML option, trained from scratch. Less visual context and limited coverage across art styles."),
+)
 
 
 def _cut_windows_by_door(windows, face_groups, door):
@@ -712,9 +727,25 @@ class FastSetupDialog(QDialog):
         lights.addRow("Range (squares)", self.light_range)
         self._add_tab("Lights", lights)
         ml = QFormLayout()
+        ml.setRowWrapPolicy(QFormLayout.RowWrapPolicy.WrapLongRows)
         explanation = QLabel("Local models are experimental. Review the preview before export.")
         explanation.setWordWrap(True)
         ml.addRow(explanation)
+        self.bundled_models = {
+            str(BUNDLED_MODEL_DIRECTORY / filename): (label, description)
+            for filename, label, description in BUNDLED_MODELS
+            if (BUNDLED_MODEL_DIRECTORY / filename).is_file()
+        }
+        self.model_choices = QComboBox()
+        self.model_choices.addItem("Palette · no ML", "")
+        for path, (label, _) in self.bundled_models.items():
+            self.model_choices.addItem(label, path)
+        self.model_choices.setToolTip("Bundled local checkpoints. Only the selected model loads, on detection; no weights are downloaded.")
+        self.model_choices.currentIndexChanged.connect(self.select_bundled_model)
+        ml.addRow("Model", self.model_choices)
+        self.model_description = QLabel()
+        self.model_description.setWordWrap(True)
+        ml.addRow(self.model_description)
         self.model_path = QLineEdit()
         self.model_path.setReadOnly(True)
         self.model_path.setPlaceholderText("No model · palette detection")
@@ -761,7 +792,7 @@ class FastSetupDialog(QDialog):
         ml_note = QLabel("Point models use Light center score. Other models use Light confidence and the Lights tab's area limits.")
         ml_note.setWordWrap(True)
         ml.addRow(ml_note)
-        self._add_tab("ML", ml)
+        self._add_tab("ML", ml, scroll=True)
         units = QLabel("Lengths and areas use a 2048 px reference so settings remain consistent across quality levels.")
         units.setWordWrap(True)
         controls.addWidget(units)
@@ -919,9 +950,14 @@ class FastSetupDialog(QDialog):
         widget.valueChanged.connect(self.settings_changed)
         return widget
 
-    def _add_tab(self, label, layout):
+    def _add_tab(self, label, layout, scroll=False):
         widget = QWidget()
         widget.setLayout(layout)
+        if scroll:
+            area = QScrollArea()
+            area.setWidgetResizable(True)
+            area.setWidget(widget)
+            widget = area
         self.tabs.addTab(widget, label)
 
     def _color_controls(self, target, layout):
@@ -1003,14 +1039,46 @@ class FastSetupDialog(QDialog):
     def choose_model(self):
         path, _ = QFileDialog.getOpenFileName(self, "Choose local Auto-Wall model", "", "Auto-Wall models (*.safetensors)")
         if path:
-            self.model_path.setText(path)
-            self.model_path.setToolTip(path)
-            self.settings_changed()
+            self._use_model(path)
 
     def clear_model(self):
-        self.model_path.clear()
-        self.model_path.setToolTip("")
+        self._use_model("")
+
+    def select_bundled_model(self):
+        self._use_model(self.model_choices.currentData())
+
+    def _use_model(self, path):
+        self._set_model_path(path)
+        if not path or str(Path(path).resolve()) in self.bundled_models:
+            # Every bundled checkpoint has five classes. Do not retain an
+            # incompatible windows profile when switching from a custom model.
+            blocked = self.ml_profile.blockSignals(True)
+            self.ml_profile.setCurrentIndex(self.ml_profile.findData("legacy"))
+            self.ml_profile.blockSignals(blocked)
         self.settings_changed()
+
+    def _set_model_path(self, path):
+        """Keep launcher/imported paths intact while matching the bundled list."""
+        self.model_path.setText(path)
+        self.model_path.setToolTip(path)
+        resolved = str(Path(path).resolve()) if path else ""
+        blocked = self.model_choices.blockSignals(True)
+        # At most one additional item represents an imported or browsed model.
+        while self.model_choices.count() > len(self.bundled_models) + 1:
+            self.model_choices.removeItem(self.model_choices.count() - 1)
+        index = self.model_choices.findData(resolved)
+        if index < 0:
+            self.model_choices.addItem("Custom · " + Path(path).name, path)
+            index = self.model_choices.count() - 1
+        self.model_choices.setCurrentIndex(index)
+        self.model_choices.blockSignals(blocked)
+        if not path:
+            description = "Color-based detection without ML. Select a bundled model above or choose a local checkpoint."
+        elif resolved in self.bundled_models:
+            description = self.bundled_models[resolved][1]
+        else:
+            description = "Custom local model. Its class profile must match the checkpoint metadata."
+        self.model_description.setText(description)
 
     def settings(self):
         return FastSettings(max_dimension=self.quality.currentData(), grid_size=self.grid.value(),
@@ -1053,8 +1121,7 @@ class FastSetupDialog(QDialog):
         self.geometry.setCurrentIndex(self.geometry.findData(settings.wall_geometry))
         self.door_match.setCurrentIndex(self.door_match.findData(settings.door_match))
         self.light_mode.setCurrentIndex(self.light_mode.findData(settings.light_mode))
-        self.model_path.setText(settings.model_path)
-        self.model_path.setToolTip(settings.model_path)
+        self._set_model_path(settings.model_path)
         self.ml_profile.setCurrentIndex(self.ml_profile.findData(settings.ml_profile))
         self.ml_device.setCurrentIndex(self.ml_device.findData(settings.ml_device))
         for widget, value in ((self.grid, settings.grid_size), (self.wall_tolerance, settings.wall_tolerance),

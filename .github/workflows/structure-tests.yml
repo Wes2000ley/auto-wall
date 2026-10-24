@@ -56,3 +56,4 @@ jobs:
           tests/test_foundry_export.py tests/test_fast_setup.py
           tests/test_wall_editing.py tests/test_editor_integration.py
           tests/test_paint_geometry.py tests/test_wall_painting.py
+          tests/test_bundled_models.py

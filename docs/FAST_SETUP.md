@@ -7,6 +7,14 @@ model download, cloud service, CUDA installation, or additional native compiler.
 An optional **ML** tab supports local models, CPU/CUDA inference, and a separate
 see-through-barrier preview. See [local ML instructions](LOCAL_ML.md).
 
+The **ML → Model** dropdown lists the four bundled local checkpoints that are
+present under `models/`, with a description of each. The installed Foundry main
+launcher selects DINO + light centers v2 automatically. Models need no online
+download; only the selected one loads when detecting a map. The generic launcher
+and CLI retain palette detection unless a model is selected explicitly. Custom
+checkpoints remain available through **Choose model…**. See the
+[model comparison and packaging notes](../models/README.md).
+
 ## Run it
 
 Use Python 3.10 or newer. The measured environment used Python 3.13, OpenCV 4.11.0,

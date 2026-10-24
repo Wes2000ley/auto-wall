@@ -1,6 +1,12 @@
 # Local battlemap models
 
-Four optional checkpoints are available. Palette detection remains the default.
+Four optional checkpoints are bundled as local, uncompressed safetensors files.
+Open the **ML** tab's **Model** dropdown to select one without a file picker.
+Only files present in this application's `models/` directory appear in that list;
+**Choose model…** also accepts a custom local checkpoint. Palette detection remains
+the default for the generic launcher and CLI. The installed Foundry copy's main
+`Launch Auto Wall.cmd` explicitly selects **DINO + light centers v2**, with
+`profiles/ml-light-centers.json`; its separate Palette launcher selects no model.
 
 | Model | File size | Role |
 | --- | ---: | --- |
@@ -17,7 +23,40 @@ campfires and small sources, along with flower/star false positives and missed
 cool emitters. It shares the base model's backbone license and attribution.
 The [semantic v2 research notes](../docs/SEMANTIC_LIGHT_RESEARCH.md) describe the
 new head, its selected checkpoint, failed refinements, and practical limits.
-V2 is a separate comparison option; it does not replace v1 or change defaults.
+V2 remains an experimental comparison option alongside v1. Selecting it in the
+installed Foundry launcher does not change the generic palette default.
+
+## Which model to use
+
+V2 is the current installed launcher's selection for a combined wall, door, and
+light workflow. It recognizes more cool emitters in the reviewed maps, but is not
+a universal accuracy winner. **All three DINO checkpoints share identical wall
+and door segmentation weights.** Choosing a newer light head does not improve
+structural detection. The compact U-Net is the faster, much smaller alternative,
+with less visual context. Every model still has missed structures and false
+positives; none has established complete wall/door accuracy across the map corpus.
+
+The six-class windows/fences and frozen-SAM structure experiments have not passed
+the geometry checks needed to replace these checkpoints. Trial records are not
+additional production models, and their prediction overlays are not corrected
+training labels. See [the structure experiment results](../docs/ENCOUNTER_ML.md).
+
+## Availability at launch
+
+The weights live beside the source under `models/`, including in the installed
+Foundry copy's `app/models/`. They total 273,506,048 bytes (about 261 MiB). No model
+download is needed at launch. The dropdown reads file availability without loading
+PyTorch, Transformers, weights, or CUDA. Detection loads only the selected model,
+and repeated detections reuse its in-process cache. Changing models replaces that
+cached model; restarting the app requires loading it again.
+
+Bundling weights keeps them available offline; it does not remove Python/ML import
+or GPU initialization time. See [the measured startup work](../docs/ML_RUNTIME.md).
+The current local Foundry copy still uses the separately installed Python runtime;
+it is not a self-contained portable executable. A frozen application can include
+these same model files as ordinary application resources, preserving the DINO
+license and attribution. There is no benefit to embedding their bytes in Python
+source or loading all four into GPU memory at startup.
 
 ## Battlemap v1: experimental baseline
 
