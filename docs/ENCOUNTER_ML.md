@@ -752,3 +752,30 @@ The new source/raster/native-export regression passes; the full local suite
 passes 354 tests with three dependency warnings in 34.07 seconds. Ruff and
 `git diff --check` pass. No live Foundry world import was rerun for this
 training-data and research change.
+
+## Boundary trial rejected; walls and doors take priority
+
+The [v2 source-reviewed extension](../benchmarks/data/encounters/additional-whistling-v2/README.md)
+adds 3,212 background pixels beside Whistling's rope cores, preserving every
+earlier supervised pixel. A first strip near a post was rejected before
+training. These are partial primary source-assisted labels, not independently
+human-corrected gold. All other masks, sampling weights and frozen splits stay
+unchanged. The v18 trial keeps v17's recipe and runs 2,400 steps in 467.81 seconds.
+Changed anchor positions can change crops; this is not an exact paired-minibatch
+causal comparison.
+
+The [completed record](ENCOUNTER_ML_BOUNDARY_RESULTS.json) retains hashes,
+invocations, 40 native evaluation cases and rejected diagnostics. Background
+classification improves on the new strips, but all three Whistling rope checks
+fail in both appearances at both checkpoints. Mothveil still misses its actual
+door and glass. Rimebell still misses one of three doors, and final recolored
+Dyson loses its remaining matched door. A separate weak-confidence recovery
+probe is also rejected because it introduces interior-beam false detections.
+Neither model nor any threshold change is promoted. Training scores and raw
+segment counts do not establish usable wall or door accuracy.
+
+Further fence experiments stop here. Correct wall placement, clean outlines and
+doors fitted to real openings take priority. The new label-provenance regression
+passes; the full local suite passes 355 tests with three dependency warnings in
+58.66 seconds. Ruff passes on the changed test. No live Foundry import was rerun
+for this research/data update, and all four production model hashes are intact.

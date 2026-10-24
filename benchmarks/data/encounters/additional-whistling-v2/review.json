@@ -1,0 +1,48 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "parent_annotation_sha256": "4e2cf9efc3c69a305dda567f4a65c86ca3a40b0c331c0fd9257f7e49f6cbe352",
+  "parent_split_sha256": "890ebc7497dc9b74cfbb7531f026a22aa661f6327061973c0d6b1228c7592339",
+  "scope": "Primary native-source review of fourteen rope-side negatives only. No model prediction supplies a label. All prior supervision, passage checks, source pixels and layout splits remain unchanged. Partial source-assisted training patches, not exhaustive independently human-corrected truth.",
+  "draft_history": [
+    {
+      "path": "whistling-boundary-draft-v1.json",
+      "sha256": "74f3802bdf3fa738edf18df2b0c0031444389cbf743ee606c81b0fa6fdebfa70",
+      "status": "rejected-before-training",
+      "reason": "The first left negative on rope seven could touch its supporting post; exclude this ambiguous beginning conservatively."
+    },
+    {
+      "path": "whistling-boundary-draft-v2.json",
+      "sha256": "f78a045689e92dcc8facff57254cab4acd67c8a99ff1ee330f3449e6147deb69",
+      "status": "source-reviewed-accepted",
+      "reason": "Ropes one to six retain the exact reviewed strips. Rope seven starts at arclength thirty, clear of the post. All fourteen strips lie outside visible rope material."
+    }
+  ],
+  "reviewed_closeups": {
+    "whistling-boundary-draft-v1-1.bmp": "51a13ab3490ccba371d7a5876bd44e39723b5a0da4b4ff930a774b69f608b916",
+    "whistling-boundary-draft-v1-2.bmp": "aa3ce9b36190fdc5f235309c75a732c364fa8bcd1b454bbc67d875cd666af3e9",
+    "whistling-boundary-draft-v1-3.bmp": "3132f0cda32a89870f9860e95a0c3457d53e03204118aa7f8b2ece3e51b96bef",
+    "whistling-boundary-draft-v1-4.bmp": "34227886b47d52f49b793008cc99d404d85030e4b01101ae5b9a27f4cad5fa07",
+    "whistling-boundary-draft-v1-5.bmp": "6c5cee73d8ca7a8864622f8f16772f2b53847589d1a7361bb28b40f06a2f4a0a",
+    "whistling-boundary-draft-v1-6.bmp": "50f088d4d1edbfc8840b2041eb516452649e3ad6dd529c55b66d95654ee5e8e7",
+    "whistling-boundary-draft-v1-7.bmp": "b695f028b076dd7039598a917688f000273cbe7ba52d684daa8922d7ddb5bd72"
+  },
+  "revised_closeup": {
+    "path": "whistling-boundary-draft-v2-7.bmp",
+    "sha256": "d2dd8f1fb8adcfd17f05e4f148ac336b58f442b42b58e5510fa91c5d85459ad8"
+  },
+  "unchanged_strokes": "The v1/v2 negative coordinates for ropes one through six are exactly identical; only the two rope-seven strips change.",
+  "admission_script_sha256": "e94e57368613171ab233fa69f18d67c82cd97f27296de68a56f4a7d07c285139",
+  "samples": {
+    "whistling-stones": {
+      "status": "accepted",
+      "reviewer": "primary native-coordinate original/raster pair review",
+      "source_sha256": "31edbcfa12873a57e87e99d117e57d4a9cbc7d392fedd5130fd581bfbf26d6b1",
+      "annotation_sha256": "fd954d4daab5e260b5c3097cbc30b596e62f2ef817db6cc478d7baefc8a8dacf",
+      "mask_sha256": "eedee2933c390138b2ff66f7f59e20fe3a8a286f4bd87a5c66ba1e2da39b423f",
+      "added_background_pixels": 3212,
+      "changed_previous_supervised_pixels": 0,
+      "notes": "Narrow background strips beside seven previously reviewed rope cores constrain excessive predicted width. The rejected near-post positions remain unknown. All earlier positive classes, post cores, ignore regions, nine passage checks and training split remain unchanged. No validation or final-test annotation changes."
+    }
+  }
+}

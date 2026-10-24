@@ -1,0 +1,186 @@
+{
+  "date": "2026-10-24",
+  "status": "rejected; no production model or inference change",
+  "priority": "Further fence experiments stopped. Walls and doors are the user's priority.",
+  "supervision": {
+    "review": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\benchmarks\\data\\encounters\\additional-whistling-v2\\review.json",
+      "sha256": "9ae3b589ea603cbe2aa431536a21ffd18c53c793d21a3cacf46fc036c6423d4d"
+    },
+    "added_background_pixels": 3212,
+    "changed_previous_supervised_pixels": 0,
+    "provenance": "Partial primary source-assisted negative strips beside reviewed rope cores; not exhaustive independently human-corrected truth. First near-post draft rejected before training.",
+    "splits": "78 training, six validation; final-test entries removed before reading. Other 83 image/mask pairs unchanged."
+  },
+  "training": {
+    "manifest": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\dataset-v18-whistling-boundaries\\combined-manifest.json",
+      "sha256": "1d42e6d28e7136b669f0fe2df231bcb88653529c65bdb561160066d58928277a"
+    },
+    "invocation": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v18-invocation.json",
+      "sha256": "788882e87a8dc3dbefa9b762e219b9701642ff57f6aa8b465d21729231b5c24f"
+    },
+    "record": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v18-whistling-boundaries\\training.json",
+      "sha256": "9422da4bae7bbd786c688a2d5790f02903c08556a7a9530ba61d5a842135c325"
+    },
+    "selected": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v18-whistling-boundaries\\best.safetensors",
+      "sha256": "b2447d09ecc3c46a415be77023318cf7e22095767bf6a9533a43557a683ff1ef"
+    },
+    "final": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v18-whistling-boundaries\\last.safetensors",
+      "sha256": "738a0a15f0efe89afd92cd712e90a950a5e9957d9b76fe34c6642cf8f6fa171a"
+    },
+    "steps": 2400,
+    "elapsed_seconds": 467.81078239995986,
+    "peak_allocated_bytes": 1272690176,
+    "selection_history": [
+      {
+        "step": 400,
+        "mean_foreground_iou": 0.7411080458361909,
+        "selection_score": 0.44911568039667116
+      },
+      {
+        "step": 800,
+        "mean_foreground_iou": 0.7380220419228665,
+        "selection_score": 0.6348848320597965
+      },
+      {
+        "step": 1200,
+        "mean_foreground_iou": 0.7789695965112938,
+        "selection_score": 0.698744965553503
+      },
+      {
+        "step": 1600,
+        "mean_foreground_iou": 0.7434716498261734,
+        "selection_score": 0.648638072850256
+      },
+      {
+        "step": 2000,
+        "mean_foreground_iou": 0.7319184006045427,
+        "selection_score": 0.6515074403025736
+      },
+      {
+        "step": 2400,
+        "mean_foreground_iou": 0.7541173507410727,
+        "selection_score": 0.6568652355235374
+      }
+    ],
+    "comparison": "Same v17 recipe, initializer, teacher, seed, sampling weights and eight training-source hashes. Only the reviewed background pixels change. New anchors can alter sampled crops; this is not an exact paired-minibatch causal comparison."
+  },
+  "evaluation": {
+    "invocations": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v18-evaluation-invocations.json",
+      "sha256": "b0b51a82379cf84bfcdedddfc6745b4e39854a228e8bc744c40a836907b7eef0"
+    },
+    "analysis": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v18-boundary-analysis.json",
+      "sha256": "e8cb9d1626f640883a2d8692e7b30ca74ae5d93cdb563b1d9ee74a14f87b31a9"
+    },
+    "cases": 40,
+    "scope": "24 validation and 16 separate training-fit cases across selected/final checkpoints and original/recolored appearances. Recolored layouts are not independent examples. Partial labels do not establish exhaustive precision.",
+    "findings": [
+      "Neither checkpoint matches the Mothveil door or actual window in either appearance. Final recolored Mothveil exports a false window across steps; both final appearances retain false interior-beam movement geometry.",
+      "Both checkpoints match only two of Rimebell's three doors in both appearances. The final checkpoint passes its railing movement check, but walls remain noisy and fragmented.",
+      "Final recolored Dyson loses its remaining matched door and falls to 10/14 legacy rays. Both checkpoints retain known original Stone door errors.",
+      "The selected/final Whistling training-fit checkpoints both fail all three rope movement checks in both appearances, despite reduced background-strip classification errors. Corrected negative supervision did not yield usable geometry under this recipe."
+    ],
+    "reports": [
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-training-fit-v18-best-original\\report.json",
+        "sha256": "03e34d2fb154a5ef73ba7d4687ac803c07ba643a7b39210b91d797bfe0912648"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-training-fit-v18-best-recolored\\report.json",
+        "sha256": "eb2beaed07d5a3d6693836ad2adee7747ddcf13351574ce026f910877f3f887c"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-training-fit-v18-last-original\\report.json",
+        "sha256": "58690b7839dcfbfca518723a6ccdb05485b0f8b9d97bca824ea8338db70afdf4"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-training-fit-v18-last-recolored\\report.json",
+        "sha256": "0f1ad197b2883aa71c457e7c8d83a057941aa23e696cd7ad92bfc570ef2d1bcc"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-validation-v18-best-original\\report.json",
+        "sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-validation-v18-best-recolored\\report.json",
+        "sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-validation-v18-last-original\\report.json",
+        "sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v18-validation-v18-last-recolored\\report.json",
+        "sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8"
+      }
+    ],
+    "native_reviews": [
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v18-rope-native-review-best-original.bmp",
+        "sha256": "0313bcc5fe2c6c7a780e995c5898237044c061f0a3457ae304e0f311dbbdfe75"
+      },
+      {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v18-rope-native-review-last-original.bmp",
+        "sha256": "0144a0ab6d96f77e79a59a38095a8cc3daa4469b2109f8b041aa64fc2fe799e8"
+      }
+    ]
+  },
+  "completed_diagnostics": {
+    "core_attribution": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v17-rope-core-attribution.json",
+      "sha256": "4eb645cc5ed31c8666cade0ce01eea8ddf47e3ebf1a76facec44ef12abfe103a"
+    },
+    "weak_recovery_probe": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v17-fence-recovery-probe.json",
+      "sha256": "58598829e793bb12910cccf15a46db51b399ba1e9b975119f32e72627fe8a055"
+    },
+    "glass_confidence": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v17-glass-confidence-attribution.json",
+      "sha256": "c24701130524fa472e1164db7ff2508c1bf5ac791c44e5f78b8d85be6d80a981"
+    },
+    "weak_recovery_result": "Rejected: exactly reproduced all 36 baseline segment lists, then recovered a railing check but introduced false Mothveil interior-beam geometry and erased Gullthorn's accepted railing components. No threshold or guard change shipped."
+  },
+  "failed_harness_attempts": [
+    "Initial v18 preflight compared annotation path strings rather than annotation contents. Fixed verification and re-audited the existing immutable dataset; no masks or manifest rewritten. Original script hash is preserved with the manifest.",
+    "Initial weak-recovery reader required an optional structure-annotation key on a legacy sample. Fixed the reader and reran all 36 cases; rejection is based on the completed result, not this harness error.",
+    "A later context probe stopped before inference because load_model returns (model, metadata). No probe result exists; further fence work stopped after the user's priority correction."
+  ],
+  "validation": {
+    "focused_command": "python -B -m pytest tests/test_encounter_training.py -q",
+    "focused_result": "25 passed in 5.17s",
+    "full_command": "python -B -m pytest tests -q",
+    "full_result": "355 passed, 3 dependency warnings in 58.66s",
+    "full_log": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\whistling-boundary-full-tests.log",
+      "sha256": "f2874b15ce4be1e25d559f8fa92448cdf3fa8f839fb93f98dccafb353afded17"
+    },
+    "ruff_command": "python -B -m ruff check tests/test_encounter_training.py",
+    "ruff_result": "All checks passed!",
+    "live_foundry_import": "Not rerun: research/data/test change only; no runtime code or installed model changed."
+  },
+  "production_models": [
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-lights-v1.safetensors",
+      "sha256": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-lights-v2.safetensors",
+      "sha256": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-dino-v1.safetensors",
+      "sha256": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c"
+    },
+    {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\models\\battlemap-v1.safetensors",
+      "sha256": "cf7a10498fa9c938ce96f68fded84632c9e70fe4115f7a46f71edd777aca4bbe"
+    }
+  ]
+}

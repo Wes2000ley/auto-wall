@@ -427,3 +427,40 @@ def test_whistling_rail_cores_preserve_prior_labels_and_exclude_rejected_post_po
     measured = evaluate_structure_annotations(detection, checks, (*after.shape, 3))
     assert measured["ray_summary"] == {"sight": {"passed": 3, "total": 3},
                                         "movement": {"passed": 6, "total": 6}}
+
+
+def test_whistling_rope_side_negatives_preserve_material_and_rejected_post_boundary():
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    parent_path = root / "additional-whistling-v1/whistling-stones.json"
+    addition = root / "additional-whistling-v2"
+    path = addition / "whistling-stones.json"
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    assert review["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    split_path = root / "partial-source-v2/splits.json"
+    assert review["parent_split_sha256"] == hashlib.sha256(split_path.read_bytes()).hexdigest()
+    assert json.loads((addition / "splits.json").read_text(encoding="utf-8")) == {"whistling-stones": "train"}
+    assert json.loads(split_path.read_text(encoding="utf-8"))["whistling-stones"] == "train"
+    assert item["complete"] is False
+    inherited = {**item, "strokes": item["strokes"][:-14], "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    assert all(s["class"] == "background" and s["width"] == 2 for s in item["strokes"][-14:])
+    before, after = (rasterize_annotation(a, (item["width"], item["height"])) for a in (parent, item))
+    changed = before != after
+    assert int(changed.sum()) == 3212
+    assert np.all(before[changed] == 255) and np.all(after[changed] == 0)
+    assert np.array_equal(after[before != 255], before[before != 255])
+    assert np.array_equal(after == 4, before == 4)
+    assert after[549, 750] == after[612, 844] == after[650, 754] == 4
+    assert after[592, 827] == after[589, 835] == 255  # Rejected near-post negatives.
+    assert after[195, 208] == 255  # Flag fabric remains unreviewed.
+    assert structure_checks(item) == structure_checks(parent)
+    assert [d["status"] for d in review["draft_history"]] == [
+        "rejected-before-training", "source-reviewed-accepted"]
+    accepted = review["samples"]["whistling-stones"]
+    assert accepted["source_sha256"] == item["image_sha256"] == parent["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+    assert accepted["added_background_pixels"] == 3212
+    assert accepted["changed_previous_supervised_pixels"] == 0
