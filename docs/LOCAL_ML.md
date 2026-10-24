@@ -371,6 +371,14 @@ layout groups and reserved splits. The procedural manifest has no validation
 split and is deliberately insufficient for model selection on its own. Reusing
 a seed creates the same layout and group, so it must not cross dataset splits.
 
+For complete artist-made emitters in varied surroundings, use the
+[sprite-scene generator](SPRITE_LIGHT_DATA.md). It checks a reviewed local sprite
+sheet, transforms pixels and centers together, includes non-emissive lookalikes,
+and reserves separate generated seeds. Its Puny sprites overlap the artwork in
+earlier evaluation maps, so results measure adaptation within that art family,
+not recognition of unseen styles. It leaves the original procedural generator
+and runtime detection behavior intact.
+
 ## Limits of the initial training set
 
 The initial dataset contains three training layouts: a temple, a spaceship, and a
@@ -385,6 +393,14 @@ surfaces. Overlap scores against these masks measure agreement with those labels
 not independent map-wide semantic accuracy. Lighting labels are primarily flames;
 unreviewed spaceship emissive machinery is ignored. Reliable recognition of all
 cool lights, glass, barred doors, and unfamiliar art styles is not established.
+
+The trial-24 review found a specific older label gap: the temple point manifest
+marks 30 connected flame fixtures but has no points or ignore mask for its lava.
+Consequently, its full validity mask incorrectly treats those luminous areas as
+negative training examples. Historical temple counts describe the flame list;
+they do not establish detection of all physical emitters. Those historical data
+and results remain preserved. Correct area-emitter annotations and representation
+are still needed before a new training revision can claim to address lava.
 
 Full geometry still needs review. Pixel overlap alone cannot establish continuous
 walls, correct door endpoints, or open-passage behavior. A candidate rejected by

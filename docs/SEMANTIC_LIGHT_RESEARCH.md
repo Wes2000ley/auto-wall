@@ -335,6 +335,102 @@ Runtime inference, GUI, export, and bundled weights are unchanged. Live Foundry
 import, other GPUs/operating systems, and release packaging were not run for
 this training-only change.
 
+## Complete artist sprites in new contexts: trial 24
+
+Trial 24 adds [artist-sprite training scenes](SPRITE_LIGHT_DATA.md), using 59
+reviewed frames from Shade's CC0 Puny tileset. Complete torches, portals, and
+fire jets are placed among non-emissive blades, bones, and keys. Their pixels
+and centers undergo the same resize, rotation, and reflection. Alpha preserves
+the floor inside portal holes, and objects never overlap or get clipped.
+
+The new 128 training scenes contain 1,040 light centers and 1,008 negative crop
+anchors. Eight further seeds contain 68 lights and 60 negative anchors and stay
+reserved. The original 152 records, including their decoded pixel and annotation
+hashes, are unchanged. Training now samples from nine real maps and 256 synthetic
+scenes. The real crop stream remains unchanged; adding scenes changes the
+synthetic stream and its mixture. Real-map validation still uses five maps and
+21 sources. The model, seed, crop size, two-real/two-synthetic batch allocation,
+learning rate, loss, and 4,800-step schedule match trial 22. CutMix is disabled.
+
+Validation F0.5 at 0.35 selects step 900: 18/21 sources with no extras. The final
+step 4,800 has the same score, but the existing earliest-tie rule keeps step 900.
+The final model is evaluated separately as a diagnostic. Test results do not
+change checkpoint selection or the operating threshold.
+
+| Reviewed region | Bundled v2 | Trial 22 best | Trial 24 best | Trial 24 last |
+| --- | --- | --- | --- | --- |
+| Expanded validation, five maps | 16/21 + 5 | 17/21 + 1 | 18/21 + 0 | 18/21 + 0 |
+| Stone camp, validation subset | 12/13 + 0 | 11/13 + 1 | 11/13 + 0 | 11/13 + 0 |
+| Castle 3, validation subset | 4/7 + 0 | 6/7 + 0 | 7/7 + 0 | 7/7 + 0 |
+| Puny 5, real validation portal | 0/1 + 5 | 0/1 + 0 | 0/1 + 0 | 0/1 + 0 |
+| Castle 4, observed test | 2/2 + 0 | 2/2 + 0 | 2/2 + 0 | 2/2 + 0 |
+| Puny 3, observed fire-jet test | 0/7 + 16 | 1/7 + 3 | 1/7 + 6 | 1/7 + 3 |
+| New camp, observed test | 6/6 + 2 | 6/6 + 0 | 6/6 + 0 | 6/6 + 0 |
+| Astral, partial observed test | 20/20 + 2 | 18/20 + 1 | 17/20 + 1 | 18/20 + 1 |
+| Eight older procedural test seeds | 63/63 + 8 | 62/63 + 4 | 61/63 + 12 | 62/63 + 2 |
+| Eight new sprite test seeds | 29/68 + 47 | 46/68 + 25 | 57/68 + 22 | 63/68 + 13 |
+| Ship, partial training | 38/39 + 1 | 38/39 + 1 | 38/39 + 1 | 39/39 + 0 |
+| Temple, flame-only training list | 30/30 + 0 | 30/30 + 1 | 30/30 + 2 | 30/30 + 1 |
+
+Entries are matched / marked sources, followed by unmatched predictions.
+The ship's final model produces 72 raw peaks, only 39 of them in reviewed
+regions; 39/39 does not establish whole-map precision. Its cool-light gains do
+not compensate for the lost stone/Astral sources. Both checkpoints remain
+research results and bundled v2 stays selected.
+
+On the new generated seeds, portal matches improve from 1/22 for v2 to 22/22
+for both trial-24 models. Torch matches improve from 18/22 to 21/22 at the
+selected step and 22/22 at the last step. Fire jets improve from 10/24 to 14/24
+and 19/24. Eight of the final model's thirteen unmatched points lie inside
+real fire-jet rectangles and two inside torch rectangles: these include
+duplicates and displaced centers, rather than thirteen nonexistent emitters.
+The other three lie on one bone, one blade, and one key. Visual inspection
+confirms multiple points along one flame strip, while the real Puny trap map
+still misses six jets and adds three points on a gate.
+
+The real validation portal remains below the operating score: its maximum
+within matching tolerance is 0.279 for step 900 and 0.287 for the last step.
+A post-training diagnostic sweeps 0.05–0.95 in 0.05 increments on validation
+only. Both models still maximize F0.5 at 0.35. At 0.25 the selected model reaches
+20/21 lights with eight extras, and the last reaches 19/21 with eight extras.
+Lowering the score therefore does not provide the required precision. No score
+or checkpoint was changed based on this diagnostic.
+
+These results show learned sprite recognition on new generated arrangements,
+with incomplete transfer to the real layouts. The sprite designs already occur
+in observed Puny maps; adding their frames is informed by previous failures.
+This is adaptation evidence, not an unseen-artwork or unseen-object benchmark.
+The eight generated test seeds were first evaluated after selection but use the
+same simple floor generator and artist assets as training.
+
+Review also uncovered an older annotation issue: the temple list contains 30
+flame fixtures, while its lava has neither positive labels nor an ignore mask.
+The full validity mask incorrectly treats those luminous areas as negative
+training examples. Historical flame counts and their full-mask flag are not
+evidence that all physical emitters are annotated. The original data and trials
+remain preserved; area-emitter annotation and output representation need a new
+revision before further training can claim to handle lava.
+
+Training took 341.60 seconds with 608,091,136 peak allocated CUDA bytes; part of
+the CPU test suite overlapped, so this is not a controlled speed comparison.
+Independent inspection found 323 finite tensors in both checkpoints, with all
+313 segmentation tensors unchanged and only the ten light-head tensors updated.
+Raw checkpoints, source snapshots, all 32 validation entries, four fixed-model
+comparisons, confidence maps, and error analyses remain local. The
+[trial record](../models/ARTIST_SPRITE_LIGHT_TRIAL_24.json) preserves their hashes,
+recipes, counts, diagnostics, and limitations.
+
+The full suite passed 176 tests with three dependency deprecation warnings;
+Ruff and compilation passed. Tests cover transformed centers, straight-alpha
+blending, complete nonoverlapping placement, valid-mask sampling, source checks,
+reserved seeds, raw BMP output, and refusing to overwrite data. All 136 generated
+scenes passed bounds/overlap/label checks. Four older generator seeds retained
+identical images and annotations after extracting the shared floor renderer.
+The initial blank-cell specification error was caught before dataset creation,
+corrected, and preserved in the preflight record. Runtime inference, geometry,
+export, and bundled weights are unchanged. Live Foundry import, other GPU/OS,
+and release packaging were not run for this data-generation change.
+
 ## Attribution
 
 The inherited DINOv2-small weights are by Meta Platforms, Inc. and affiliates,

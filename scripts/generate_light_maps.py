@@ -114,8 +114,8 @@ def draw_object(rng, kind, color, scale):
             cv2.warpAffine(mask, transform, (81, 81)))
 
 
-def render(seed):
-    rng = np.random.default_rng(seed)
+def render_background(rng):
+    """A neutral floor shared by procedural fixtures and artist-sprite scenes."""
     ground = rng.integers(35, 145, 3)
     noise = rng.normal(0, rng.uniform(2, 7), (SIZE, SIZE, 1))
     image = np.clip(ground + noise, 0, 255).astype(np.uint8)
@@ -127,6 +127,12 @@ def render(seed):
         x, y = (int(v) for v in rng.integers(30, SIZE - 30, 2))
         cv2.rectangle(image, (x - 12, y - 6), (x + 12, y + 6), shifted(ground, 32), -1)
         cv2.rectangle(image, (x - 12, y - 6), (x + 12, y + 6), shifted(ground, -28), 1)
+    return image
+
+
+def render(seed):
+    rng = np.random.default_rng(seed)
+    image = render_background(rng)
     kinds = list(LIGHT_KINDS + DECOY_KINDS)
     kinds.extend(rng.choice(LIGHT_KINDS + DECOY_KINDS, 6).tolist())
     rng.shuffle(kinds)
