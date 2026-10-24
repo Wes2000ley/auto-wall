@@ -1,0 +1,16 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "parent_annotation_sha256": "63ed08194eb3364d786edc4ccf4ff027639640fc7da52f03c8dd5e52a82c91df",
+  "scope": "Only four new rail/post interiors were reviewed here. Prior partial regions are inherited unchanged, not certified as exhaustive corrected truth.",
+  "preview_sha256": "851bfdd61d070c38517835d933330a4dca1ed2ddeb7452f0bb00bcfe0800aade",
+  "samples": {
+    "frostwake-beacon": {
+      "status": "accepted",
+      "reviewer": "primary native-source and overlay review",
+      "source_sha256": "37d49cee08e5f1deedcbfdcb37e8f19a52d86290f99ac73a548a747204acc155",
+      "annotation_sha256": "18cae593e7f3f6dd19f632f7c8e433c13e14243b25473d2abba1a03b2f51bc15",
+      "mask_sha256": "0688ec25d0bbca6eeb356d67a06c292ec635b8139474773ffc4466e189999eba",
+      "notes": "Four narrow visible wood interiors on the existing courtyard railing. Exactly 613 unknown pixels become class 4; no prior supervised pixels change. No prediction labels. Training layout only."
+    }
+  }
+}

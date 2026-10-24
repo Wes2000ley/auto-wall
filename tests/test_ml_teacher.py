@@ -96,8 +96,10 @@ def training_args(tmp_path):
     )
 
 
-def test_one_step_training_preserves_cached_initializer_and_frozen_teacher(training_args, monkeypatch):
+@pytest.mark.parametrize("crop_aspect_ratio", [1., 2.])
+def test_one_step_training_preserves_cached_initializer_and_frozen_teacher(training_args, monkeypatch, crop_aspect_ratio):
     args = training_args
+    args.crop_aspect_ratio = crop_aspect_ratio
     cached, _ = load_model(args.init_model, "cpu")
     original = {key: value.clone() for key, value in cached.state_dict().items()}
     observed = []
@@ -122,6 +124,14 @@ def test_one_step_training_preserves_cached_initializer_and_frozen_teacher(train
     assert details["teacher"]["weight"] == .5
     assert details["splits"]["validation"] == ["validation-map"]
     assert details["splits"]["test"] == ["test-map"]
+    assert details["crop_aspect_ratio"] == crop_aspect_ratio
+
+
+def test_invalid_crop_aspect_ratio_fails_before_creating_output(training_args):
+    training_args.crop_aspect_ratio = float("nan")
+    with pytest.raises(ValueError, match="aspect ratio"):
+        train_ml.train(training_args)
+    assert not training_args.output.exists()
 
 
 @pytest.mark.parametrize("groups", [[], ["validation-map"], ["test-map"], ["missing"],

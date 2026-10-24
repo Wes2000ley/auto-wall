@@ -58,9 +58,25 @@ def test_partial_instance_checks_never_claim_complete_precision():
     checks = structure_checks(annotation())
     assert checks["reference_size"] == [48, 32]
     assert checks["complete_instances"] == {"doors": False, "windows": False}
+    assert checks["structure_free"] is False
     assert checks["doors"][0]["span"] == [12, 10, 16, 10]
     with pytest.raises(ValueError, match="zero length"):
         structure_checks({**annotation(), "windows": [{"span": [1, 1, 1, 1]}]})
+
+
+def test_structure_free_checks_preserve_unknown_pixels_and_allow_lights():
+    item = {**annotation(), "structure_free": True, "doors": [], "windows": [], "strokes": [],
+            "regions": [{"class": "light", "polygon": [[4, 4], [8, 4], [8, 8], [4, 8]]}]}
+    assert structure_checks(item)["structure_free"] is True
+    mask = rasterize_annotation(item, (48, 32))
+    assert mask[6, 6] == 3 and mask[30, 47] == 255
+    with pytest.raises(ValueError, match="boolean"):
+        structure_checks({**item, "structure_free": 1})
+    with pytest.raises(ValueError, match="positive structures"):
+        structure_checks({**annotation(), "structure_free": True})
+    item["rays"][0]["expect"] = "blocked"
+    with pytest.raises(ValueError, match="blocked rays"):
+        structure_checks(item)
 
 
 def test_movement_checks_use_the_benchmark_contract_and_require_unique_ids():
@@ -211,3 +227,64 @@ def test_committed_partial_seed_reviews_match_annotation_bytes_and_rasters():
         if np.any(mask == 5):
             glazing_layouts.add((site, splits[site]))
     assert glazing_layouts == {("gilded-snare", "train"), ("mothveil-lodge", "validation")}
+
+
+def test_additional_frostwake_rails_only_supervise_reviewed_unknown_pixels():
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    parent_root = root / "partial-source-v2"
+    addition = root / "additional-rails-v1"
+    parent_path = parent_root / "annotations/frostwake-beacon.json"
+    path = addition / "frostwake-beacon.json"
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    split = json.loads((addition / "splits.json").read_text(encoding="utf-8"))
+    canonical_splits = json.loads((parent_root / "splits.json").read_text(encoding="utf-8"))
+    assert split == {"frostwake-beacon": canonical_splits["frostwake-beacon"]} == {"frostwake-beacon": "train"}
+    assert review["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    assert len(item["strokes"]) == len(parent["strokes"]) + 4
+    assert all(stroke["class"] == "transparent_barrier" for stroke in item["strokes"][-4:])
+    inherited = {**item, "strokes": item["strokes"][:-4], "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    size = (parent["width"], parent["height"])
+    before, after = (rasterize_annotation(annotation, size) for annotation in (parent, item))
+    changed = before != after
+    assert changed.sum() == 613
+    assert np.all(before[changed] == 255) and np.all(after[changed] == 4)
+    accepted = review["samples"]["frostwake-beacon"]
+    assert accepted["status"] == "accepted" and accepted["source_sha256"] == item["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+
+
+def test_new_landscape_negatives_preserve_splits_and_exclude_uncertain_emitters():
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    addition = root / "new-landscapes-v1"
+    parent_path = root / "partial-source-v2/splits.json"
+    parent_splits = json.loads(parent_path.read_text(encoding="utf-8"))
+    splits = json.loads((addition / "splits.json").read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    assert splits == {"cinderglass-basin": "validation", "sunspoke-shoals": "train"}
+    assert not set(splits) & set(parent_splits)
+    assert review["parent_split_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    assert set(review["samples"]) == set(splits)
+    for name, accepted in review["samples"].items():
+        path = addition / "annotations" / f"{name}.json"
+        item = json.loads(path.read_text(encoding="utf-8"))
+        assert item["site"] == name and item["complete"] is False
+        assert accepted["status"] == "accepted" and accepted["source_sha256"] == item["image_sha256"]
+        assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+        mask = rasterize_annotation(item, (1536, 1024))
+        assert set(np.unique(mask)) == {0, 255}
+        assert accepted["mask_sha256"] == hashlib.sha256(mask.tobytes()).hexdigest()
+        assert accepted["background_pixels"] == int((mask == 0).sum())
+        assert accepted["ignored_pixels"] == int((mask == 255).sum())
+        assert accepted["expected_exported_structures"] == {
+            "opaque_wall_segments": 0, "door_spans": 0, "window_spans": 0, "movement_only_segments": 0}
+        assert item["complete_instances"] == {"doors": True, "windows": True}
+        assert structure_checks(item)["structure_free"] is True
+        assert not item["strokes"] and not item["doors"] and not item["windows"]
+        if name == "cinderglass-basin":
+            assert len(item["regions"]) == 9 and mask[750, 830] == mask[670, 0] == 255
+        else:
+            assert mask[670, 625] == 255  # Ambiguous bright treasure stays unlabelled.

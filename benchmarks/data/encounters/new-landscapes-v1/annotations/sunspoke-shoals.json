@@ -1,0 +1,98 @@
+{
+  "format": "auto-wall-encounter-annotations-v1",
+  "site": "sunspoke-shoals",
+  "width": 1536,
+  "height": 1024,
+  "image_sha256": "4974f291ba701fc6102de7aae9f2861f91e7e203b38f9a1a20774b340c7465f5",
+  "complete": false,
+  "review_notes": [
+    "PARTIAL PRIMARY-REVIEWED LANDSCAPE NEGATIVES. Not complete six-class ground truth.",
+    "Native source and third-draft raster overlay inspected. No model predictions used as labels.",
+    "Snow, ice, water, coral, rocks, bones and loose props are not architectural walls, doors, windows or fences under the requested ontology.",
+    "Potential emitters remain ignored. Cinderglass supervises nine explicitly selected cold-terrain rectangles; Sunspoke excludes the ambiguous bright treasure.",
+    "Earlier subtractive Cinderglass drafts missed hot border patches. Those drafts were not admitted or trained; the accepted version uses selected cold regions instead.",
+    "New layout split fixed before any prediction evaluation: train. Existing layout splits unchanged."
+  ],
+  "regions": [
+    {
+      "class": "background",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          1535,
+          0
+        ],
+        [
+          1535,
+          1023
+        ],
+        [
+          0,
+          1023
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "ignore",
+      "polygon": [
+        [
+          565,
+          590
+        ],
+        [
+          710,
+          590
+        ],
+        [
+          710,
+          775
+        ],
+        [
+          565,
+          775
+        ]
+      ],
+      "reason": "Conservative exclusion of ambiguous glow, heat or emitter context."
+    }
+  ],
+  "strokes": [],
+  "doors": [],
+  "windows": [],
+  "complete_instances": {
+    "doors": true,
+    "windows": true
+  },
+  "rays": [
+    {
+      "id": "landscape-center-sight",
+      "from": [
+        100,
+        500
+      ],
+      "to": [
+        1430,
+        500
+      ],
+      "sense": "sight",
+      "expect": "open"
+    },
+    {
+      "id": "landscape-center-movement",
+      "from": [
+        750,
+        100
+      ],
+      "to": [
+        750,
+        950
+      ],
+      "sense": "movement",
+      "expect": "open"
+    }
+  ],
+  "structure_free": true
+}

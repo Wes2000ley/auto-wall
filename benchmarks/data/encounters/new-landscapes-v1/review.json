@@ -1,0 +1,50 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "parent_split_sha256": "890ebc7497dc9b74cfbb7531f026a22aa661f6327061973c0d6b1228c7592339",
+  "scope": "Independent primary source/overlay review of two new landscape maps. Selected negatives only; possible emitters remain unknown. No prediction labels, no old split changes, no final-test evaluation.",
+  "samples": {
+    "cinderglass-basin": {
+      "status": "accepted",
+      "reviewer": "primary native-source and third-draft raster review",
+      "source_sha256": "4755bcdf638b46daf12ebf664954ac31348fa06bcc0add5edb3c239afdeee9b5",
+      "annotation_sha256": "84938fe341e726d2645bf5c3d2d678fb78fa634204039df1d5931d489466f899",
+      "mask_sha256": "ddef25397d3761fdb84426418b8eefc32c98bcccfff32979664faa5710c8459f",
+      "reviewed_preview_sha256": "c300a00c9268aaaa1061eaffdf7642bb1d33ef9f44926a981a3117bd4c4aa738",
+      "background_pixels": 427944,
+      "ignored_pixels": 1144920,
+      "expected_exported_structures": {
+        "opaque_wall_segments": 0,
+        "door_spans": 0,
+        "window_spans": 0,
+        "movement_only_segments": 0
+      },
+      "notes": "No visible architectural structures anywhere on this landscape. Pixel labels deliberately exclude uncertain emitters; exported structure counts must remain zero even outside the selected negative regions."
+    },
+    "sunspoke-shoals": {
+      "status": "accepted",
+      "reviewer": "primary native-source and third-draft raster review",
+      "source_sha256": "4974f291ba701fc6102de7aae9f2861f91e7e203b38f9a1a20774b340c7465f5",
+      "annotation_sha256": "22419f751c12b2ca7f20c3a4c8365975be0017719f9c7d9a482b99979798a97d",
+      "mask_sha256": "e5e14957db1796307e39baa14a6a9f4a3a1ddab7ab5c0e629333a447f2e789df",
+      "reviewed_preview_sha256": "4966ba916970e49eef5ae5cfce91fdbaef571165906b4e072ff361f1d8333dd4",
+      "background_pixels": 1545708,
+      "ignored_pixels": 27156,
+      "expected_exported_structures": {
+        "opaque_wall_segments": 0,
+        "door_spans": 0,
+        "window_spans": 0,
+        "movement_only_segments": 0
+      },
+      "notes": "No visible architectural structures anywhere on this landscape. Pixel labels deliberately exclude uncertain emitters; exported structure counts must remain zero even outside the selected negative regions."
+    }
+  },
+  "structure_free_check_revision": {
+    "date": "2026-10-24",
+    "previous_annotation_sha256": {
+      "cinderglass-basin": "6c695c92429bf5bcdf3ed8e2e7053a2d7ac3e3e12b3e2c92d48734cd5025fb01",
+      "sunspoke-shoals": "7422178cdde5200daefce828971c8554134c2b33c89e0241ef4cf793f8ba2988"
+    },
+    "scope": "Add explicit structure_free=true to enforce the already reviewed zero-export expectation. Source, raster supervision, split and reviewed raster previews unchanged. This assertion covers the whole map without relabelling uncertain emitters as background."
+  }
+}

@@ -223,6 +223,10 @@ def test_trainer_keeps_legacy_default_and_exposes_windows_profile(monkeypatch):
     train_ml.main()
     assert parsed[0].classes == "legacy"
     assert parsed[1].classes == "windows"
+    assert parsed[0].crop_aspect_ratio == parsed[1].crop_aspect_ratio == 1
+    monkeypatch.setattr(sys, "argv", ["train_ml.py", "dataset.json", "run", "--crop-aspect-ratio", "2"])
+    train_ml.main()
+    assert parsed[2].crop_aspect_ratio == 2
 
 
 def test_windows_trainer_requires_window_labels_in_train_and_validation(tmp_path):
@@ -284,6 +288,42 @@ def test_downsampling_cannot_erase_the_only_supervised_pixel():
     sample = {"pixels": np.zeros((512, 512, 3), np.uint8), "labels": labels}
     _, crops = CropSampler([sample], seed=8, crop_size=64).batch(100)
     assert np.all(np.any(crops == 1, axis=(1, 2)))
+
+
+@pytest.mark.parametrize("ratio", [0, .9, 4.1, float("nan"), float("inf"), True, "2"])
+def test_crop_sampler_rejects_invalid_aspect_ratio(ratio):
+    with pytest.raises(ValueError, match="aspect ratio"):
+        CropSampler([], max_aspect_ratio=ratio)
+
+
+def test_aspect_augmentation_pairs_image_and_labels_and_preserves_default_rng(monkeypatch):
+    labels = np.tile(np.arange(256, dtype=np.uint8) % 6, (192, 1))
+    pixels = np.repeat((labels * 40)[:, :, None], 3, axis=2)
+    sample = {"pixels": pixels, "labels": labels}
+    resize = cv2.resize
+    crops = []
+
+    def capture(source, *args, **kwargs):
+        crops.append(source.copy())
+        return resize(source, *args, **kwargs)
+
+    monkeypatch.setattr(cv2, "resize", capture)
+    sampler = CropSampler([sample], seed=19, crop_size=64, classes=WINDOW_CLASSES, max_aspect_ratio=2)
+    images, masks, indices = sampler.batch(12, return_indices=True)
+    assert images.shape == (12, 3, 64, 64) and masks.shape == (12, 64, 64)
+    assert np.all(indices == 0) and set(np.unique(masks)) == set(range(6))
+    assert len(crops) == 24
+    assert any(image.shape[0] != image.shape[1] for image in crops[::2])
+    for image, mask in zip(crops[::2], crops[1::2]):
+        assert image.shape[:2] == mask.shape
+        np.testing.assert_array_equal(image[:, :, 0], mask * 40)
+
+    crops.clear()
+    default = CropSampler([sample], seed=19, crop_size=64, classes=WINDOW_CLASSES)
+    explicit = CropSampler([sample], seed=19, crop_size=64, classes=WINDOW_CLASSES, max_aspect_ratio=1)
+    for left, right in zip(default.batch(3, return_indices=True), explicit.batch(3, return_indices=True)):
+        np.testing.assert_array_equal(left, right)
+    assert all(crop.shape[0] == crop.shape[1] for crop in crops)
 
 
 def test_windows_tint_adds_chroma_without_moving_spatial_labels():

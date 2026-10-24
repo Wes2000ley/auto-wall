@@ -89,13 +89,17 @@ def read_dataset(manifest, classes=CLASSES):
 
 
 class CropSampler:
-    def __init__(self, samples, seed=1729, crop_size=256, classes=CLASSES):
+    def __init__(self, samples, seed=1729, crop_size=256, classes=CLASSES, max_aspect_ratio=1.):
+        if (type(max_aspect_ratio) not in (int, float) or not np.isfinite(max_aspect_ratio)
+                or not 1 <= max_aspect_ratio <= 4):
+            raise ValueError("Crop aspect ratio must be finite and between 1 and 4.")
         self.classes = validate_classes(classes)
         self.samples = samples
         self.sample_weights = _sampling_weights(samples)
         self.weighted = not np.all(self.sample_weights == self.sample_weights[0])
         self.rng = np.random.default_rng(seed)
         self.crop_size = crop_size
+        self.log_aspect_ratio = float(np.log(max_aspect_ratio))
         self.locations = [[np.argwhere(item["labels"] == cls)[::8] for cls in range(len(self.classes))]
                           for item in samples]
         self.class_probabilities = ((.2, .25, .2, .2, .15) if self.classes == LEGACY_CLASSES
@@ -142,10 +146,18 @@ class CropSampler:
             height, width = sample["labels"].shape
             anchor_y, anchor_x = points[int(self.rng.integers(len(points)))]
             size = min(height, width, round(self.crop_size * self.rng.uniform(.75, 1.5)))
-            x = int(np.clip(anchor_x - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, width - size))
-            y = int(np.clip(anchor_y - size // 2 + self.rng.integers(-size // 4, size // 4 + 1), 0, height - size))
-            image = cv2.resize(sample["pixels"][y:y + size, x:x + size], (self.crop_size,) * 2)
-            mask = cv2.resize(sample["labels"][y:y + size, x:x + size], (self.crop_size,) * 2, interpolation=cv2.INTER_NEAREST)
+            crop_width = crop_height = size
+            if self.log_aspect_ratio:
+                factor = np.exp(self.rng.uniform(-self.log_aspect_ratio, self.log_aspect_ratio) / 2)
+                crop_width = min(width, max(1, round(size * factor)))
+                crop_height = min(height, max(1, round(size / factor)))
+            x = int(np.clip(anchor_x - crop_width // 2 + self.rng.integers(-crop_width // 4, crop_width // 4 + 1),
+                            0, width - crop_width))
+            y = int(np.clip(anchor_y - crop_height // 2 + self.rng.integers(-crop_height // 4, crop_height // 4 + 1),
+                            0, height - crop_height))
+            image = cv2.resize(sample["pixels"][y:y + crop_height, x:x + crop_width], (self.crop_size,) * 2)
+            mask = cv2.resize(sample["labels"][y:y + crop_height, x:x + crop_width],
+                              (self.crop_size,) * 2, interpolation=cv2.INTER_NEAREST)
             if np.all(mask == 255):
                 # Downsampling can erase a one-pixel annotation. Retry around
                 # the same supervised point without shrinking source pixels.

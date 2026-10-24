@@ -7,7 +7,7 @@ the software tests does not establish model accuracy.
 
 ## Labels and split discipline
 
-The encounter inventory contains 31 canonical layouts, each with a PNG and a
+The initial encounter inventory contains 31 canonical layouts, each with a PNG and a
 WebP derivative. Whole-layout membership was fixed before training: 25 train,
 three validation and three test. Recolored variants stay with their originals.
 Seven older real maps retain their previous splits, producing 29 training,
@@ -253,3 +253,73 @@ does not change the inference loader's cached model.
 The complete local test suite passed: `python -B -m pytest -q tests` reported
 326 passed and three dependency deprecation warnings in 49.69 seconds. CUDA
 was available, so the new CUDA checks ran rather than being skipped.
+
+## Follow-up trials and additional reviewed data
+
+The [follow-up trial record](ENCOUNTER_ML_FOLLOWUP_RESULTS.json) preserves
+checkpoint, dataset, source and evaluation hashes for v6–v12. None is promoted.
+Pixel precision below refers only to reviewed pixels. Runtime results use the
+unchanged per-class profile thresholds: wall/door 0.90, window 0.93, fence 0.97.
+
+| Trial | Change | Observed promotion blocker |
+| --- | --- | --- |
+| v6 | Freeze legacy tensors; train a new window row | Zero held-out glass recall; unchanged weights do not preserve softmax probabilities when a class is added. |
+| v7 | Train a residual decoder over frozen features | Learns glass on the training map but misses held-out glass. This experimental wrapper is not runtime compatible. |
+| v8 | Vary procedural frame examples | Held-out glass recall remains zero; older-map precision also fails. |
+| v9 | Frozen legacy-reference replay | No extracted Mothveil door/window or Rimebell fence in either appearance. |
+| v10 | Add 16 constructed replacement windows in training-only building bays | Better glass pixels do not produce a matched runtime window or door in Mothveil. Rimebell still has no exported fence. |
+| v11 | Add four reviewed Frostwake rail/post strokes and increase that map's sampling | Some held-out fence pixels return. Original Rimebell exports no fence; recolored fragments fail the fence movement ray. Mothveil has no matched door/window. |
+| v12 | Permit aspect-ratio crop augmentation up to 2 | No matched Mothveil door/window; recolored Rimebell fails both negative cliff rays. A new recolored landscape acquires 107 false opaque wall segments. |
+
+Trials v6–v8 failed pixel checks; their actual exports and recolors were not
+evaluated. Trials v9–v11 were evaluated on the same five validation maps in both
+appearances. Trial v12 selected checkpoints on those five maps, then also ran
+on the newly reserved Cinderglass validation map. These iterative validation
+experiments are not an independent final test. The four final-test layouts
+remain reserved. None of these candidates has a new production light-center
+head, and the installed five-class light model remains unchanged.
+
+The [additional Frostwake annotations](../benchmarks/data/encounters/additional-rails-v1/README.md)
+add exactly 613 previously unknown pixels as fence labels. All existing
+supervision is retained. Increasing its sampling weight from 1 to 10 affects
+every represented target class on that map, not just fences. For fence-target
+crops its share rises from 1/13 to 10/22, including older and procedural examples.
+
+The optional `--crop-aspect-ratio` parameter accepts values from 1 to 4. Its
+default of 1 preserves the old square crops and random sequence. Larger values
+sample a log-uniform width/height ratio and resize the same image/label rectangle,
+using nearest-neighbor interpolation for labels. Image boundaries and integer
+rounding can reduce the realized ratio. Trial v12 is a failed experiment with
+this option, not evidence that the augmentation improves production accuracy.
+
+Two newly found layouts bring the canonical encounter inventory to 33. Their
+[reviewed landscape negatives](../benchmarks/data/encounters/new-landscapes-v1/README.md)
+keep Sunspoke in training and Cinderglass in validation, fixed before prediction
+evaluation. The earlier 31 splits are unchanged. Raster supervision remains
+partial: possible emitters are unknown, and two flawed earlier Cinderglass
+drafts were rejected before admission or training. The expanded manifest
+retains all 86 previous samples and adds these two, giving 78 training,
+six validation and four test samples, including controlled examples and replay.
+
+These two landscapes have no visible architectural structures anywhere. Their
+explicit `structure_free: true` annotation checks every exported wall, door,
+window face and movement-only segment across the whole image, including unknown
+segmentation pixels. It excludes lights and review-only barrier candidates.
+On recolored Cinderglass, both sampled passage rays passed despite the installed
+model exporting 23 false walls and v12 exporting 107. Re-extraction of cached
+predictions reproduced those counts; v11 exports zero structures in both
+appearances. This is a whole-map export check, not new pixel supervision.
+
+Unshipped door-refinement probes inspect the actual failure before changing
+geometry checks. Connected weak-pixel growth still fails Mothveil extraction.
+Image-guided color growth recovers its original door on v9–v11, but fails the
+recolor. An added Stone gate is visibly real yet exceeds the existing endpoint
+tolerance, and accepted spans can move. Those probes need further work;
+neither their thresholds nor the reference annotations were relaxed to pass.
+
+After the augmentation, data-integrity and whole-map checks, the full CUDA
+development environment ran `python -B -m pytest -q tests`: **345 passed**,
+three dependency warnings, 48.25 seconds. The portable runtime alone could not
+collect two legacy image-utils tests because it lacks `requests`; the complete
+development environment supplied that dependency. Software-test success does
+not establish model quality.

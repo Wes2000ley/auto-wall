@@ -1,0 +1,252 @@
+{
+  "format": "auto-wall-encounter-annotations-v1",
+  "site": "cinderglass-basin",
+  "width": 1536,
+  "height": 1024,
+  "image_sha256": "4755bcdf638b46daf12ebf664954ac31348fa06bcc0add5edb3c239afdeee9b5",
+  "complete": false,
+  "review_notes": [
+    "PARTIAL PRIMARY-REVIEWED LANDSCAPE NEGATIVES. Not complete six-class ground truth.",
+    "Native source and third-draft raster overlay inspected. No model predictions used as labels.",
+    "Snow, ice, water, coral, rocks, bones and loose props are not architectural walls, doors, windows or fences under the requested ontology.",
+    "Potential emitters remain ignored. Cinderglass supervises nine explicitly selected cold-terrain rectangles; Sunspoke excludes the ambiguous bright treasure.",
+    "Earlier subtractive Cinderglass drafts missed hot border patches. Those drafts were not admitted or trained; the accepted version uses selected cold regions instead.",
+    "New layout split fixed before any prediction evaluation: validation. Existing layout splits unchanged."
+  ],
+  "regions": [
+    {
+      "class": "background",
+      "polygon": [
+        [
+          0,
+          0
+        ],
+        [
+          225,
+          0
+        ],
+        [
+          225,
+          365
+        ],
+        [
+          0,
+          365
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          500,
+          0
+        ],
+        [
+          860,
+          0
+        ],
+        [
+          860,
+          340
+        ],
+        [
+          500,
+          340
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          945,
+          0
+        ],
+        [
+          1045,
+          0
+        ],
+        [
+          1045,
+          285
+        ],
+        [
+          945,
+          285
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          1260,
+          0
+        ],
+        [
+          1535,
+          0
+        ],
+        [
+          1535,
+          165
+        ],
+        [
+          1260,
+          165
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          0,
+          735
+        ],
+        [
+          115,
+          735
+        ],
+        [
+          115,
+          1023
+        ],
+        [
+          0,
+          1023
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          1230,
+          580
+        ],
+        [
+          1425,
+          580
+        ],
+        [
+          1425,
+          785
+        ],
+        [
+          1230,
+          785
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          435,
+          900
+        ],
+        [
+          680,
+          900
+        ],
+        [
+          680,
+          1023
+        ],
+        [
+          435,
+          1023
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          30,
+          500
+        ],
+        [
+          100,
+          500
+        ],
+        [
+          100,
+          610
+        ],
+        [
+          30,
+          610
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    },
+    {
+      "class": "background",
+      "polygon": [
+        [
+          605,
+          340
+        ],
+        [
+          855,
+          340
+        ],
+        [
+          855,
+          480
+        ],
+        [
+          605,
+          480
+        ]
+      ],
+      "reason": "Native-source landscape negative; does not delineate natural terrain as walls."
+    }
+  ],
+  "strokes": [],
+  "doors": [],
+  "windows": [],
+  "complete_instances": {
+    "doors": true,
+    "windows": true
+  },
+  "rays": [
+    {
+      "id": "landscape-center-sight",
+      "from": [
+        100,
+        500
+      ],
+      "to": [
+        1430,
+        500
+      ],
+      "sense": "sight",
+      "expect": "open"
+    },
+    {
+      "id": "landscape-center-movement",
+      "from": [
+        750,
+        100
+      ],
+      "to": [
+        750,
+        950
+      ],
+      "sense": "movement",
+      "expect": "open"
+    }
+  ],
+  "structure_free": true
+}

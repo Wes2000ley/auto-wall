@@ -197,9 +197,11 @@ def train(args):
             geometry_settings, ml_profile="windows" if classes == WINDOW_CLASSES else "legacy")
     elif args.geometry_settings:
         raise ValueError("--geometry-settings requires --selection geometry.")
+    crop_aspect_ratio = getattr(args, "crop_aspect_ratio", 1.)
+    sampler = CropSampler(training, args.seed, args.crop_size, classes=classes,
+                          max_aspect_ratio=crop_aspect_ratio)
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
-    sampler = CropSampler(training, args.seed, args.crop_size, classes=classes)
     backbone_hash = None
     initial_hash = None
     if args.init_model:
@@ -267,6 +269,7 @@ def train(args):
                                    if key in sample} for sample in samples],
                   "seed": args.seed, "training_steps": args.steps, "batch_size": args.batch_size,
                   "crop_size": args.crop_size, "context_dilation": args.context_dilation,
+                  "crop_aspect_ratio": crop_aspect_ratio,
                   "sampling_weights": {sample["id"]: sample.get("sampling_weight", 1.0)
                                        for sample in training},
                   **({"crop_sampling": (
@@ -278,7 +281,10 @@ def train(args):
                   "augmentation": ("rotations, flips, scale, hue, saturation, RGB gain, gamma, grayscale, spatial lighting"
                                    + ("; windows adds a crop-wide RGB tint blend with strength uniform [0.15, 0.38]"
                                       " and each tint channel uniform [0, 1]"
-                                      if classes == WINDOW_CLASSES else "")),
+                                      if classes == WINDOW_CLASSES else "")
+                                   + (f"; requested crop width/height ratio log-uniform in [1/{crop_aspect_ratio:g}, {crop_aspect_ratio:g}]"
+                                      " before integer rounding and image-boundary clipping; image and nearest-neighbor labels resized together"
+                                      if crop_aspect_ratio != 1 else "")),
                   "source_sha256": {str(path.relative_to(Path(__file__).resolve().parents[1])):
                       hashlib.sha256(path.read_bytes()).hexdigest() for path in
                       [Path(__file__), *(Path(__file__).resolve().parents[1] / "src/ml").glob("*.py")]},
@@ -368,6 +374,8 @@ def main():
     parser.add_argument("--geometry-settings", type=Path, help="Detector settings used for geometry validation")
     parser.add_argument("--context-dilation", type=int, choices=(1, 2, 4), default=4)
     parser.add_argument("--crop-size", type=int, choices=(128, 256, 384, 512), default=384)
+    parser.add_argument("--crop-aspect-ratio", type=float, default=1.,
+                        help="Maximum crop width/height ratio and its reciprocal, from 1 to 4 (default: square)")
     parser.add_argument("--validate-every", type=int, default=200)
     parser.add_argument("--threads", type=int, default=4)
     parser.add_argument("--seed", type=int, default=1729)

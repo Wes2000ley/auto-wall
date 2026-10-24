@@ -101,8 +101,17 @@ def structure_checks(annotation):
     complete = annotation.get("complete_instances", {})
     if not isinstance(complete, dict) or any(type(value) is not bool for value in complete.values()):
         raise ValueError("Instance completeness flags must be boolean.")
+    structure_free = annotation.get("structure_free", False)
+    if type(structure_free) is not bool:
+        raise ValueError("structure_free must be boolean.")
+    if structure_free and (any(instances.values())
+            or any(item["class"] in ("wall", "door", "window", "transparent_barrier")
+                   for item in [*annotation.get("regions", []), *annotation.get("strokes", [])])
+            or any(ray["expect"] == "blocked" for ray in rays)):
+        raise ValueError("A structure-free annotation cannot contain positive structures or blocked rays.")
     return {"format": "auto-wall-structure-checks-v1", "reference_size": list(size),
             "complete_instances": {kind: complete.get(kind, False) for kind in instances},
+            "structure_free": structure_free,
             **instances, "rays": rays,
             "description": "Partial visual annotations; unreviewed instances are not false positives."}
 

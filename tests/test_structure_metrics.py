@@ -138,6 +138,38 @@ def test_review_only_barrier_candidates_do_not_block_exported_movement():
     assert result["ray_summary"]["movement"] == {"passed": 1, "total": 1}
 
 
+@pytest.mark.parametrize("field,segments", [
+    ("walls", [((80, 80), (95, 95))]),
+    ("doors", [((80, 80), (95, 95))]),
+    ("windows", [((80, 80), (95, 95))]),
+    ("window_faces", [[((80, 80), (95, 95))]]),
+    ("invisible_walls", [((80, 80), (95, 95))]),
+])
+def test_structure_free_check_catches_exports_outside_sampled_rays(field, segments):
+    detection = DetectionResult(100, 100, walls=[], doors=[], lights=[])
+    setattr(detection, field, segments)
+    annotations = {"format": "auto-wall-structure-checks-v1", "structure_free": True,
+                   "rays": [{"id": "floor", "from": [10, 10], "to": [20, 10], "expect": "open"}]}
+    result = evaluate_structure_annotations(detection, annotations, (100, 100, 3))
+    assert result["ray_summary"]["sight"] == {"passed": 1, "total": 1}
+    assert result["structure_free"]["passed"] is False
+    assert any(result["structure_free"]["exported_counts"].values())
+
+
+def test_structure_free_check_does_not_assess_lights_or_review_only_candidates():
+    detection = DetectionResult(100, 100, walls=[], doors=[], lights=[{"x": 50, "y": 50}],
+                                transparent_barriers=[((80, 80), (95, 95))])
+    annotations = {"format": "auto-wall-structure-checks-v1", "structure_free": True}
+    result = evaluate_structure_annotations(detection, annotations, (100, 100, 3))
+    assert result["structure_free"]["passed"] is True
+    assert not any(result["structure_free"]["exported_counts"].values())
+    with pytest.raises(ValueError, match="boolean"):
+        evaluate_structure_annotations(detection, {**annotations, "structure_free": "true"}, (100, 100, 3))
+    with pytest.raises(ValueError, match="positive spans"):
+        evaluate_structure_annotations(detection, {**annotations, "windows": [{"span": [1, 1, 2, 2]}]},
+                                       (100, 100, 3))
+
+
 def test_movement_checks_use_exported_window_faces_instead_of_editing_centerline():
     detection = DetectionResult(100, 100, walls=[], doors=[], lights=[],
                                 windows=[((50, 20), (50, 80))],

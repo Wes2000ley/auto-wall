@@ -159,6 +159,9 @@ def evaluate_structure_annotations(detection, specification, image_shape):
     """Evaluate optional span and sight/movement annotations in their reference space."""
     if not isinstance(specification, dict) or specification.get("format") != FORMAT:
         raise ValueError(f"Structure annotations must use format {FORMAT}.")
+    structure_free = specification.get("structure_free", False)
+    if type(structure_free) is not bool:
+        raise ValueError("structure_free must be boolean.")
     height, width = image_shape[:2]
     reference = np.asarray(specification.get("reference_size", [width, height]), dtype=float)
     if (reference.shape != (2,) or not np.isfinite(reference).all()
@@ -216,7 +219,7 @@ def evaluate_structure_annotations(detection, specification, image_shape):
         evaluated_rays.append({"id": ray_id, "sense": sense, "expect": expected,
                                "actual": "blocked" if actual else "open",
                                "passed": actual == expected_blocked})
-    return {
+    result = {
         "reference_size": reference.tolist(),
         "coordinate_size": [width, height],
         "spans": spans,
@@ -229,6 +232,18 @@ def evaluate_structure_annotations(detection, specification, image_shape):
         "ray_assumption": "Sight rays use opaque walls and assume doors are closed. Movement rays also use exported windows and movement-only barriers. Review-only transparent-barrier candidates are excluded because they are not exported. Window sight blocking follows Foundry proximity-window semantics only approximately; per-world proximity distance is not modeled.",
         "span_metric_caveat": "Recall is measured only over annotated spans. With partial span annotations, missing unannotated instances are unknown and unmatched detections are not treated as false positives.",
     }
+    if structure_free:
+        if any(specification.get(name, []) for name in ("doors", "windows")) or any(
+                ray["expect"] == "blocked" for ray in rays):
+            raise ValueError("A structure-free annotation cannot contain positive spans or blocked rays.")
+        counts = {"opaque_wall_segments": len(detection.walls),
+                  "door_spans": len(detection.doors),
+                  "window_spans": len(getattr(detection, "windows", [])),
+                  "window_face_segments": len(window_barriers),
+                  "movement_only_segments": len(getattr(detection, "invisible_walls", []))}
+        result["structure_free"] = {"passed": not any(counts.values()), "exported_counts": counts,
+                                    "scope": "All exported structures across the full image, including pixels with unknown segmentation labels. Lights and review-only barrier candidates are not assessed."}
+    return result
 
 
 def _mean_defined(values):
