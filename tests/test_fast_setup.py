@@ -4,6 +4,7 @@ import time
 
 import cv2
 import numpy as np
+import pytest
 
 from src.gui.fast_setup import FastSetupDialog
 from src.core.fast_pipeline import FastSettings
@@ -73,16 +74,42 @@ def test_export_roundtrip(qt_app, monkeypatch, tmp_path):
     import base64
     import json
 
-    dialog = FastSetupDialog(image=make_image())
+    source_path = tmp_path / "map.name.雪.bmp"
+    success, encoded = cv2.imencode('.bmp', make_image())
+    assert success
+    source_path.write_bytes(encoded.tobytes())
+    dialog = FastSetupDialog(path=str(source_path))
     wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
-    path = tmp_path / "map.dd2vtt"
-    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
+    path = source_path.with_suffix('.dd2vtt')
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: pytest.fail("Export must not open a save-location dialog"))
+    from src.core.fast_pipeline import export_image_bytes
+    encoding_calls = []
+    def encode_once(image):
+        encoding_calls.append(True)
+        return export_image_bytes(image)
+    monkeypatch.setattr('src.gui.fast_setup.export_image_bytes', encode_once)
+    assert dialog.source_path == source_path and dialog.path is None
     dialog.export_map()
     wait_until(qt_app, lambda: dialog.export_worker is None)
     data = json.loads(path.read_text())
     assert len(data["portals"]) == 1 and len(data["lights"]) == 1
     image = cv2.imdecode(np.frombuffer(base64.b64decode(data["image"]), np.uint8), 1)
-    np.testing.assert_array_equal(image, dialog.image)
+    webp = source_path.with_suffix('.foundry.webp').read_bytes()
+    assert webp == export_image_bytes(dialog.image) == base64.b64decode(data['image'])
+    assert image.shape == dialog.image.shape
+    assert source_path.read_bytes() == encoded.tobytes()
+    scene_path = source_path.with_suffix('.foundry.json')
+    assert scene_path.exists()
+    scene = json.loads(scene_path.read_text())
+    assert len(scene['lights']) == 1 and len([wall for wall in scene['walls'] if wall['door'] == 1]) == 1
+    assert scene['levels'][0]['background']['src'] == 'data:image/webp;base64,' + data['image']
+    # A second export replaces the same file, including edits, without prompting.
+    dialog.remove_candidate('lights', 0)
+    dialog.export_map()
+    wait_until(qt_app, lambda: dialog.export_worker is None)
+    assert json.loads(path.read_text())['lights'] == []
+    assert json.loads(scene_path.read_text())['lights'] == []
+    assert len(encoding_calls) == 1
     dialog.close()
 
 
@@ -110,4 +137,49 @@ def test_profile_roundtrip_and_preset_selection(qt_app, monkeypatch, tmp_path):
     path.write_text('{"grid_size": "wrong type"}')
     dialog.import_settings()
     assert "Could not import" in dialog.status.text() and dialog.settings() == settings
+    dialog.close()
+
+
+def test_opening_another_map_changes_automatic_export_destination(qt_app, monkeypatch, tmp_path):
+    from PyQt6.QtWidgets import QFileDialog
+
+    success, encoded = cv2.imencode('.bmp', make_image())
+    assert success
+    first, second = tmp_path / 'first.bmp', tmp_path / 'second.bmp'
+    for path in (first, second):
+        path.write_bytes(encoded.tobytes())
+    dialog = FastSetupDialog(path=str(first))
+    wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
+    dialog.run_detection()
+    wait_until(qt_app, lambda: dialog.worker is None)
+    assert dialog.source_path == first  # Redetecting does not discard the filename.
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *args: pytest.fail('No export popup'))
+    monkeypatch.setattr(QFileDialog, 'getOpenFileName', lambda *args: (str(second), ''))
+    dialog.open_map()
+    wait_until(qt_app, lambda: dialog.worker is None)
+    assert dialog.source_path == second
+    assert dialog.export_image_cache is None
+    dialog.export_map()
+    wait_until(qt_app, lambda: dialog.export_worker is None)
+    assert second.with_suffix('.dd2vtt').exists() and not first.with_suffix('.dd2vtt').exists()
+    dialog.close()
+
+
+def test_export_errors_are_visible_and_never_trigger_a_save_dialog(qt_app, monkeypatch, tmp_path):
+    from PyQt6.QtWidgets import QFileDialog
+
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *args: pytest.fail('No export popup'))
+    dialog = FastSetupDialog(image=make_image())
+    wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
+    dialog.export_map()
+    assert 'Open a local map image first' in dialog.status.text()
+    def fail(*args):
+        raise PermissionError('folder is read-only')
+    monkeypatch.setattr('src.gui.fast_setup.write_map_exports', fail)
+    dialog.source_path = tmp_path / 'map.png'
+    dialog.export_map()
+    wait_until(qt_app, lambda: dialog.export_worker is None)
+    assert 'Export failed: folder is read-only' in dialog.status.text()
+    assert dialog.export_button.isEnabled() and dialog.view.editing_enabled
+    assert list(tmp_path.iterdir()) == []
     dialog.close()

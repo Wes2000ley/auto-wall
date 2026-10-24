@@ -6,10 +6,14 @@ import numpy as np
 VERTEX_TOLERANCE = 1e-6
 
 
-def incident_segments(segments, vertex):
-    """Find segments sharing this exact junction, allowing roundoff only."""
-    values = np.asarray(segments, dtype=float).reshape(-1, 2, 2)
-    return np.flatnonzero(np.any(np.linalg.norm(values - vertex, axis=2) <= VERTEX_TOLERANCE, axis=1))
+def rectangle_walls(first, second):
+    """Return four axis-aligned perimeter walls, or nothing for a flat box."""
+    left, right = sorted((first[0], second[0]))
+    top, bottom = sorted((first[1], second[1]))
+    if right - left <= VERTEX_TOLERANCE or bottom - top <= VERTEX_TOLERANCE:
+        return []
+    corners = [(left, top), (right, top), (right, bottom), (left, bottom)]
+    return list(zip(corners, corners[1:] + corners[:1]))
 
 
 def nearest_wall(segments, point, radius):
@@ -32,15 +36,6 @@ def nearest_wall(segments, point, radius):
     if distances[index] <= radius ** 2:
         return index, tuple(projections[index])
     return None
-
-
-def move_vertex(segments, source, target):
-    """Move a shared junction together and discard segments collapsed by the edit."""
-    values = np.asarray(segments, dtype=float).reshape(-1, 2, 2).copy()
-    shared = np.linalg.norm(values - source, axis=2) <= VERTEX_TOLERANCE
-    values[shared] = target
-    keep = np.linalg.norm(values[:, 1] - values[:, 0], axis=1) > VERTEX_TOLERANCE
-    return [(tuple(start), tuple(end)) for start, end in values[keep]]
 
 
 def cut_door_opening(walls, door):

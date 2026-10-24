@@ -2,7 +2,7 @@
 
 Fast Setup adds automatic walls, doors, and torch lights to the existing PyQt desktop
 application. It runs local OpenCV kernels in a background worker and preserves the
-original map resolution when exporting. The default palette detector needs no
+original map resolution when exporting WebP at quality 85. The default palette detector needs no
 model download, cloud service, CUDA installation, or additional native compiler.
 An optional **ML** tab supports local models, CPU/CUDA inference, and a separate
 see-through-barrier preview. See [local ML instructions](LOCAL_ML.md).
@@ -23,7 +23,7 @@ Omit the image argument to open a file picker through **Open map**. On Windows,
 The full editor uses the original `requirements.txt`. Launch `python auto_wall.py`,
 choose **Auto setup**, and use **Continue in wall editor** for individual wall and
 door edits. The standalone Fast Setup launcher needs only `requirements-fast.txt`;
-its review tools draw walls and doors, stretch wall junctions, erase walls by
+its review tools draw wall rectangles and door spans, erase walls by
 rectangle, toggle layers, and remove/undo individual door or light candidates.
 
 For optional single centerlines, install `requirements-centerline.txt`. This adds
@@ -101,8 +101,12 @@ structural. **Save settings** retains all detection controls for another session
    Door footprints are excluded. These remain candidates: a screen, magical eye,
    or bright prop can still look like a light. Range is in grid squares. Toggle layers
    to inspect the output, and remove false candidates.
-6. Scroll to zoom, left-drag to pan, and choose **Export UVTT**. The `.dd2vtt` file includes
-   walls, closed door portals, lights, and the original map image.
+6. Scroll to zoom, right-drag to pan, and choose **Export beside image**. It writes
+   `<image name>.dd2vtt`, `<image name>.foundry.json`, and `<image name>.foundry.webp`
+   in the loaded image's folder without a save-location dialog. Repeated exports
+   replace those files atomically. The image is WebP at quality **85 (0.85)**,
+   at the original dimensions. Both data formats embed those same WebP bytes;
+   the native scene includes all wall types, doors, windows, and lights.
 
 Lengths and areas use a 2048-pixel reference edge: lengths scale linearly with
 detection resolution and areas quadratically. Simplification uses the same reference.
@@ -113,41 +117,77 @@ Settings changes debounce for 200 ms. One detection job runs at a time; a newer
 request supersedes the old job. Cancellation happens between native processing
 stages. Export runs in another worker and writes atomically. Closing waits for active
 workers to finish safely. Panning and zooming use cached pixels and vector overlays.
+The first export encodes WebP once; later exports reuse those bytes until another
+map is loaded. Geometry edits and repeated exports do not rerun detection.
 
 ### Correct walls directly in the preview
 
-Choose **1 · Draw wall** or **2 · Draw door**, then **left-click and drag** to
-draw a segment. While the map has focus, **1** and **2** toggle those same tools;
-press the active number again to return to panning. Numeric inputs keep their
-normal typing behavior. Both ends snap to visible walls and doors, preferring
-existing endpoints, with a live preview before release. The tool stays selected
-so you can draw several segments. Selecting a drawing tool reveals its layer.
-Drawing a door directly along an existing wall replaces the overlapping wall
-portion with an openable door; neighboring and crossing walls stay intact.
-Draw doors across their opening, from jamb to jamb. Manually drawn doors do not
-need to pass the automatic detector's color, length, or wall-support checks.
+Choose **1 · Wall rectangle**, **2 · Door**, or **3 · Invisible rectangle**.
+Left-drag a rectangle for ordinary or invisible walls: its four sides become
+connected, axis-aligned wall segments, with a live preview. Doors remain straight
+spans; draw them from jamb to jamb across their opening. The diagonal rectangle
+corners and door endpoints snap to visible walls and doors, preferring existing
+endpoints within ten screen pixels. Flat rectangles and clicks add nothing.
+Drawing a door along an ordinary or invisible wall opens that wall beneath it;
+undo restores the opening and door together. New rectangles preserve existing
+door openings. Repeating the same rectangle does not duplicate its walls.
 
-**Right-click and drag a green wall** to stretch its nearest endpoint. Grabbing
-near an endpoint selects that junction directly. Release near another wall to
-snap onto its endpoint or its edge; a green circle marks a snap. The pick and
-snap distance stays ten screen pixels as you zoom. Shared corners and door jambs
-move together so an existing connection does not open into a crack. Collapsing
-a segment onto its other end removes the zero-length segment.
+While the map has focus, **1**, **2**, and **3** toggle those tools. Press the
+active number again to return to left-drag panning. Numeric inputs retain normal
+typing behavior. Tools stay selected after each gesture and reveal their layer.
+Invisible walls have an orange dashed overlay; they block movement while allowing
+sight, light, and sound through in Foundry. The separate purple ML barrier layer
+remains review-only: it is never automatically promoted to an invisible wall.
+
+**Right-click and drag** pans the map in every tool, including while drawing
+walls or doors. Right-click cancels an unfinished drawing before panning. It
+does not stretch or change geometry. The scroll wheel zooms.
 
 **Middle-click and drag** draws a red rectangle. On release, it deletes whole
-wall segments touching the box, including segments crossing it with both ends
-outside. Draw the box in any direction. Doors, lights, and see-through barriers
-remain separate. A middle click without dragging does not delete anything.
+visible ordinary and invisible wall segments touching the box, including segments
+crossing it with both ends outside. Draw the box in any direction. Hidden layers,
+doors, lights, and automatic ML barrier candidates remain separate. A middle
+click without dragging does not delete anything.
 
-**Undo edit** or **Ctrl+Z** restores the last drawing, stretch, rectangle deletion,
+**Undo edit** or **Ctrl+Z** restores the last drawing, rectangle deletion,
 or door/light removal. Each gesture is one undo step, including wall portions
 replaced by a door. **Escape** cancels a gesture before release; pressing it
 without an active gesture returns to panning. Left dragging pans when no drawing
 tool is selected, and the scroll wheel zooms.
 Only visible walls can be edited; detection, pending settings changes, and export
-temporarily disable edits. Export UVTT and Continue in wall editor use the edited
+temporarily disable edits. Export and Continue in wall editor use the edited
 geometry. Running Detect all produces a fresh detection and clears manual edits
 and their undo history.
+
+### Invisible walls and Foundry export
+
+**Export beside image** always saves `<image name>.dd2vtt` and
+`<image name>.foundry.json`, plus `<image name>.foundry.webp`, beside the image. The status
+message names both files. The standard UVTT file contains ordinary walls, doors,
+and lights; its `auto_wall` metadata points to the native scene and explains that
+invisible walls require that file. The installed Universal Battlemap Importer
+6.1.1 treats transparent portals as proximity windows, so those portals cannot
+faithfully represent movement-only barriers.
+All three files are updated on every export, including after invisible walls are erased.
+
+For invisible walls, create an empty Scene in **Foundry v14**, open its context
+menu, choose **Import Data**, and select the `.foundry.json` file. It includes
+the full-resolution WebP image, normal and invisible walls, closed interactive doors,
+and lights in a single level. Padding is zero so image pixels and wall endpoints
+align. Foundry requires a whole **Pixels / grid** value of at least 20; invalid
+values produce a visible error before either export is written. The scene uses
+5 ft squares, with light range converted from grid squares and brightness mapped
+the same way as Universal Battlemap Importer. This native format targets v14.
+
+The older editor retains and displays invisible walls through handoff and undo;
+its Save action also exports beside the loaded image without prompting. For
+images supplied only in memory or from a URL, open a local map first so there is
+an image folder to export into. Export never changes the source image. WebP quality
+85 is lossy, so exported image pixels can differ slightly; detection and editing
+still use the original pixels. Images above WebP's 16383-pixel dimension limit
+produce a visible error rather than being resized. The installed Universal
+Battlemap Importer recognizes embedded WebP directly. Other UVTT consumers may
+require PNG; the native scene targets this Foundry v14 workflow.
 
 ## Headless export and timing
 
@@ -160,8 +200,8 @@ For example, `{"wall_mode":"color","wall_color":[135,120,100],"door_rectangulari
 Precedence is preset → schema palette → settings JSON → explicit CLI resolution,
 grid, and geometry arguments. `--geometry centerline` selects skeleton geometry.
 Preview output is an
-uncompressed BMP. Existing PNG source bytes are embedded unchanged; other image
-formats are converted to PNG with compression disabled.
+uncompressed BMP. Exported images are encoded as WebP at quality 85 at the
+original dimensions; source files remain unchanged.
 
 ## Measured performance
 
@@ -250,7 +290,8 @@ The whole-map wall overlay was checked for furniture highlights, floor markings,
 blood, and lava outlines. Door spans remain horizontal/vertical and all 136 endpoints
 touch wall geometry to floating-point precision. Doorway clipping preserves jamb
 caps, which avoids gaps around closed doors and leaves the center clear when opened.
-The embedded PNG was verified byte-for-byte against the source.
+That earlier benchmark verified embedded PNG bytes against the source. Current
+exports use WebP at quality 85, as described above.
 
 Automated tests cover false door candidates, two-sided jamb support, rotated door
 clipping, scale conversion, source immutability, cancellation, stale worker results,

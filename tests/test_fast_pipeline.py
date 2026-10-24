@@ -198,16 +198,24 @@ def test_blank_and_invalid_images():
         detect_map(np.zeros((0, 0, 3), dtype=np.uint8))
 
 
-def test_unicode_path_and_png_preservation(tmp_path):
+def test_unicode_path_and_webp_85_export_preserve_source_and_dimensions(tmp_path):
     path = tmp_path / "地図.bmp"
     image = np.full((12, 16, 3), (30, 70, 90), dtype=np.uint8)
     path.write_bytes(cv2.imencode(".bmp", image)[1].tobytes())
     loaded, source = load_map(path)
     np.testing.assert_array_equal(image, loaded)
-    png = export_image_bytes(loaded, source)
-    assert png.startswith(b"\x89PNG")
-    assert export_image_bytes(loaded, png) is png
-    np.testing.assert_array_equal(cv2.imdecode(np.frombuffer(png, np.uint8), 1), image)
+    webp = export_image_bytes(loaded)
+    assert webp.startswith(b'RIFF') and webp[8:12] == b'WEBP'
+    decoded = cv2.imdecode(np.frombuffer(webp, np.uint8), 1)
+    assert decoded.shape == image.shape
+    assert np.abs(decoded.astype(float) - image).mean() < 3
+    assert path.read_bytes() == source
+    assert webp == cv2.imencode('.webp', image, [cv2.IMWRITE_WEBP_QUALITY, 85])[1].tobytes()
+
+
+def test_webp_export_reports_oversized_image_without_resizing():
+    with pytest.raises(ValueError, match='16383'):
+        export_image_bytes(np.zeros((1, 16384, 3), np.uint8))
 
 
 def test_atomic_export_preserves_existing_file_on_error(tmp_path):

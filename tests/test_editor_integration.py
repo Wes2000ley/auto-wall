@@ -3,6 +3,7 @@ from types import SimpleNamespace
 
 import cv2
 import numpy as np
+import pytest
 
 from src.gui.export_panel import ExportPanel
 from src.core.contour_processor import ContourProcessor
@@ -54,7 +55,8 @@ def test_redrawing_never_rescales_shared_light_positions():
     assert app.current_lights == before
 
 
-def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path):
+@pytest.mark.parametrize('invisible', [False, True])
+def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path, invisible):
     import base64
     import json
     import src.gui.app as app_module
@@ -64,12 +66,12 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path):
 
     monkeypatch.setattr(app_module, "check_for_updates", lambda app: None)
     app = app_module.WallDetectionApp(version="test-dev-fast")
-    dialog = FastSetupDialog(app, image=make_image())
+    dialog = FastSetupDialog(app, image=make_image(), source_path=tmp_path / 'editor.png')
     wait_until(qt_app, lambda: dialog.result is not None and dialog.worker is None)
-    source = tuple(dialog.result.walls[0][0])
-    dialog.stretch_wall(source, (source[0] + 10, source[1] + 5))
-    dialog.add_segment("walls", (100., 150.), (200., 150.))
-    dialog.add_segment("doors", (140., 150.), (160., 150.))
+    dialog.add_shape("walls", (100., 150.), (200., 250.))
+    dialog.add_shape("doors", (140., 150.), (160., 150.))
+    if invisible:
+        dialog.add_shape('invisible_walls', (300., 150.), (400., 250.))
     assert dialog.undo_states
     expected = deepcopy(dialog.result)
     dialog.use_in_editor()
@@ -79,15 +81,26 @@ def test_fast_setup_imports_into_existing_editor(qt_app, monkeypatch, tmp_path):
     assert app.uvtt_walls_preview["_preview_pixels"] == [
         [{"x": float(x), "y": float(y)} for x, y in segment] for segment in expected.walls]
     assert len(app.wall_edit_history) == 2
-    path = tmp_path / "editor.uvtt"
-    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
+    path = tmp_path / "editor.dd2vtt"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: pytest.fail('Export must not open a save dialog'))
     app.export_panel.save_uvtt_preview()
     data = json.loads(path.read_text())
     assert "_preview_pixels" not in data
     pixels = cv2.imdecode(np.frombuffer(base64.b64decode(data["image"]), np.uint8), 1)
-    np.testing.assert_array_equal(pixels, app.original_image)
+    from src.core.fast_pipeline import export_image_bytes
+    assert pixels.shape == app.original_image.shape
+    assert base64.b64decode(data['image']) == export_image_bytes(app.original_image)
+    assert (tmp_path / 'editor.foundry.webp').read_bytes() == base64.b64decode(data['image'])
     assert data["portals"] and data["lights"]
     assert data["portals"] == app.uvtt_walls_preview["portals"]
+    if invisible:
+        scene = json.loads((tmp_path / 'editor.foundry.json').read_text())
+        invisible_walls = [wall for wall in scene['walls'] if wall['sight'] == 0]
+        assert len(invisible_walls) == 4 and all(wall['move'] == 20 for wall in invisible_walls)
+        app.export_panel.save_wall_state_for_undo(force=True)
+        app.uvtt_walls_preview['_invisible_walls'].clear()
+        app.export_panel.undo_wall_edit()
+        assert len(app.uvtt_walls_preview['_invisible_walls']) == 4
     app.image_processor.debounced_update.timer.stop()
     app.close()
 

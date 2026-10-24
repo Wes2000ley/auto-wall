@@ -8,7 +8,7 @@ from PyQt6.QtTest import QTest
 from PyQt6.QtWidgets import QFileDialog
 
 from src.core.fast_pipeline import DetectionResult
-from src.core.wall_editing import cut_door_opening, incident_segments, move_vertex, nearest_wall, walls_in_rectangle
+from src.core.wall_editing import cut_door_opening, nearest_wall, rectangle_walls, walls_in_rectangle
 from src.gui.fast_setup import FastSetupDialog
 from tests.test_fast_setup import wait_until
 
@@ -23,16 +23,14 @@ def test_nearest_wall_snaps_to_vertices_or_segment_interiors_with_a_bounded_radi
     assert nearest_wall([((2, 3), (2, 3))], (2, 3), 5) == (0, (2., 3.))
 
 
-def test_moving_a_junction_preserves_connections_and_input_and_drops_collapsed_segments():
-    walls = np.array([[[0., 0.], [10., 10.]], [[10., 10.], [20., 20.]],
-                      [[10.0000001, 10.], [10., 20.]], [[10.01, 10.], [0., 20.]]])
-    original = walls.copy()
-    np.testing.assert_array_equal(incident_segments(walls, (10, 10)), [0, 1, 2])
-    moved = move_vertex(walls, (10, 10), (0, 0))
-    assert moved == [((0., 0.), (20., 20.)), ((0., 0.), (10., 20.)),
-                     ((10.01, 10.), (0., 20.))]
-    np.testing.assert_array_equal(walls, original)
-    assert move_vertex([], (0, 0), (1, 1)) == []
+def test_rectangle_has_four_connected_axis_aligned_sides_in_either_drag_direction():
+    expected = [((10, 20), (30, 20)), ((30, 20), (30, 40)),
+                ((30, 40), (10, 40)), ((10, 40), (10, 20))]
+    assert rectangle_walls((10, 20), (30, 40)) == expected
+    assert rectangle_walls((30, 40), (10, 20)) == expected
+    assert rectangle_walls((10, 40), (30, 20)) == expected
+    assert rectangle_walls((10, 20), (10, 40)) == []
+    assert rectangle_walls((10, 20), (30, 20)) == []
 
 
 def test_rectangle_hits_crossings_and_boundaries_but_not_only_overlapping_bounding_boxes():
@@ -91,31 +89,43 @@ def scene_point(view, x, y):
     return view.mapFromScene(QPointF(x, y))
 
 
-def test_right_drag_live_preview_shared_junction_snapping_and_mixed_undo(wall_dialog, qt_app):
+@pytest.mark.parametrize("mode", [None, "walls", "doors", "invisible_walls"])
+def test_right_drag_pans_in_every_tool_without_geometry_or_history_changes(wall_dialog, mode):
     dialog, view = wall_dialog, wall_dialog.view
     initial = deepcopy(dialog.result)
-    start, end = scene_point(view, 120, 100), scene_point(view, 220, 220) + QPoint(4, -3)
-    QTest.mousePress(view.viewport(), Qt.MouseButton.RightButton, pos=start)
-    QTest.mouseMove(view.viewport(), end)
-    assert view.drag_target == (220., 220.)
-    assert view.drag_preview.path().elementCount() > 0
-    assert dialog.result.walls == initial.walls and not dialog.undo_states
-    QTest.mouseRelease(view.viewport(), Qt.MouseButton.RightButton, pos=end)
-    assert dialog.result.walls[:2] == [((40., 100.), (220., 220.)), ((220., 220.), (120., 40.))]
-    assert dialog.result.doors[0] == ((220., 220.), (160., 100.))
-    assert dialog.result.doors[1] == initial.doors[1]
-    assert dialog.result.lights == initial.lights
-    assert dialog.result.transparent_barriers == initial.transparent_barriers
-    assert len(dialog.undo_states) == 1 and dialog.export_button.isEnabled()
-    assert view.drag_preview is None and view.snap_marker is None
-    dialog.remove_candidate("lights", 0)
-    assert not dialog.result.lights
-    dialog.undo_removal()
-    assert dialog.result.lights == initial.lights and len(dialog.undo_states) == 1
-    QTest.keyClick(view.viewport(), Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier)
-    qt_app.processEvents()
-    assert dialog.result.walls == initial.walls and dialog.result.doors == initial.doors
-    assert not dialog.undo_states and not dialog.undo_button.isEnabled()
+    view.set_drawing_mode(mode)
+    view.scale(4, 4)
+    view.centerOn(200, 150)
+    first = view.viewport().rect().center()
+    before = view.mapToScene(first)
+    drag(view, Qt.MouseButton.RightButton, first, first + QPoint(40, 30))
+    after = view.mapToScene(first)
+    assert after.x() < before.x() and after.y() < before.y()
+    assert dialog.result == initial and not dialog.undo_states
+    assert view.drawing_mode == mode and view.pan_last is None
+    assert not view.has_wall_gesture()
+
+
+def test_right_pan_cancels_unfinished_rectangle_and_works_while_detection_is_stale(wall_dialog):
+    dialog, view = wall_dialog, wall_dialog.view
+    initial = deepcopy(dialog.result)
+    view.set_drawing_mode("walls")
+    first, second = scene_point(view, 40, 100), scene_point(view, 220, 220)
+    QTest.mousePress(view.viewport(), Qt.MouseButton.LeftButton, pos=first)
+    QTest.mouseMove(view.viewport(), second)
+    assert view.has_wall_gesture()
+    QTest.mousePress(view.viewport(), Qt.MouseButton.RightButton, pos=second)
+    assert not view.has_wall_gesture() and view.pan_last is not None
+    QTest.mouseRelease(view.viewport(), Qt.MouseButton.LeftButton, pos=second)
+    QTest.mouseRelease(view.viewport(), Qt.MouseButton.RightButton, pos=second)
+    assert dialog.result == initial and not dialog.undo_states
+    dialog.live.setChecked(False)
+    dialog.grid.setValue(80)
+    assert not view.editing_enabled
+    QTest.mousePress(view.viewport(), Qt.MouseButton.RightButton, pos=first)
+    assert view.pan_last is not None
+    QTest.mouseRelease(view.viewport(), Qt.MouseButton.RightButton, pos=second)
+    assert view.pan_last is None and dialog.result == initial
 
 
 @pytest.mark.parametrize("zoom", [.5, 2.])
@@ -124,16 +134,17 @@ def test_drag_pick_and_snap_radius_stay_in_screen_pixels_at_different_zooms(wall
     view.resetTransform()
     view.scale(zoom, zoom)
     view.centerOn(160, 150)
-    start = scene_point(view, 120, 100) + QPoint(0, 7)
+    view.set_drawing_mode("doors")
+    start = scene_point(view, 120, 40) + QPoint(0, 7)
     end = scene_point(view, 220, 160) + QPoint(7, 0)
-    drag(view, Qt.MouseButton.RightButton, start, end)
-    target = dialog.result.walls[0][1]
+    drag(view, Qt.MouseButton.LeftButton, start, end)
+    target = dialog.result.doors[-1][1]
     assert target[0] == 220.
     assert abs(target[1] - 160) <= 1 / zoom
     dialog.undo_removal()
     end = scene_point(view, 220, 160) + QPoint(14, 0)
-    drag(view, Qt.MouseButton.RightButton, start, end)
-    assert dialog.result.walls[0][1][0] > 220. + 10 / zoom
+    drag(view, Qt.MouseButton.LeftButton, start, end)
+    assert dialog.result.doors[-1][1][0] > 220. + 10 / zoom
 
 
 def test_middle_drag_reverse_rectangle_deletes_crossing_walls_only_and_undoes_as_one_edit(wall_dialog):
@@ -169,17 +180,19 @@ def test_stale_settings_and_hidden_layers_prevent_edits_and_cancel_active_drag(w
     dialog, view = wall_dialog, wall_dialog.view
     initial = deepcopy(dialog.result.walls)
     start, end = scene_point(view, 120, 100), scene_point(view, 220, 150)
-    QTest.mousePress(view.viewport(), Qt.MouseButton.RightButton, pos=start)
-    assert view.drag_source is not None
+    view.set_drawing_mode("walls")
+    QTest.mousePress(view.viewport(), Qt.MouseButton.LeftButton, pos=start)
+    assert view.draw_origin is not None
     dialog.live.setChecked(False)
     dialog.grid.setValue(80)
-    assert not view.editing_enabled and view.drag_source is None
-    QTest.mouseRelease(view.viewport(), Qt.MouseButton.RightButton, pos=end)
+    assert not view.editing_enabled and view.draw_origin is None
+    QTest.mouseRelease(view.viewport(), Qt.MouseButton.LeftButton, pos=end)
     drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 0, 0), scene_point(view, 300, 280))
     assert dialog.result.walls == initial and not dialog.undo_states
     dialog.apply_settings(dialog.result_settings)
     assert view.editing_enabled
     view.show_layer("walls", False)
+    view.show_layer("invisible_walls", False)
     drag(view, Qt.MouseButton.RightButton, start, end)
     drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 0, 0), scene_point(view, 300, 280))
     assert dialog.result.walls == initial and not dialog.undo_states
@@ -188,19 +201,21 @@ def test_stale_settings_and_hidden_layers_prevent_edits_and_cancel_active_drag(w
 def test_edited_geometry_is_exported_and_redetection_starts_a_fresh_history(wall_dialog, qt_app, monkeypatch, tmp_path):
     dialog, view = wall_dialog, wall_dialog.view
     initial = deepcopy(dialog.result.walls)
-    drag(view, Qt.MouseButton.RightButton, scene_point(view, 120, 100), scene_point(view, 220, 220))
+    view.set_drawing_mode("walls")
+    drag(view, Qt.MouseButton.LeftButton, scene_point(view, 40, 100), scene_point(view, 220, 220))
     drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 45, 240), scene_point(view, 190, 260))
     path = tmp_path / "edited.dd2vtt"
-    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
+    dialog.source_path = tmp_path / "edited.png"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: pytest.fail("Export must not ask for a path"))
     dialog.export_map()
     assert not view.editing_enabled and not dialog.undo_button.isEnabled()
     dialog.undo_removal()  # Cannot alter the geometry while its export is running.
     assert len(dialog.undo_states) == 2
     wait_until(qt_app, lambda: dialog.export_worker is None)
     data = json.loads(path.read_text())
-    assert len(data["line_of_sight"]) == 3
-    assert data["line_of_sight"][0][1] == {"x": 220 / 70, "y": 220 / 70}
-    assert data["portals"][0]["bounds"][0] == data["line_of_sight"][0][1]
+    assert len(data["line_of_sight"]) == len(dialog.result.walls)
+    assert len(data["line_of_sight"]) > len(initial)
+    assert data["line_of_sight"][0][1] == {"x": 120 / 70, "y": 100 / 70}
     assert len(data["lights"]) == 1 and not data["objects_line_of_sight"]
     dialog.run_detection()
     assert not view.editing_enabled
@@ -219,6 +234,10 @@ def test_number_keys_and_buttons_toggle_drawing_without_stealing_numeric_input(w
     assert not dialog.draw_buttons["walls"].isChecked()
     QTest.keyClick(view.viewport(), Qt.Key.Key_2)
     assert view.drawing_mode is None and not dialog.draw_buttons["doors"].isChecked()
+    QTest.keyClick(view.viewport(), Qt.Key.Key_3)
+    assert view.drawing_mode == "invisible_walls" and dialog.draw_buttons["invisible_walls"].isChecked()
+    QTest.keyClick(view.viewport(), Qt.Key.Key_3)
+    assert view.drawing_mode is None
     QTest.mouseClick(dialog.draw_buttons["walls"], Qt.MouseButton.LeftButton)
     qt_app.processEvents()
     assert view.drawing_mode == "walls" and view.hasFocus()
@@ -236,7 +255,7 @@ def test_number_keys_and_buttons_toggle_drawing_without_stealing_numeric_input(w
     assert not any(button.isEnabled() for button in dialog.draw_buttons.values())
 
 
-def test_wall_drawing_snaps_both_ends_and_keeps_stretch_and_erase_available(wall_dialog):
+def test_wall_rectangle_snaps_diagonal_corners_preserves_axis_alignment_and_undoes_once(wall_dialog, qt_app):
     dialog, view = wall_dialog, wall_dialog.view
     initial = deepcopy(dialog.result.walls)
     QTest.keyClick(view.viewport(), Qt.Key.Key_1)
@@ -245,18 +264,16 @@ def test_wall_drawing_snaps_both_ends_and_keeps_stretch_and_erase_available(wall
     QTest.mousePress(view.viewport(), Qt.MouseButton.LeftButton, pos=start)
     QTest.mouseMove(view.viewport(), end)
     assert view.draw_origin == (40., 100.) and view.draw_target == (50., 250.)
-    assert view.drag_preview.path().elementCount() == 2
+    assert view.drag_preview.path().elementCount() >= 5
     assert dialog.result.walls == initial and not dialog.undo_states
     QTest.mouseRelease(view.viewport(), Qt.MouseButton.LeftButton, pos=end)
-    assert dialog.result.walls == initial + [((40., 100.), (50., 250.))]
+    assert dialog.result.walls == initial + rectangle_walls((40., 100.), (50., 250.))
     assert len(dialog.undo_states) == 1 and view.drawing_mode == "walls"
-    drag(view, Qt.MouseButton.RightButton, scene_point(view, 40, 100), scene_point(view, 220, 220))
-    assert dialog.result.walls[-1] == ((220., 220.), (50., 250.))
-    dialog.undo_removal()
     drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 200, 60), scene_point(view, 240, 210))
     assert initial[2] not in dialog.result.walls and view.drawing_mode == "walls"
     dialog.undo_removal()
-    dialog.undo_removal()
+    QTest.keyClick(view.viewport(), Qt.Key.Key_Z, Qt.KeyboardModifier.ControlModifier)
+    qt_app.processEvents()
     assert dialog.result.walls == initial and not dialog.undo_states
 
 
@@ -274,7 +291,8 @@ def test_door_drawing_cuts_an_existing_wall_and_exports_an_openable_portal(wall_
     assert (end, (220., 220.)) in dialog.result.walls
     assert len(dialog.undo_states) == 1 and view.drawing_mode == "doors"
     path = tmp_path / "drawn-door.dd2vtt"
-    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: (str(path), ""))
+    dialog.source_path = tmp_path / "drawn-door.png"
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", lambda *args: pytest.fail("Export must not ask for a path"))
     dialog.export_map()
     wait_until(qt_app, lambda: dialog.export_worker is None)
     data = json.loads(path.read_text())
@@ -285,7 +303,7 @@ def test_door_drawing_cuts_an_existing_wall_and_exports_an_openable_portal(wall_
     assert dialog.result.walls == initial.walls and dialog.result.doors == initial.doors
 
 
-@pytest.mark.parametrize("key", [Qt.Key.Key_1, Qt.Key.Key_2])
+@pytest.mark.parametrize("key", [Qt.Key.Key_1, Qt.Key.Key_2, Qt.Key.Key_3])
 def test_cancel_short_or_duplicate_drawing_does_not_change_geometry(wall_dialog, key):
     dialog, view = wall_dialog, wall_dialog.view
     initial = deepcopy(dialog.result)
@@ -303,8 +321,11 @@ def test_cancel_short_or_duplicate_drawing_does_not_change_geometry(wall_dialog,
     assert dialog.result.walls == initial.walls and dialog.result.doors == initial.doors
     assert not dialog.undo_states and dialog.isVisible()
     # Drawing an existing segment in reverse does not create a duplicate.
-    first, second = (initial.walls if key == Qt.Key.Key_1 else initial.doors)[0]
-    drag(view, Qt.MouseButton.LeftButton, scene_point(view, *second), scene_point(view, *first))
+    if key == Qt.Key.Key_2:
+        first, second = initial.doors[0]
+        drag(view, Qt.MouseButton.LeftButton, scene_point(view, *second), scene_point(view, *first))
+    else:
+        drag(view, Qt.MouseButton.LeftButton, scene_point(view, 40, 100), scene_point(view, 120, 100))
     assert not dialog.undo_states
 
 
@@ -339,3 +360,44 @@ def test_drawing_reveals_its_layer_and_does_not_conflict_with_picking_or_removin
     QTest.keyClick(view.viewport(), Qt.Key.Key_2)
     dialog.remove_check.setChecked(True)
     assert view.drawing_mode is None and view.removing
+
+
+def test_invisible_rectangles_door_openings_delete_visibility_and_mixed_undo(wall_dialog):
+    dialog, view = wall_dialog, wall_dialog.view
+    initial = deepcopy(dialog.result)
+    QTest.keyClick(view.viewport(), Qt.Key.Key_3)
+    drag(view, Qt.MouseButton.LeftButton, scene_point(view, 300, 60), scene_point(view, 360, 240))
+    invisible = deepcopy(dialog.result.invisible_walls)
+    assert len(invisible) == 4 and len(dialog.undo_states) == 1
+    assert dialog.result.walls == initial.walls and view.layers['invisible_walls'][0].isVisible()
+    assert all(start[0] == end[0] or start[1] == end[1] for start, end in invisible)
+    QTest.keyClick(view.viewport(), Qt.Key.Key_2)
+    drag(view, Qt.MouseButton.LeftButton, scene_point(view, 300, 100), scene_point(view, 300, 180))
+    assert len(dialog.result.invisible_walls) == 5 and len(dialog.undo_states) == 2
+    dialog.undo_removal()
+    assert dialog.result.invisible_walls == invisible and dialog.result.doors == initial.doors
+    dialog.layer_checks['invisible_walls'].setChecked(False)
+    drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 290, 50), scene_point(view, 370, 245))
+    assert dialog.result.invisible_walls == invisible and len(dialog.undo_states) == 1
+    dialog.layer_checks['invisible_walls'].setChecked(True)
+    drag(view, Qt.MouseButton.MiddleButton, scene_point(view, 290, 50), scene_point(view, 370, 245))
+    assert not dialog.result.invisible_walls and len(dialog.undo_states) == 2
+    dialog.undo_removal()
+    dialog.undo_removal()
+    assert dialog.result == initial and not dialog.undo_states
+
+
+def test_invisible_rectangle_exports_both_files_without_a_save_dialog(wall_dialog, qt_app, monkeypatch, tmp_path):
+    dialog = wall_dialog
+    dialog.source_path = tmp_path / 'invisible.png'
+    dialog.add_shape('invisible_walls', (300., 60.), (360., 240.))
+    dialog.add_shape('invisible_walls', (360., 240.), (300., 60.))
+    assert len(dialog.undo_states) == 1  # Redrawing the same box adds no duplicates.
+    monkeypatch.setattr(QFileDialog, 'getSaveFileName', lambda *args: pytest.fail('No export popup'))
+    dialog.export_map()
+    wait_until(qt_app, lambda: dialog.export_worker is None)
+    scene = json.loads((tmp_path / 'invisible.foundry.json').read_text())
+    walls = [wall for wall in scene['walls'] if wall['sight'] == 0]
+    assert len(walls) == 4 and all(wall['move'] == 20 for wall in walls)
+    assert (tmp_path / 'invisible.dd2vtt').exists()
+    assert 'Use the Foundry Scene JSON' in dialog.status.text()

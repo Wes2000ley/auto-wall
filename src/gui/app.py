@@ -101,6 +101,7 @@ class WallDetectionApp(QMainWindow):
     def initialize_state(self):
         self.original_image = None  # Original full-size image
         self.fast_source_image = None
+        self.map_image_path = None
         self.current_image = None   # Working image
         self.max_working_dimension = 1500  # Maximum dimension for processing
         self.scale_factor = 1.0     # Scale factor between original and working image
@@ -417,7 +418,8 @@ class WallDetectionApp(QMainWindow):
         self.image_processor.debounced_update.timer.stop()
         source = self.fast_source_image
         source_bytes = source[1] if source and source[0] is self.original_image else None
-        dialog = FastSetupDialog(self, image=self.original_image, source=source_bytes)
+        dialog = FastSetupDialog(self, image=self.original_image, source=source_bytes,
+                                 source_path=self.map_image_path)
         dialog.exec()
 
     def setup_central_image_area(self):

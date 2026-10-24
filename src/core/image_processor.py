@@ -381,6 +381,7 @@ class ImageProcessor:
             print(f"Loading image: {file_path}")
             self.app.original_image = load_image(file_path)
             self.app.fast_source_image = None
+            self.app.map_image_path = os.path.abspath(file_path) if self.app.original_image is not None else None
             
             # Verify image loaded correctly
             if self.app.original_image is None:
@@ -467,6 +468,7 @@ class ImageProcessor:
             # Load the image into the application
             self.app.original_image = img
             self.app.fast_source_image = None
+            self.app.map_image_path = None
             self.app.current_image, self.app.scale_factor = self.create_working_image(self.app.original_image)
             
             print(f"Image loaded from URL: Original size {self.app.original_image.shape}, Working size {self.app.current_image.shape}, Scale factor {self.app.scale_factor}")

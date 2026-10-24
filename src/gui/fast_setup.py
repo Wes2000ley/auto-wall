@@ -14,10 +14,11 @@ from PyQt6.QtWidgets import (
 
 from src.core.fast_pipeline import (
     DetectionCancelled, FastSettings, detect_map, export_image_bytes, load_map,
-    to_uvtt, write_uvtt,
+    to_uvtt,
 )
 from src.core.detection_profiles import PRESETS, load_settings, preset_settings, save_settings
-from src.core.wall_editing import cut_door_opening, incident_segments, move_vertex, nearest_wall, walls_in_rectangle
+from src.core.foundry_export import write_map_exports
+from src.core.wall_editing import cut_door_opening, nearest_wall, rectangle_walls, walls_in_rectangle
 
 
 class DetectionWorker(QThread):
@@ -38,7 +39,7 @@ class DetectionWorker(QThread):
                 image, source = load_map(self.path)
             result = detect_map(image, self.settings, self.progress.emit, self.isInterruptionRequested)
             if not self.isInterruptionRequested():
-                self.completed.emit((image, source, result, self.settings, self.generation))
+                self.completed.emit((image, source, result, self.settings, self.generation, self.path))
         except DetectionCancelled:
             pass
         except Exception as error:
@@ -49,17 +50,22 @@ class ExportWorker(QThread):
     completed = pyqtSignal(str)
     failed = pyqtSignal(str)
 
-    def __init__(self, path, image, source, result, settings, parent=None):
+    def __init__(self, image_path, image, result, settings, parent=None, *, encoded=None):
         super().__init__(parent)
-        self.path, self.image, self.source = path, image, source
+        self.image_path, self.image = image_path, image
         self.result, self.settings = deepcopy(result), settings
+        self.encoded = encoded
 
     def run(self):
         try:
-            encoded = export_image_bytes(self.image, self.source)
-            data = to_uvtt(self.result, self.settings.grid_size, encoded)
-            write_uvtt(self.path, data)
-            self.completed.emit(self.path)
+            if self.encoded is None:
+                self.encoded = export_image_bytes(self.image)
+            data = to_uvtt(self.result, self.settings.grid_size, self.encoded, preview=True)
+            paths = write_map_exports(self.image_path, data)
+            message = "Saved " + " and ".join(str(path) for path in paths)
+            if self.result.invisible_walls:
+                message += "\nUse the Foundry Scene JSON to import invisible walls."
+            self.completed.emit(message)
         except Exception as error:
             self.failed.emit(str(error))
 
@@ -69,9 +75,8 @@ class MapView(QGraphicsView):
 
     color_picked = pyqtSignal(int, int)
     candidate_clicked = pyqtSignal(str, int)
-    wall_vertex_moved = pyqtSignal(object, object)
     wall_rectangle_deleted = pyqtSignal(object, object)
-    segment_drawn = pyqtSignal(str, object, object)
+    shape_drawn = pyqtSignal(str, object, object)
     drawing_mode_changed = pyqtSignal(object)
 
     def __init__(self, parent=None):
@@ -83,30 +88,30 @@ class MapView(QGraphicsView):
         self.setRenderHints(QPainter.RenderHint.Antialiasing | QPainter.RenderHint.SmoothPixmapTransform)
         self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.MinimalViewportUpdate)
         self.bitmap = None
-        self.layers = {"walls": [], "doors": [], "lights": [], "transparent": []}
+        self.layers = {"walls": [], "doors": [], "invisible_walls": [], "lights": [], "transparent": []}
         self.visibility = {name: True for name in self.layers}
         self.picking = False
         self.removing = False
         self.image_size = (0, 0)
-        self.walls, self.doors = [], []
+        self.walls, self.doors, self.invisible_walls = [], [], []
         self.editing_enabled = False
         self.drawing_mode = None
         self.draw_origin = self.draw_target = None
-        self.drag_source = None
-        self.drag_target = None
         self.drag_start = None
-        self.drag_walls, self.drag_doors, self.snap_walls = [], [], []
+        self.pan_last = None
+        self.snap_walls = []
         self.drag_preview = None
         self.snap_marker = None
         self.erase_origin = None
         self.erase_box = None
-        self.setToolTip("Right-drag a wall to stretch its nearest end and snap to another wall.\n"
-                        "Middle-drag a rectangle to delete walls it touches.\n"
-                        "1: draw walls · 2: draw doors · press again to pan. Ctrl+Z: undo.")
+        self.setToolTip("Right-drag to pan in any tool. Middle-drag a box to delete visible walls.\n"
+                        "1: wall rectangles · 2: door spans · 3: invisible wall rectangles.\n"
+                        "Press the active number again to pan. Ctrl+Z: undo. Esc: cancel.")
 
     def set_image(self, image):
         self.cancel_wall_gesture()
-        self.walls, self.doors = [], []
+        self.stop_pan()
+        self.walls, self.doors, self.invisible_walls = [], [], []
         self.editing_enabled = False
         self.update_cursor()
         # QPixmap owns the converted image data after fromImage returns.
@@ -133,11 +138,15 @@ class MapView(QGraphicsView):
     def set_result(self, result):
         self.cancel_wall_gesture()
         self.walls, self.doors = result.walls, result.doors
+        self.invisible_walls = result.invisible_walls
         for items in self.layers.values():
             for item in items:
                 self.scene().removeItem(item)
         self.layers = {name: [] for name in self.layers}
         self.layers["walls"].append(self.scene().addPath(self.wall_path(result.walls), self.pen("#4ee19b", 1.6)))
+        pen = self.pen("#ff9b50", 2)
+        pen.setStyle(Qt.PenStyle.DashLine)
+        self.layers["invisible_walls"].append(self.scene().addPath(self.wall_path(result.invisible_walls), pen))
         path = QPainterPath()
         for start, end in result.transparent_barriers:
             path.moveTo(*start)
@@ -164,7 +173,7 @@ class MapView(QGraphicsView):
             self.show_layer(name, visible)
 
     def show_layer(self, name, visible):
-        if name in ("walls", "doors"):
+        if name in ("walls", "doors", "invisible_walls"):
             self.cancel_wall_gesture()
         self.visibility[name] = visible
         for item in self.layers[name]:
@@ -173,10 +182,10 @@ class MapView(QGraphicsView):
             self.set_drawing_mode(None)
 
     def has_wall_gesture(self):
-        return self.drag_source is not None or self.erase_box is not None or self.draw_origin is not None
+        return self.erase_box is not None or self.draw_origin is not None
 
     def wheelEvent(self, event):
-        if self.has_wall_gesture():
+        if self.has_wall_gesture() or self.pan_last is not None:
             event.accept()
             return
         factor = 1.2 if event.angleDelta().y() > 0 else 1 / 1.2
@@ -186,36 +195,19 @@ class MapView(QGraphicsView):
         event.accept()
 
     def mousePressEvent(self, event):
-        if self.has_wall_gesture():
+        if event.button() == Qt.MouseButton.RightButton:
+            self.cancel_wall_gesture()
+            self.pan_last = event.position().toPoint()
+            self.setFocus(Qt.FocusReason.MouseFocusReason)
+            self.update_cursor()
             event.accept()
             return
-        if self.editing_enabled and self.visibility["walls"] and not self.picking:
+        if self.has_wall_gesture() or self.pan_last is not None:
+            event.accept()
+            return
+        if self.editing_enabled and not self.picking and any(
+                self.visibility[layer] for layer in ("walls", "invisible_walls")):
             point = self.mapToScene(event.position().toPoint())
-            xy = (point.x(), point.y())
-            if event.button() == Qt.MouseButton.RightButton:
-                hit = nearest_wall(self.walls, xy, 10 / self.transform().m11())
-                if hit is not None:
-                    segment = self.walls[hit[0]]
-                    source = min(segment, key=lambda p: (p[0] - xy[0]) ** 2 + (p[1] - xy[1]) ** 2)
-                    self.drag_source = self.drag_target = tuple(source)
-                    self.drag_start = event.position().toPoint()
-                    wall_indices = set(incident_segments(self.walls, source))
-                    door_indices = set(incident_segments(self.doors, source))
-                    self.drag_walls = [wall for index, wall in enumerate(self.walls) if index in wall_indices]
-                    self.drag_doors = [door for index, door in enumerate(self.doors) if index in door_indices]
-                    self.snap_walls = [wall for index, wall in enumerate(self.walls) if index not in wall_indices]
-                    self.layers["walls"][0].setPath(self.wall_path(self.snap_walls))
-                    for index in door_indices:
-                        self.layers["doors"][index].setVisible(False)
-                    self.drag_preview = self.scene().addPath(QPainterPath(), self.pen("#ffd75e", 2.4))
-                    self.snap_marker = self.scene().addEllipse(QRectF(), self.pen("#ffd75e", 2))
-                    self.drag_preview.setZValue(10)
-                    self.snap_marker.setZValue(11)
-                    self.setFocus(Qt.FocusReason.MouseFocusReason)
-                    self.setCursor(Qt.CursorShape.CrossCursor)
-                    self.update_wall_drag(event.position().toPoint())
-                event.accept()
-                return
             if event.button() == Qt.MouseButton.MiddleButton:
                 self.erase_origin = point
                 self.drag_start = event.position().toPoint()
@@ -242,14 +234,16 @@ class MapView(QGraphicsView):
             if self.editing_enabled and self.drawing_mode and self.visibility[self.drawing_mode]:
                 if 0 <= point.x() < self.image_size[0] and 0 <= point.y() < self.image_size[1]:
                     self.snap_walls = []
-                    if self.visibility["walls"]:
-                        self.snap_walls.extend(self.walls)
-                    if self.visibility["doors"]:
-                        self.snap_walls.extend(self.doors)
+                    for layer in ("walls", "doors", "invisible_walls"):
+                        if self.visibility[layer]:
+                            self.snap_walls.extend(getattr(self, layer))
                     self.draw_origin, _ = self.snapped_point(event.position().toPoint(), self.snap_walls)
                     self.drag_start = event.position().toPoint()
-                    color, width = ("#4ee19b", 2.4) if self.drawing_mode == "walls" else ("#35d4ff", 4)
-                    self.drag_preview = self.scene().addPath(QPainterPath(), self.pen(color, width))
+                    color = {"walls": "#4ee19b", "doors": "#35d4ff", "invisible_walls": "#ff9b50"}[self.drawing_mode]
+                    pen = self.pen(color, 4 if self.drawing_mode == "doors" else 2.4)
+                    if self.drawing_mode == "invisible_walls":
+                        pen.setStyle(Qt.PenStyle.DashLine)
+                    self.drag_preview = self.scene().addPath(QPainterPath(), pen)
                     self.snap_marker = self.scene().addEllipse(QRectF(), self.pen("#ffd75e", 2))
                     self.drag_preview.setZValue(10)
                     self.snap_marker.setZValue(11)
@@ -274,8 +268,8 @@ class MapView(QGraphicsView):
         self.update_cursor()
 
     def set_drawing_mode(self, mode):
-        if mode not in (None, "walls", "doors"):
-            raise ValueError("Drawing mode must be walls, doors, or None")
+        if mode not in (None, "walls", "doors", "invisible_walls"):
+            raise ValueError("Drawing mode must be walls, doors, invisible_walls, or None")
         if mode == self.drawing_mode:
             return
         self.cancel_wall_gesture()
@@ -284,24 +278,25 @@ class MapView(QGraphicsView):
         self.update_cursor()
 
     def update_cursor(self):
-        if self.has_wall_gesture() or self.picking or (self.editing_enabled and self.drawing_mode):
+        if self.pan_last is not None:
+            self.setCursor(Qt.CursorShape.ClosedHandCursor)
+        elif self.has_wall_gesture() or self.picking or (self.editing_enabled and self.drawing_mode):
             self.setCursor(Qt.CursorShape.CrossCursor)
         else:
             self.unsetCursor()
 
     def cancel_wall_gesture(self):
-        if self.drag_source is not None:
-            if self.layers["walls"]:
-                self.layers["walls"][0].setPath(self.wall_path(self.walls))
-            for item in self.layers["doors"]:
-                item.setVisible(self.visibility["doors"])
         for item in (self.drag_preview, self.snap_marker, self.erase_box):
             if item is not None:
                 self.scene().removeItem(item)
-        self.drag_source = self.drag_target = self.drag_start = None
+        self.drag_start = None
         self.draw_origin = self.draw_target = None
         self.drag_preview = self.snap_marker = self.erase_origin = self.erase_box = None
-        self.drag_walls, self.drag_doors, self.snap_walls = [], [], []
+        self.snap_walls = []
+        self.update_cursor()
+
+    def stop_pan(self):
+        self.pan_last = None
         self.update_cursor()
 
     def snapped_point(self, position, segments):
@@ -316,30 +311,24 @@ class MapView(QGraphicsView):
         self.snap_marker.setRect(target[0] - radius, target[1] - radius, radius * 2, radius * 2)
         self.snap_marker.setPen(self.pen("#4ee19b" if snapped else "#ffd75e", 2))
 
-    def update_wall_drag(self, position):
-        if (position - self.drag_start).manhattanLength() < 3:
-            target, snapped = self.drag_source, False
-        else:
-            target, snapped = self.snapped_point(position, self.snap_walls)
-        self.drag_target = target
-        segments = move_vertex(self.drag_walls, self.drag_source, target)
-        if self.visibility["doors"]:
-            segments += move_vertex(self.drag_doors, self.drag_source, target)
-        self.drag_preview.setPath(self.wall_path(segments))
-        self.update_snap_marker(target, snapped)
-
     def update_drawing(self, position):
         if (position - self.drag_start).manhattanLength() < 3:
             target, snapped = self.draw_origin, False
         else:
             target, snapped = self.snapped_point(position, self.snap_walls)
         self.draw_target = target
-        self.drag_preview.setPath(self.wall_path([(self.draw_origin, target)]))
+        segments = ([(self.draw_origin, target)] if self.drawing_mode == "doors"
+                    else rectangle_walls(self.draw_origin, target))
+        self.drag_preview.setPath(self.wall_path(segments))
         self.update_snap_marker(target, snapped)
 
     def mouseMoveEvent(self, event):
-        if self.drag_source is not None:
-            self.update_wall_drag(event.position().toPoint())
+        if self.pan_last is not None:
+            position = event.position().toPoint()
+            delta = position - self.pan_last
+            self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() - delta.x())
+            self.verticalScrollBar().setValue(self.verticalScrollBar().value() - delta.y())
+            self.pan_last = position
             event.accept()
         elif self.erase_box is not None:
             self.erase_box.setRect(QRectF(self.erase_origin, self.mapToScene(event.position().toPoint())).normalized())
@@ -351,12 +340,8 @@ class MapView(QGraphicsView):
             super().mouseMoveEvent(event)
 
     def mouseReleaseEvent(self, event):
-        if event.button() == Qt.MouseButton.RightButton and self.drag_source is not None:
-            self.update_wall_drag(event.position().toPoint())
-            source, target = self.drag_source, self.drag_target
-            self.cancel_wall_gesture()
-            if source != target:
-                self.wall_vertex_moved.emit(source, target)
+        if event.button() == Qt.MouseButton.RightButton and self.pan_last is not None:
+            self.stop_pan()
             event.accept()
         elif event.button() == Qt.MouseButton.MiddleButton and self.erase_box is not None:
             rect = QRectF(self.erase_origin, self.mapToScene(event.position().toPoint())).normalized()
@@ -370,20 +355,23 @@ class MapView(QGraphicsView):
             source, target, layer = self.draw_origin, self.draw_target, self.drawing_mode
             self.cancel_wall_gesture()
             if source != target:
-                self.segment_drawn.emit(layer, source, target)
+                self.shape_drawn.emit(layer, source, target)
             event.accept()
         else:
             super().mouseReleaseEvent(event)
 
     def keyPressEvent(self, event):
-        if event.key() in (Qt.Key.Key_1, Qt.Key.Key_2) and event.modifiers() in (
+        modes = {Qt.Key.Key_1: "walls", Qt.Key.Key_2: "doors", Qt.Key.Key_3: "invisible_walls"}
+        if event.key() in modes and event.modifiers() in (
                 Qt.KeyboardModifier.NoModifier, Qt.KeyboardModifier.KeypadModifier):
             if self.editing_enabled and not event.isAutoRepeat():
-                mode = "walls" if event.key() == Qt.Key.Key_1 else "doors"
+                mode = modes[event.key()]
                 self.set_drawing_mode(None if self.drawing_mode == mode else mode)
             event.accept()
-        elif event.key() == Qt.Key.Key_Escape and (self.has_wall_gesture() or self.drawing_mode):
-            if self.has_wall_gesture():
+        elif event.key() == Qt.Key.Key_Escape and (self.has_wall_gesture() or self.pan_last is not None or self.drawing_mode):
+            if self.pan_last is not None:
+                self.stop_pan()
+            elif self.has_wall_gesture():
                 self.cancel_wall_gesture()
             else:
                 self.set_drawing_mode(None)
@@ -393,18 +381,21 @@ class MapView(QGraphicsView):
 
     def focusOutEvent(self, event):
         self.cancel_wall_gesture()
+        self.stop_pan()
         super().focusOutEvent(event)
 
 
 class FastSetupDialog(QDialog):
     """Single-flight workers, with newer requests replacing obsolete work."""
 
-    def __init__(self, parent=None, image=None, source=None, path=None):
+    def __init__(self, parent=None, image=None, source=None, path=None, source_path=None):
         super().__init__(parent)
         self.setWindowTitle("Auto-Wall • Fast Setup")
         self.resize(1440, 960)
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.WindowMaximizeButtonHint)
         self.image, self.source, self.path = image, source, path
+        self.source_path = Path(source_path).resolve() if source_path else None
+        self.export_image_cache = None
         self.result = None
         self.result_settings = None
         self.worker = None
@@ -438,8 +429,8 @@ class FastSetupDialog(QDialog):
         title = QLabel("FAST SETUP")
         title.setStyleSheet("font-size: 22px; font-weight: bold;")
         controls.addWidget(title)
-        caption = QLabel("Scroll to zoom. Left-drag to pan.\nRight-drag to stretch a wall.\n"
-                         "Middle-drag a box to delete walls.\n1: draw walls · 2: draw doors.")
+        caption = QLabel("Scroll to zoom. Right-drag to pan.\nMiddle-drag a box to delete walls.\n"
+                         "1: wall box · 2: door · 3: invisible box.\nPress the active number again to pan.")
         controls.addWidget(caption)
         open_button = QPushButton("Open map…")
         open_button.clicked.connect(self.open_map)
@@ -613,7 +604,8 @@ class FastSetupDialog(QDialog):
         self.status.setTextFormat(Qt.TextFormat.PlainText)
         controls.addWidget(self.status)
         controls.addStretch()
-        self.export_button = QPushButton("Export UVTT…")
+        self.export_button = QPushButton("Export beside image")
+        self.export_button.setToolTip("Save .dd2vtt, .foundry.json, and .foundry.webp (quality 85) beside the image, without a location popup.")
         self.export_button.setEnabled(False)
         self.export_button.clicked.connect(self.export_map)
         controls.addWidget(self.export_button)
@@ -628,13 +620,16 @@ class FastSetupDialog(QDialog):
         self.view = MapView()
         self.view.color_picked.connect(self.pick_color)
         self.view.candidate_clicked.connect(self.remove_candidate)
-        self.view.wall_vertex_moved.connect(self.stretch_wall)
         self.view.wall_rectangle_deleted.connect(self.delete_walls_in_rectangle)
-        self.view.segment_drawn.connect(self.add_segment)
+        self.view.shape_drawn.connect(self.add_shape)
         self.view.drawing_mode_changed.connect(self.drawing_mode_changed)
         self.layer_checks = {}
-        for name in ("walls", "doors", "lights", "transparent"):
-            check = QCheckBox("See-through (not exported)" if name == "transparent" else name.capitalize())
+        labels = {"walls": "Walls", "doors": "Doors", "invisible_walls": "Invisible walls",
+                  "lights": "Lights", "transparent": "ML barriers (review)"}
+        for name, label in labels.items():
+            check = QCheckBox(label)
+            if name == "transparent":
+                check.setToolTip("Automatic see-through candidates are review-only and are not exported. Use 3 to confirm invisible walls.")
             check.setChecked(True)
             check.toggled.connect(lambda checked, name=name: self.view.show_layer(name, checked))
             self.layer_checks[name] = check
@@ -656,14 +651,15 @@ class FastSetupDialog(QDialog):
         canvas.addLayout(toolbar)
         drawing_toolbar = QHBoxLayout()
         self.draw_buttons = {}
-        for layer, label in (("walls", "1 · Draw wall"), ("doors", "2 · Draw door")):
+        for layer, label in (("walls", "1 · Wall rectangle"), ("doors", "2 · Door"),
+                             ("invisible_walls", "3 · Invisible rectangle")):
             button = QPushButton(label)
             button.setCheckable(True)
             button.setToolTip("Left-drag to draw. Press this number while the map is focused to toggle the tool.")
             button.clicked.connect(lambda checked, layer=layer: self.view.set_drawing_mode(layer if checked else None))
             self.draw_buttons[layer] = button
             drawing_toolbar.addWidget(button)
-        self.drawing_hint = QLabel("Left-drag: pan · 1 / 2: toggle drawing")
+        self.drawing_hint = QLabel("Right-drag: pan · 1 / 2 / 3: tools")
         drawing_toolbar.addWidget(self.drawing_hint)
         drawing_toolbar.addStretch()
         canvas.addLayout(drawing_toolbar)
@@ -678,8 +674,9 @@ class FastSetupDialog(QDialog):
             self.layer_checks[mode].setChecked(True)
         for layer, button in self.draw_buttons.items():
             button.setChecked(mode == layer)
-        self.drawing_hint.setText(f"Left-drag: draw {'walls' if mode == 'walls' else 'doors'} · Esc: cancel / pan"
-                                  if mode else "Left-drag: pan · 1 / 2: toggle drawing")
+        action = "door span" if mode == "doors" else "rectangle"
+        self.drawing_hint.setText(f"Left-drag: {action} · Right-drag: pan · Esc: cancel"
+                                  if mode else "Left-drag: pan · 1 / 2 / 3: tools")
         self.view.setFocus(Qt.FocusReason.OtherFocusReason)
 
     def set_removing(self, enabled):
@@ -928,12 +925,15 @@ class FastSetupDialog(QDialog):
         self.update_actions()
 
     def detected(self, payload):
-        image, source, result, settings, generation = payload
+        image, source, result, settings, generation, path = payload
         if self.closing or generation != self.generation:
             return
         if image is not self.image:
             self.view.set_image(image)
+            self.export_image_cache = None
         self.image, self.source, self.result, self.result_settings = image, source, result, settings
+        if path:
+            self.source_path = Path(path).resolve()
         self.path = None
         self.undo_states.clear()
         self.view.set_result(result)
@@ -945,6 +945,8 @@ class FastSetupDialog(QDialog):
         text = (f"{len(result.walls):,} wall segments · {len(result.doors)} doors · {len(result.lights)} lights\n"
                 f"Detection: {result.timings['total']:.3f} s · {result.working_size[0]} × {result.working_size[1]}\n"
                 "Green: walls · Cyan: doors · Yellow: lights")
+        if result.invisible_walls:
+            text += f"\nOrange dashes: {len(result.invisible_walls)} invisible walls · export Foundry Scene JSON"
         if result.detection_backend.startswith("torch-"):
             text += "\nML device: " + ("CUDA GPU" if result.detection_backend == "torch-cuda" else "CPU")
         if result.warnings:
@@ -985,32 +987,38 @@ class FastSetupDialog(QDialog):
         self.update_actions()
         self.show_counts()
 
-    def stretch_wall(self, source, target):
-        if not self.can_edit() or source == target:
-            return
-        # Shared corners and door jambs move together rather than leaving a crack.
-        self.apply_edit(walls=move_vertex(self.result.walls, source, target),
-                        doors=move_vertex(self.result.doors, source, target))
-
-    def add_segment(self, layer, source, target):
-        if layer not in ("walls", "doors") or not self.can_edit() or source == target:
+    def add_shape(self, layer, source, target):
+        if layer not in ("walls", "doors", "invisible_walls") or not self.can_edit() or source == target:
             return
         values = getattr(self.result, layer)
-        if (source, target) in values or (target, source) in values:
+        additions = [(source, target)] if layer == "doors" else rectangle_walls(source, target)
+        if layer != "doors":
+            for door in self.result.doors:
+                additions = cut_door_opening(additions, door)
+        existing = {frozenset(segment) for segment in values}
+        additions = [segment for segment in additions if frozenset(segment) not in existing]
+        if not additions:
             return
-        changes = {layer: [*values, (source, target)]}
+        changes = {layer: [*values, *additions]}
         if layer == "doors":
-            walls = cut_door_opening(self.result.walls, (source, target))
-            if walls != self.result.walls:
-                changes["walls"] = walls
+            for name in ("walls", "invisible_walls"):
+                walls = cut_door_opening(getattr(self.result, name), (source, target))
+                if walls != getattr(self.result, name):
+                    changes[name] = walls
         self.apply_edit(**changes)
 
     def delete_walls_in_rectangle(self, first, second):
         if not self.can_edit():
             return
-        selected = set(walls_in_rectangle(self.result.walls, first, second))
-        if selected:
-            self.apply_edit(walls=[wall for index, wall in enumerate(self.result.walls) if index not in selected])
+        changes = {}
+        for name in ("walls", "invisible_walls"):
+            if self.view.visibility[name]:
+                walls = getattr(self.result, name)
+                selected = set(walls_in_rectangle(walls, first, second))
+                if selected:
+                    changes[name] = [wall for index, wall in enumerate(walls) if index not in selected]
+        if changes:
+            self.apply_edit(**changes)
 
     def remove_candidate(self, layer, index):
         if not self.can_edit():
@@ -1031,22 +1039,23 @@ class FastSetupDialog(QDialog):
     def export_map(self):
         if not self.can_edit():
             return
-        path, _ = QFileDialog.getSaveFileName(self, "Export map", "map.dd2vtt", "Universal VTT (*.dd2vtt *.uvtt)")
-        if not path:
+        if self.source_path is None:
+            self.status.setText("Open a local map image first. Export saves beside that image automatically.")
             return
-        if Path(path).suffix.lower() not in (".dd2vtt", ".uvtt"):
-            path += ".dd2vtt"
         self.export_button.setEnabled(False)
         self.editor_button.setEnabled(False)
-        self.status.setText("Exporting original image, walls, doors, and lights…")
-        self.export_worker = ExportWorker(path, self.image, self.source, self.result, self.result_settings, self)
-        self.export_worker.completed.connect(lambda value: self.status.setText("Saved " + value))
+        self.status.setText("Exporting WebP at quality 85, UVTT, and Foundry Scene JSON…")
+        self.export_worker = ExportWorker(self.source_path, self.image, self.result, self.result_settings, self,
+                                          encoded=self.export_image_cache)
+        self.export_worker.completed.connect(self.status.setText)
         self.export_worker.failed.connect(lambda value: self.status.setText("Export failed: " + value))
         self.export_worker.finished.connect(self.export_finished)
         self.export_worker.start()
         self.update_actions()
 
     def export_finished(self):
+        if self.export_worker.image is self.image:
+            self.export_image_cache = self.export_worker.encoded
         self.export_worker.deleteLater()
         self.export_worker = None
         self.update_actions()
@@ -1059,6 +1068,7 @@ class FastSetupDialog(QDialog):
             return
         app.image_processor.debounced_update.timer.stop()
         app.original_image = self.image
+        app.map_image_path = self.source_path
         app.current_image, app.scale_factor = app.image_processor.create_working_image(self.image)
         app.mask_layer = None
         app.bg_removed_image = None

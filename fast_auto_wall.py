@@ -92,7 +92,7 @@ def process(args, settings):
     export_seconds = None
     if args.export:
         tick = time.perf_counter()
-        write_uvtt(args.export, to_uvtt(result, settings.grid_size, export_image_bytes(image, source)))
+        write_uvtt(args.export, to_uvtt(result, settings.grid_size, export_image_bytes(image)))
         export_seconds = time.perf_counter() - tick
     if args.preview:
         ratio = min(1.0, 2048 / max(result.width, result.height))

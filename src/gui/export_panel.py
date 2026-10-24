@@ -744,6 +744,15 @@ class ExportPanel:
                         cv2.circle(preview_image, (int(start_x), int(start_y)), dot_radius, endpoint_color, -1)  # Start point
                         cv2.circle(preview_image, (int(end_x), int(end_y)), dot_radius, endpoint_color, -1)  # End point
         
+        # Confirmed invisible walls remain visible when continuing from Fast Setup.
+        pixels_per_grid = self.app.uvtt_walls_preview.get('resolution', {}).get('pixels_per_grid', 70)
+        for points in self.app.uvtt_walls_preview.get('_invisible_walls', []):
+            for start, end in zip(points, points[1:]):
+                cv2.line(preview_image,
+                         (round(start['x'] * pixels_per_grid), round(start['y'] * pixels_per_grid)),
+                         (round(end['x'] * pixels_per_grid), round(end['y'] * pixels_per_grid)),
+                         (80, 155, 255), 2, cv2.LINE_AA)
+
         # Draw portals/doors if they exist
         if 'portals' in self.app.uvtt_walls_preview:
             pixels_per_grid = self.app.uvtt_walls_preview.get('resolution', {}).get('pixels_per_grid', 70)
@@ -1327,28 +1336,18 @@ class ExportPanel:
                                "No walls available to save. Please generate walls first by using the 'Generate Walls' button in the walls tab.")
             return
             
-        # Get file path for saving
-        file_path, _ = QFileDialog.getSaveFileName(
-            self.app, "Export Universal VTT File", "", "UVTT Files (*.uvtt);;JSON Files (*.json)"
-        )
-        if not file_path:
+        image_path = getattr(self.app, 'map_image_path', None)
+        if image_path is None:
+            self.app.setStatusTip("Open a local map image first. Export saves beside that image automatically.")
             return
-            
-        # Add .uvtt extension if not present
-        if not file_path.lower().endswith(('.uvtt', '.json')):
-            file_path += '.uvtt'
             
         # Save UVTT file
         try:
             # Ensure we're in preview mode
             self.app.uvtt_preview_active = True
             
-            from src.core.fast_pipeline import write_uvtt
-            write_uvtt(file_path, self.export_data())
-
-            wall_count = len(self.app.uvtt_walls_preview.get('line_of_sight', []))
-            print(f"Successfully exported {wall_count} walls to {file_path}")
-            file_saved_path = file_path  # Store for later use
+            from src.core.foundry_export import write_map_exports
+            paths = write_map_exports(image_path, self.export_data(preview=True))
             
             # Don't exit preview mode, stay in edit mode with the same walls
             # Ensure we're still in preview mode and have valid walls data
@@ -1360,7 +1359,10 @@ class ExportPanel:
                 self.app.wall_edit_frame.raise_()  # Bring to front
             
             # Update the status with save path while remaining in preview mode
-            self.app.setStatusTip(f"Universal VTT file exported to {file_saved_path}. You can continue editing walls in the preview.")
+            message = "Saved " + " and ".join(str(path) for path in paths)
+            if self.app.uvtt_walls_preview.get('_invisible_walls'):
+                message += ". Use the Foundry Scene JSON to import invisible walls."
+            self.app.setStatusTip(message)
         except Exception as e:
             print(f"Failed to export UVTT file: {e}")
             self.app.setStatusTip(f"Failed to export UVTT file: {e}")
@@ -1433,14 +1435,18 @@ class ExportPanel:
         # Update status
         self.app.setStatusTip("Universal VTT preview canceled, returned to edit mode")
 
-    def export_data(self):
+    def export_data(self, *, preview=False):
         """Create export data, attaching the original image only when requested."""
+        invisible = self.app.uvtt_walls_preview.get('_invisible_walls')
+        if invisible and not preview:
+            raise ValueError("UVTT cannot retain invisible walls. Export beside the image and import the Foundry Scene JSON.")
         data = {key: value for key, value in self.app.uvtt_walls_preview.items()
                 if not key.startswith('_')}
-        source = getattr(self.app, 'fast_source_image', None)
-        if source is not None and source[0] is self.app.original_image:
+        if self.app.original_image is not None:
             from src.core.fast_pipeline import export_image_bytes
-            data['image'] = base64.b64encode(export_image_bytes(*source)).decode('ascii')
+            data['image'] = base64.b64encode(export_image_bytes(self.app.original_image)).decode('ascii')
+        if preview and invisible:
+            data['_invisible_walls'] = invisible
         return data
 
     def copy_uvtt_to_clipboard(self):
@@ -1680,6 +1686,10 @@ class ExportPanel:
             self.app.uvtt_walls_preview['_preview_pixels'] = copy.deepcopy(last_state['preview_pixels'])
             self.app.uvtt_walls_preview['portals'] = copy.deepcopy(last_state.get('portals', []))
             self.app.uvtt_walls_preview['lights'] = copy.deepcopy(last_state.get('lights', []))
+            if last_state.get('invisible_walls') is None:
+                self.app.uvtt_walls_preview.pop('_invisible_walls', None)
+            else:
+                self.app.uvtt_walls_preview['_invisible_walls'] = copy.deepcopy(last_state['invisible_walls'])
             self.app.current_lights = copy.deepcopy(self.app.uvtt_walls_preview['lights'])
             self.app.selected_portal_indices = []
             self.app.selected_light_indices = []
@@ -1719,6 +1729,8 @@ class ExportPanel:
             # Create empty walls list but keep the rest of the structure
             self.app.uvtt_walls_preview['line_of_sight'] = []
             self.app.uvtt_walls_preview['_preview_pixels'] = []
+            if '_invisible_walls' in self.app.uvtt_walls_preview:
+                self.app.uvtt_walls_preview['_invisible_walls'] = []
             
             # Update the display
             self.display_uvtt_preview()
@@ -1733,6 +1745,7 @@ class ExportPanel:
             'preview_pixels': preview.get('_preview_pixels', []),
             'portals': preview.get('portals', []),
             'lights': preview.get('lights', []),
+            'invisible_walls': preview.get('_invisible_walls'),
         })
 
     def save_wall_state_for_undo(self, force=False):

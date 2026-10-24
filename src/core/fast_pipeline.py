@@ -125,6 +125,7 @@ class DetectionResult:
     geometry_backend: str = "opencv"
     detection_backend: str = "opencv"
     transparent_barriers: list = field(default_factory=list)  # review only; never opaque LOS
+    invisible_walls: list = field(default_factory=list)  # manually confirmed movement-only barriers
 
 
 def _stage(name, progress, cancelled):
@@ -407,13 +408,13 @@ def load_map(path):
     return np.ascontiguousarray(image), source
 
 
-def export_image_bytes(image, source=None):
-    """UVTT expects PNG. Retain an existing PNG or encode with compression disabled."""
-    if source and source.startswith(b"\x89PNG\r\n\x1a\n"):
-        return source
-    success, buffer = cv2.imencode(".png", image, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+def export_image_bytes(image):
+    """Encode full-resolution map pixels as WebP at the requested 0.85 quality."""
+    if max(image.shape[:2]) > 16383:
+        raise ValueError("WebP supports at most 16383 pixels on each side. The source image has not been resized.")
+    success, buffer = cv2.imencode(".webp", image, [cv2.IMWRITE_WEBP_QUALITY, 85])
     if not success:
-        raise ValueError("Could not encode the map image for UVTT.")
+        raise ValueError("Could not encode the map image as WebP at quality 85.")
     return buffer.tobytes()
 
 
@@ -687,6 +688,8 @@ def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):
     """Convert all geometry from original pixels to the same UVTT grid units."""
     if not math.isfinite(grid_size) or grid_size <= 0:
         raise ValueError("Grid size must be a positive finite number.")
+    if result.invisible_walls and not preview:
+        raise ValueError("Invisible walls require Foundry Scene JSON export; UVTT cannot preserve their movement-only behavior.")
     def point(p):
         return {"x": float(p[0] / grid_size), "y": float(p[1] / grid_size)}
     portals = []
@@ -704,10 +707,12 @@ def to_uvtt(result, grid_size=70.0, image_bytes=None, preview=False):
             "objects_line_of_sight": [], "portals": portals, "lights": lights,
             "environment": {"baked_lighting": True, "ambient_light": "ff000000"}}
     if image_bytes:
-        # Preserve the supplied image bytes. Never recompress the user's map.
+        # Embed the already encoded export image without another encoding pass.
         data["image"] = base64.b64encode(image_bytes).decode("ascii")
     if preview:
         data["_preview_pixels"] = [[{"x": float(x), "y": float(y)} for x, y in wall] for wall in result.walls]
+        if result.invisible_walls:
+            data["_invisible_walls"] = [[point(a), point(b)] for a, b in result.invisible_walls]
     return data
 
 
