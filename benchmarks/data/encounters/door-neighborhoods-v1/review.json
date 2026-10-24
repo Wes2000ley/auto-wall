@@ -1,0 +1,194 @@
+{
+  "format": "auto-wall-annotation-review-v1",
+  "date": "2026-10-24",
+  "scope": "Sixteen conservative source-selected background rectangles beside eight door checks on two training layouts. Primary review only; not exhaustive or independently human-corrected truth. Validation and reserved final-test labels untouched. No prediction supplies a label.",
+  "parent_split_sha256": "890ebc7497dc9b74cfbb7531f026a22aa661f6327061973c0d6b1228c7592339",
+  "draft_record_sha256": "f199609d58ae1749a1daeb8351fba9779254c320260535aae3422363231f1d4f",
+  "reviewed_closeups": {
+    "frostwake-beacon-door-1-draft-review.bmp": "06771789e2a9d4feeaee572ccdfc83ce237a8e1aeb52b7740873d4371eccc457",
+    "frostwake-beacon-door-2-draft-review.bmp": "b1fac4dbeb391cb8d5c11948024bac324b2e1ea4a18f879e6017905ad216f059",
+    "gilded-snare-door-0-draft-review.bmp": "18d32034ec8ad742f4e32a1b87367f225fe733e78353b638ca0bc646098ad35d",
+    "gilded-snare-door-1-draft-review.bmp": "8fc76802b3dd276425752d37d51fabfa47bd01ea3ae58c8c48adab6dedfe34a1",
+    "gilded-snare-door-2-draft-review.bmp": "745323b0b59225768bb22212cb14f5d6486d05713815df2fce3834255de47209",
+    "gilded-snare-door-3-draft-review.bmp": "67bf3c2bdf67b3ad561b5b056ac2f93161e78e97900c22a12c7a8f03fa2843f5",
+    "gilded-snare-door-4-draft-review.bmp": "a13595251da93c885dc73444cce0774b3c36a37acf4e465e2e7ab99e73479166",
+    "gilded-snare-door-6-draft-review.bmp": "d9c30d8a86a4982b15229aec0920beaf941af05354693527147039722a833946"
+  },
+  "admission_script_sha256": "e57093433466271bd52c64e4c18b60addb2ac417b1c80b2cd35256329837e1a1",
+  "samples": {
+    "gilded-snare": {
+      "status": "accepted",
+      "reviewer": "primary native source plus 4x raster-addition review",
+      "source_sha256": "5629695eaad0c3bd729a60b11a81b416f5134bcd764902f73f03d6c039c6c3b8",
+      "mask_sha256": "658a35252570cd508621bf8ff1b1fe42d7c60b6f9565a660f4ade0fb97b6737a",
+      "added_background_pixels": 4213,
+      "changed_previous_supervised_pixels": 0,
+      "parent_annotation": "benchmarks\\data\\encounters\\partial-source-v2\\annotations\\gilded-snare.json",
+      "parent_annotation_sha256": "b411960883039bf473491f4ac06cb3f1cf7791a2a0b9f8c3a22346561bb5f054",
+      "added_regions": 12,
+      "patches": [
+        {
+          "door_index": 0,
+          "box": [
+            784,
+            432,
+            815,
+            440
+          ]
+        },
+        {
+          "door_index": 0,
+          "box": [
+            784,
+            462,
+            815,
+            477
+          ]
+        },
+        {
+          "door_index": 1,
+          "box": [
+            450,
+            477,
+            460,
+            509
+          ]
+        },
+        {
+          "door_index": 1,
+          "box": [
+            495,
+            477,
+            506,
+            509
+          ]
+        },
+        {
+          "door_index": 2,
+          "box": [
+            721,
+            519,
+            731,
+            550
+          ]
+        },
+        {
+          "door_index": 2,
+          "box": [
+            756,
+            519,
+            770,
+            550
+          ]
+        },
+        {
+          "door_index": 3,
+          "box": [
+            833,
+            519,
+            843,
+            550
+          ]
+        },
+        {
+          "door_index": 3,
+          "box": [
+            869,
+            521,
+            879,
+            549
+          ]
+        },
+        {
+          "door_index": 4,
+          "box": [
+            57,
+            573,
+            66,
+            619
+          ]
+        },
+        {
+          "door_index": 4,
+          "box": [
+            97,
+            573,
+            108,
+            619
+          ]
+        },
+        {
+          "door_index": 6,
+          "box": [
+            325,
+            863,
+            351,
+            871
+          ]
+        },
+        {
+          "door_index": 6,
+          "box": [
+            325,
+            895,
+            351,
+            904
+          ]
+        }
+      ],
+      "notes": "Only previously unknown pixels become background beside real doors. No walls, doors, lights, windows, barriers, passage checks or original pixels change. Some patches also cover already-reviewed background without changing it. No model output supplies a label.",
+      "annotation_sha256": "a8e14bb5521f0876801b3d20d7005764fe1a22bb779736c406d575099c057a3e"
+    },
+    "frostwake-beacon": {
+      "status": "accepted",
+      "reviewer": "primary native source plus 4x raster-addition review",
+      "source_sha256": "37d49cee08e5f1deedcbfdcb37e8f19a52d86290f99ac73a548a747204acc155",
+      "mask_sha256": "9e9deb522ff01b86f78a89a224326fcf07fe6c1e20b5b887523b32293cc929a6",
+      "added_background_pixels": 1688,
+      "changed_previous_supervised_pixels": 0,
+      "parent_annotation": "benchmarks\\data\\encounters\\additional-rails-v1\\frostwake-beacon.json",
+      "parent_annotation_sha256": "18cae593e7f3f6dd19f632f7c8e433c13e14243b25473d2abba1a03b2f51bc15",
+      "added_regions": 4,
+      "patches": [
+        {
+          "door_index": 1,
+          "box": [
+            724,
+            339,
+            733,
+            370
+          ]
+        },
+        {
+          "door_index": 1,
+          "box": [
+            760,
+            339,
+            772,
+            369
+          ]
+        },
+        {
+          "door_index": 2,
+          "box": [
+            327,
+            368,
+            337,
+            410
+          ]
+        },
+        {
+          "door_index": 2,
+          "box": [
+            364,
+            369,
+            375,
+            409
+          ]
+        }
+      ],
+      "notes": "Only previously unknown pixels become background beside real doors. No walls, doors, lights, windows, barriers, passage checks or original pixels change. Some patches also cover already-reviewed background without changing it. No model output supplies a label.",
+      "annotation_sha256": "f9e7882f5028c90e090b340b378615cc699e9abbf4e9db385c4eddd85bb51bd7"
+    }
+  }
+}

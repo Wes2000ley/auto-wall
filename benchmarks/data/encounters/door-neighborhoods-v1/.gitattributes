@@ -1,0 +1,2 @@
+# Preserve reviewed source-annotation bytes on every OS.
+*.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

@@ -1,0 +1,2164 @@
+{
+  "format": "auto-wall-wall-door-research-v1",
+  "date": "2026-10-24",
+  "decision": "Do not promote v19. Limited original-color Rimebell door recovery does not meet wall/door acceptance.",
+  "user_priority": "Actual walls and doors before fence experiments. No new fence experiment or fence label was made in this trial.",
+  "context_diagnostic": {
+    "scope": "Three models on four native maps: two training and two validation layouts, 14 annotated panels each. Oracle-centered 384px crops use known door checks; they cannot count as deployable candidate detection or an unbiased accuracy gain. Cropping changes context and patch-grid origin, so it does not isolate either cause. Final-test inputs absent.",
+    "report": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\door-context-diagnostic-v1\\report.json",
+      "sha256": "739d2aafe8ddea8a793af99288a606e0030f76fbe9fcdd6cbd615c54754bc511"
+    },
+    "script": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\diagnose_door_crop_context.py",
+      "sha256": "7d2a666fb71f54f919c8b189207b273ca57c2a5651655e9ca7064b97ebfaa490"
+    },
+    "shape_diagnostic": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\door-context-diagnostic-v1\\shape-rejections.json",
+      "sha256": "2f146faeffa5d9faf088f8ce3ce8e8cbefb19129d63308678e3bb7f61bc8e08b"
+    },
+    "result": "No consistent recovery from centered crops. V18-best covers 4375/4455 training-panel pixels at 0.9 yet exports only 2/3 Frostwake and 4/7 Gilded checks. Correct interiors alone do not imply correct component boundaries or connected portals.",
+    "coverage": [
+      {
+        "model": "installed",
+        "split": "train",
+        "annotated_panels": 10,
+        "truth_door_pixels": 4455,
+        "full_map_strict_door_pixels_on_truth": 2348,
+        "oracle_crop_strict_door_pixels_on_truth": 2204
+      },
+      {
+        "model": "installed",
+        "split": "validation",
+        "annotated_panels": 4,
+        "truth_door_pixels": 2232,
+        "full_map_strict_door_pixels_on_truth": 659,
+        "oracle_crop_strict_door_pixels_on_truth": 456
+      },
+      {
+        "model": "v18-best",
+        "split": "train",
+        "annotated_panels": 10,
+        "truth_door_pixels": 4455,
+        "full_map_strict_door_pixels_on_truth": 4375,
+        "oracle_crop_strict_door_pixels_on_truth": 4315
+      },
+      {
+        "model": "v18-best",
+        "split": "validation",
+        "annotated_panels": 4,
+        "truth_door_pixels": 2232,
+        "full_map_strict_door_pixels_on_truth": 1838,
+        "oracle_crop_strict_door_pixels_on_truth": 1884
+      },
+      {
+        "model": "v18-last",
+        "split": "train",
+        "annotated_panels": 10,
+        "truth_door_pixels": 4455,
+        "full_map_strict_door_pixels_on_truth": 4215,
+        "oracle_crop_strict_door_pixels_on_truth": 4121
+      },
+      {
+        "model": "v18-last",
+        "split": "validation",
+        "annotated_panels": 4,
+        "truth_door_pixels": 2232,
+        "full_map_strict_door_pixels_on_truth": 1692,
+        "oracle_crop_strict_door_pixels_on_truth": 1700
+      }
+    ]
+  },
+  "annotation_change": {
+    "review": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\benchmarks\\data\\encounters\\door-neighborhoods-v1\\review.json",
+      "sha256": "ce28c4579251fe308bf8ef78eeb62e698866a5efbfb107cb3e07f52ced6d02f4"
+    },
+    "audit": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v19-dataset-audit.json",
+      "sha256": "d35bab6058ce0e4c62adc279b573dcb9b2e74b85c15e7fc2997d506cd6d89eed"
+    },
+    "scope": "Sixteen conservative source-selected floor/ground rectangles beside eight door checks on two training layouts, inspected in eight native-source/4x-raster pairs. Partial primary source-assisted annotations, not independently human-corrected complete truth. Unknown trim and uncertain junctions remain ignored. No model output supplies a label.",
+    "new_background_pixels": {
+      "gilded-snare": 4213,
+      "frostwake-beacon": 1688
+    },
+    "earlier_supervised_pixels_changed": 0,
+    "samples_audited": 84,
+    "original_images_all_weights_checks_splits_and_other_masks_unchanged": true,
+    "preflight_corrections": "Regenerated checks inserted an explicit structure_free=false default; the corrected combined manifest reuses original check files exactly. A follow-up audit initially treated parsed legacy geometry dicts as paths; the complete 84-sample audit compares dicts directly. Both original artifacts remain retained. The new regression test's initial repository-parent path was also corrected and normalized for Linux CI."
+  },
+  "training": {
+    "invocation": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v19-invocation.json",
+      "sha256": "06579a5495b4a75784ffac599c683865f709a142b9eeb0479a8bdf9100333b4a"
+    },
+    "report": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v19-door-neighborhoods\\training.json",
+      "sha256": "d02b77751942017a2cb769a9d77fafac55ea285e7f62d19868bc4c8d90b5479d"
+    },
+    "manifest": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\dataset-v19-door-neighborhoods\\combined-manifest-v2.json",
+      "sha256": "6090038b6ebaf8d9acd6e0c75afc5d02d7f89b677500c540873f9cb33c630830"
+    },
+    "comparison": "Same v18 initializer, teacher, training recipe, sampling weights, class order, seed and six validation layouts. Only the added background supervision changes. Changed anchor locations can change sampled crops; not an exact paired-minibatch ablation.",
+    "steps": 2400,
+    "elapsed_seconds": 464.04059770004824,
+    "selected_step": 1200,
+    "selected_score": 0.6991589196937538,
+    "previous_v18_selected_score": 0.69874497,
+    "models": {
+      "best": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v19-door-neighborhoods\\best.safetensors",
+        "sha256": "0a7c8c53ac57088f3e7cc959b40a47daaf1f22fd3c38afb48d07de57fad4df8f"
+      },
+      "last": {
+        "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\trial-v19-door-neighborhoods\\last.safetensors",
+        "sha256": "abdc77cb6b6e3959b4ad3a044e794bfc4383a66d45f86ec44817d7a8eb2ae612"
+      }
+    }
+  },
+  "native_evaluation": {
+    "scope": "32 repeated checkpoint/color cases: six validation and two separate training-fit layouts, selected/final checkpoints, original/recolored appearance. Eight layouts, not 32 independent maps. Training fit is not generalization, partial native checks cannot establish full-map precision. Thresholds and runtime extraction unchanged; no reserved final-test input read.",
+    "invocations": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v19-evaluation-invocations.json",
+      "sha256": "4137c8a4cc5ac537a9ac147c1bafcacd1486e0c71e80a41f99d0b32a58b22a2f"
+    },
+    "analysis": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\v19-door-neighborhood-analysis.json",
+      "sha256": "53c95ee5d7f81685ac80c2868cc343080eb7ceb61f526c573711231eb320b5eb"
+    },
+    "findings": [
+      "Selected Rimebell improves from 2/3 to 3/3 doors on the original, but remains 2/3 recolored. Final checkpoint gets 3/3 in both appearances.",
+      "Mothveil remains 0/1 door for both checkpoints and appearances. Source/geometry crops still show jagged wall predictions outside the clean wall strip.",
+      "Original Stone still exports an unmatched door: 2/4 truth matches from 3 predictions, with 19/20 legacy rays. The final recolored checkpoint passes only 18/20 Stone rays.",
+      "Final recolored Dyson loses its remaining door, 0/3 annotated matches and 11/14 legacy rays.",
+      "Training-fit doors remain incomplete: selected original Frostwake 2/3 and Gilded 4/7; selected recolored Frostwake 1/3 and Gilded 3/7.",
+      "Conservative nearby background additions alone are insufficient. This does not demonstrate a limitation of ML; it rejects this particular trial as a production improvement."
+    ],
+    "reviewed_native_export_closeups": {
+      "0-mothveil-lodge-original.bmp": "a9075f3a1dc275ef6101b4a5d1688a04160e34b66c200a7e409818f32ceb7335",
+      "0-mothveil-lodge-recolored.bmp": "ff888729ca99e50aa2ff48ddf626e295f157c4982eee785b79294b578f188785",
+      "1-mothveil-lodge-original.bmp": "1fdbf8465f1a2d0e9bbc1c761fc85e8603c15381cd8512aeb40f7842715695b6",
+      "1-mothveil-lodge-recolored.bmp": "4b2ef51189ebc024cdf8fc596fe8a83792529e901a00c3fe62a007e8b18dd286",
+      "2-rimebell-refuge-original.bmp": "54ea50c57cea8b2167699d8272ef49a20ee7420dd6fdbcb728d1cfec314cdcde",
+      "2-rimebell-refuge-recolored.bmp": "f721e1acefe31b918403c8248c4e6e79a256b45a983cfda0f12e8b2bb595299f",
+      "3-rimebell-refuge-original.bmp": "78211eec1ceca457819c63a2b7f1198059aae8b8245c42d0f8846e744a62c33d",
+      "3-rimebell-refuge-recolored.bmp": "09f67e45de25f685c7f78db38049ef80995985e0b80929f607efd95e15e5a38b",
+      "4-frostwake-beacon-original.bmp": "968c04a666747acbca452f072774462356b489cbe58fe1a0d84be9354af36f8a",
+      "4-frostwake-beacon-recolored.bmp": "6f731d6610ada15e28468bbe201ea44968644cfa7256cadb8ddabcc867957394",
+      "5-frostwake-beacon-original.bmp": "05896f0c6f6cc079c32998b65023e05d6126b859f15f1a83b73f9ed4dee4378b",
+      "5-frostwake-beacon-recolored.bmp": "d6543f0196c0955ebc1f7481cb5a98f28ad117655276de2adcf0377c7081215a",
+      "6-gilded-snare-original.bmp": "f886d49cadfd45567a1f57e161a8fe768dda0b3b3700208c5a986a4420483ffd",
+      "6-gilded-snare-recolored.bmp": "8845074df1e5c30b7774c53a297c6f8434a6805e6c2483dfc3595efe2f3deed2",
+      "7-gilded-snare-original.bmp": "b8b243d6c552b0d599aaed3fc45cb5a4975dbbdbfca2c8857e54e3d88c4d89ba",
+      "7-gilded-snare-recolored.bmp": "2c5d8b3bfd7311ea285644960f9e75dca4324e53fdb1b1916a953ece6cecf8c0",
+      "8-gilded-snare-original.bmp": "f2be305676a23812ab294006561eb75477baa305e1b89b0aa1b489b92902a026",
+      "8-gilded-snare-recolored.bmp": "c6399ffc184c5fc2289e6d659d7fda399cf445fd8033c662104d0b7f8ddb65d7"
+    },
+    "cases": [
+      {
+        "id": "antler-crown",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "mothveil-lodge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 1944,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 2028,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "blue-window-movement"
+        ],
+        "failed_regression_rays": [
+          "window-upper-frame-has-no-movement-gap"
+        ]
+      },
+      {
+        "id": "rimebell-refuge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 481,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 11,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 524,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 21,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 3,
+          "truth_count": 3,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 1.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.4714989179514357,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.3781725518587207,
+          "missed_annotated_indices": [
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "fence-movement"
+        ],
+        "failed_regression_rays": []
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 1697,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 31,
+          "lights": 10
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1659,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 31,
+          "lights": 10
+        },
+        "legacy_doors": {
+          "matched": 2,
+          "truth_count": 4,
+          "prediction_count": 3,
+          "precision": 0.6666666666666666,
+          "recall": 0.5,
+          "mean_error": 4.86335093519901,
+          "matches": [
+            [
+              1,
+              0,
+              4.724199520473897
+            ],
+            [
+              2,
+              1,
+              5.002502349924124
+            ]
+          ],
+          "missed": [
+            0,
+            3
+          ],
+          "extra": [
+            2
+          ],
+          "complete_annotation": true
+        },
+        "legacy_rays": {
+          "rays_passed": 19,
+          "rays_total": 20
+        }
+      },
+      {
+        "id": "dyson-14",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 3587,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 3668,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "legacy_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "mean_error": 5.88557558782482,
+          "matches": [
+            [
+              2,
+              0,
+              5.88557558782482
+            ]
+          ],
+          "missed": [
+            0,
+            1
+          ],
+          "extra": [],
+          "complete_annotation": false
+        },
+        "legacy_rays": {
+          "rays_passed": 12,
+          "rays_total": 14
+        }
+      },
+      {
+        "id": "cinderglass-basin",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-original\\report.json",
+        "report_sha256": "7b6e061e1b8803910d2e40f7685effa47f99247c05b0fbac5901b61ad4d42865",
+        "old_report_sha256": "a2da37c8cf38759134ee560b659fbdca23083393f12dbaa060c6ae317f297ce9",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "antler-crown",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "mothveil-lodge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 1830,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1869,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 1
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "blue-window-movement"
+        ],
+        "failed_regression_rays": [
+          "window-upper-frame-has-no-movement-gap"
+        ]
+      },
+      {
+        "id": "rimebell-refuge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 588,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 16,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 548,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 24,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.1764259026333854,
+          "missed_annotated_indices": [
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.299784993490229,
+          "missed_annotated_indices": [
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "south-door",
+          "fence-movement"
+        ],
+        "failed_regression_rays": []
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 1897,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 35,
+          "lights": 9
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1885,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 31,
+          "lights": 9
+        },
+        "legacy_doors": {
+          "matched": 3,
+          "truth_count": 4,
+          "prediction_count": 3,
+          "precision": 1.0,
+          "recall": 0.75,
+          "mean_error": 6.129994423872668,
+          "matches": [
+            [
+              0,
+              2,
+              5.736783931659548
+            ],
+            [
+              1,
+              0,
+              7.65069699003433
+            ],
+            [
+              2,
+              1,
+              5.002502349924124
+            ]
+          ],
+          "missed": [
+            3
+          ],
+          "extra": [],
+          "complete_annotation": true
+        },
+        "legacy_rays": {
+          "rays_passed": 19,
+          "rays_total": 20
+        }
+      },
+      {
+        "id": "dyson-14",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 3213,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 3221,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "legacy_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "mean_error": 6.9412778800639385,
+          "matches": [
+            [
+              2,
+              0,
+              6.9412778800639385
+            ]
+          ],
+          "missed": [
+            0,
+            1
+          ],
+          "extra": [],
+          "complete_annotation": false
+        },
+        "legacy_rays": {
+          "rays_passed": 12,
+          "rays_total": 14
+        }
+      },
+      {
+        "id": "cinderglass-basin",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-best-recolored\\report.json",
+        "report_sha256": "c7b0257208e6d80621416e15fec869c3a592205bb7c593c82eb8f09734c34f12",
+        "old_report_sha256": "e7500f57508d48477e64865e5f54386d2459f5f04311511bbda58573b29c3715",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "antler-crown",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "mothveil-lodge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 1503,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 3,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1578,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 5,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "blue-window-movement"
+        ],
+        "failed_regression_rays": [
+          "window-upper-frame-has-no-movement-gap"
+        ]
+      },
+      {
+        "id": "rimebell-refuge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 308,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 44,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 337,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 51,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 3,
+          "truth_count": 3,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 1.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.980947549145521,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.959689163914523,
+          "missed_annotated_indices": [
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "failed_regression_rays": []
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 1872,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 35,
+          "lights": 10
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1877,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 36,
+          "lights": 10
+        },
+        "legacy_doors": {
+          "matched": 2,
+          "truth_count": 4,
+          "prediction_count": 3,
+          "precision": 0.6666666666666666,
+          "recall": 0.5,
+          "mean_error": 4.8633471696348956,
+          "matches": [
+            [
+              1,
+              0,
+              4.724199520473897
+            ],
+            [
+              2,
+              1,
+              5.002494818795895
+            ]
+          ],
+          "missed": [
+            0,
+            3
+          ],
+          "extra": [
+            2
+          ],
+          "complete_annotation": true
+        },
+        "legacy_rays": {
+          "rays_passed": 19,
+          "rays_total": 20
+        }
+      },
+      {
+        "id": "dyson-14",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 3366,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 3273,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "legacy_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "mean_error": 6.337060640797036,
+          "matches": [
+            [
+              2,
+              0,
+              6.337060640797036
+            ]
+          ],
+          "missed": [
+            0,
+            1
+          ],
+          "extra": [],
+          "complete_annotation": false
+        },
+        "legacy_rays": {
+          "rays_passed": 12,
+          "rays_total": 14
+        }
+      },
+      {
+        "id": "cinderglass-basin",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-original\\report.json",
+        "report_sha256": "a31e346305225c3ba0c8b622d7c083e7daa2313b33cea742f2d5276718a92e82",
+        "old_report_sha256": "d891959258f0de26c5b7cb3f660203840359a26fc0670b0b53cb15e44359c532",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "antler-crown",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "mothveil-lodge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 1588,
+          "door_spans": 0,
+          "window_spans": 1,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 2,
+          "lights": 1
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1635,
+          "door_spans": 0,
+          "window_spans": 1,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 5,
+          "lights": 1
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 1,
+          "prediction_count": 0,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [
+          "source-door",
+          "blue-window-movement"
+        ],
+        "failed_regression_rays": [
+          "window-upper-frame-has-no-movement-gap"
+        ]
+      },
+      {
+        "id": "rimebell-refuge",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 349,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 38,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 371,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 42,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 3,
+          "truth_count": 3,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 1.0,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.3038859269569785,
+          "missed_annotated_indices": [],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.406294830485338,
+          "missed_annotated_indices": [
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "failed_regression_rays": []
+      },
+      {
+        "id": "stone",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 1978,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 23,
+          "lights": 9
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1970,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 27,
+          "lights": 9
+        },
+        "legacy_doors": {
+          "matched": 2,
+          "truth_count": 4,
+          "prediction_count": 2,
+          "precision": 1.0,
+          "recall": 0.5,
+          "mean_error": 4.860030368940436,
+          "matches": [
+            [
+              1,
+              0,
+              4.735946294696389
+            ],
+            [
+              2,
+              1,
+              4.984114443184483
+            ]
+          ],
+          "missed": [
+            0,
+            3
+          ],
+          "extra": [],
+          "complete_annotation": true
+        },
+        "legacy_rays": {
+          "rays_passed": 18,
+          "rays_total": 20
+        }
+      },
+      {
+        "id": "dyson-14",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 3103,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 3138,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "legacy_doors": {
+          "matched": 0,
+          "truth_count": 3,
+          "prediction_count": 0,
+          "precision": null,
+          "recall": 0.0,
+          "mean_error": null,
+          "matches": [],
+          "missed": [
+            0,
+            1,
+            2
+          ],
+          "extra": [],
+          "complete_annotation": false
+        },
+        "legacy_rays": {
+          "rays_passed": 11,
+          "rays_total": 14
+        }
+      },
+      {
+        "id": "cinderglass-basin",
+        "split": "validation",
+        "subset": "validation",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-validation-v19-last-recolored\\report.json",
+        "report_sha256": "7f7e218b9b3c136de38dc02aa0e60d115ec54137f8c0b94c1c968ad954bdbfeb",
+        "old_report_sha256": "9e41388946468749db6f73b5bdb3312060dc9b8299b5973f1523b4af7a829da8",
+        "geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 0,
+          "door_spans": 0,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 0,
+          "truth_count": 0,
+          "prediction_count": 0,
+          "complete_annotation": true,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": null,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": null,
+          "missed_annotated_indices": [],
+          "false_positive_prediction_indices": []
+        },
+        "failed_native_rays": []
+      },
+      {
+        "id": "frostwake-beacon",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-best-original\\report.json",
+        "report_sha256": "3a208e7db2591de21ef4cf8ccf68ad139c397340ac55e0c73397556f424eb8d4",
+        "old_report_sha256": "03e34d2fb154a5ef73ba7d4687ac803c07ba643a7b39210b91d797bfe0912648",
+        "geometry": {
+          "opaque_wall_segments": 579,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 46,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 646,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 57,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 1.9828591562070983,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.6141566122124855,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 1688,
+          "before_strict_class_histogram": [
+            1112,
+            23,
+            0,
+            0,
+            0,
+            139
+          ],
+          "strict_class_histogram": [
+            1212,
+            6,
+            0,
+            0,
+            0,
+            40
+          ]
+        }
+      },
+      {
+        "id": "gilded-snare",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "best",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-best-original\\report.json",
+        "report_sha256": "3a208e7db2591de21ef4cf8ccf68ad139c397340ac55e0c73397556f424eb8d4",
+        "old_report_sha256": "03e34d2fb154a5ef73ba7d4687ac803c07ba643a7b39210b91d797bfe0912648",
+        "geometry": {
+          "opaque_wall_segments": 1173,
+          "door_spans": 4,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1238,
+          "door_spans": 4,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.5714285714285714,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.2957615732711876,
+          "missed_annotated_indices": [
+            0,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.5714285714285714,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.5022770405537944,
+          "missed_annotated_indices": [
+            0,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 4213,
+          "before_strict_class_histogram": [
+            3116,
+            0,
+            76,
+            0,
+            0,
+            0
+          ],
+          "strict_class_histogram": [
+            3357,
+            0,
+            42,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "frostwake-beacon",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-best-recolored\\report.json",
+        "report_sha256": "628ca16fc2f65208f3d056613347c7c8c071a9add0d428355c5eb8b46579f328",
+        "old_report_sha256": "eb2beaed07d5a3d6693836ad2adee7747ddcf13351574ce026f910877f3f887c",
+        "geometry": {
+          "opaque_wall_segments": 607,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 44,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 690,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 58,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.4515066936469285,
+          "missed_annotated_indices": [
+            0,
+            1
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.588238704570507,
+          "missed_annotated_indices": [
+            0,
+            1
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 1688,
+          "before_strict_class_histogram": [
+            1100,
+            1,
+            27,
+            0,
+            0,
+            0
+          ],
+          "strict_class_histogram": [
+            1213,
+            0,
+            9,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "gilded-snare",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "best",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-best-recolored\\report.json",
+        "report_sha256": "628ca16fc2f65208f3d056613347c7c8c071a9add0d428355c5eb8b46579f328",
+        "old_report_sha256": "eb2beaed07d5a3d6693836ad2adee7747ddcf13351574ce026f910877f3f887c",
+        "geometry": {
+          "opaque_wall_segments": 1130,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1112,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 3,
+          "truth_count": 7,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.42857142857142855,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.56937686098119,
+          "missed_annotated_indices": [
+            0,
+            1,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 3,
+          "truth_count": 7,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.42857142857142855,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.742462325717085,
+          "missed_annotated_indices": [
+            0,
+            1,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 4213,
+          "before_strict_class_histogram": [
+            2977,
+            1,
+            236,
+            0,
+            0,
+            30
+          ],
+          "strict_class_histogram": [
+            3208,
+            0,
+            153,
+            0,
+            0,
+            11
+          ]
+        }
+      },
+      {
+        "id": "frostwake-beacon",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-last-original\\report.json",
+        "report_sha256": "75726a0c5bcebe613bc593b15adf97b7406a6ecdf3fcd295482f727e880b3a01",
+        "old_report_sha256": "58690b7839dcfbfca518723a6ccdb05485b0f8b9d97bca824ea8338db70afdf4",
+        "geometry": {
+          "opaque_wall_segments": 487,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 53,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 521,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 66,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 1.2026327985575032,
+          "missed_annotated_indices": [
+            0,
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.8636555589189356,
+          "missed_annotated_indices": [
+            0,
+            2
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 1688,
+          "before_strict_class_histogram": [
+            1186,
+            5,
+            0,
+            0,
+            0,
+            147
+          ],
+          "strict_class_histogram": [
+            1245,
+            5,
+            0,
+            0,
+            0,
+            6
+          ]
+        }
+      },
+      {
+        "id": "gilded-snare",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "last",
+        "appearance": "original",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-last-original\\report.json",
+        "report_sha256": "75726a0c5bcebe613bc593b15adf97b7406a6ecdf3fcd295482f727e880b3a01",
+        "old_report_sha256": "58690b7839dcfbfca518723a6ccdb05485b0f8b9d97bca824ea8338db70afdf4",
+        "geometry": {
+          "opaque_wall_segments": 1193,
+          "door_spans": 4,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1207,
+          "door_spans": 3,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.5714285714285714,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.3851473494704836,
+          "missed_annotated_indices": [
+            0,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 3,
+          "truth_count": 7,
+          "prediction_count": 3,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.42857142857142855,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.4871223556928794,
+          "missed_annotated_indices": [
+            0,
+            4,
+            5,
+            6
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 4213,
+          "before_strict_class_histogram": [
+            3202,
+            0,
+            69,
+            0,
+            0,
+            0
+          ],
+          "strict_class_histogram": [
+            3548,
+            0,
+            31,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "frostwake-beacon",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-last-recolored\\report.json",
+        "report_sha256": "78af1d7840504087a9885b3f6a849292a27ed7410c9b41af14c39a67cdc4b997",
+        "old_report_sha256": "0f1ad197b2883aa71c457e7c8d83a057941aa23e696cd7ad92bfc570ef2d1bcc",
+        "geometry": {
+          "opaque_wall_segments": 564,
+          "door_spans": 1,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 50,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 608,
+          "door_spans": 2,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 57,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 1,
+          "truth_count": 3,
+          "prediction_count": 1,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.3333333333333333,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.46516730157128,
+          "missed_annotated_indices": [
+            0,
+            1
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 2,
+          "truth_count": 3,
+          "prediction_count": 2,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.6666666666666666,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 3.1721598288840367,
+          "missed_annotated_indices": [
+            0
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 1688,
+          "before_strict_class_histogram": [
+            1177,
+            0,
+            15,
+            0,
+            0,
+            32
+          ],
+          "strict_class_histogram": [
+            1275,
+            0,
+            2,
+            0,
+            0,
+            0
+          ]
+        }
+      },
+      {
+        "id": "gilded-snare",
+        "split": "train",
+        "subset": "training-fit",
+        "checkpoint": "last",
+        "appearance": "recolored",
+        "report_path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\v19-training-fit-v19-last-recolored\\report.json",
+        "report_sha256": "78af1d7840504087a9885b3f6a849292a27ed7410c9b41af14c39a67cdc4b997",
+        "old_report_sha256": "0f1ad197b2883aa71c457e7c8d83a057941aa23e696cd7ad92bfc570ef2d1bcc",
+        "geometry": {
+          "opaque_wall_segments": 1103,
+          "door_spans": 4,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "previous_geometry": {
+          "opaque_wall_segments": 1134,
+          "door_spans": 4,
+          "window_spans": 0,
+          "transparent_barrier_segments": 0,
+          "movement_only_segments": 0,
+          "lights": 0
+        },
+        "native_doors": {
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.5714285714285714,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.5025017216419143,
+          "missed_annotated_indices": [
+            0,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "previous_native_doors": {
+          "matched": 4,
+          "truth_count": 7,
+          "prediction_count": 4,
+          "complete_annotation": false,
+          "tolerance_pixels": 8.0,
+          "precision": null,
+          "recall": 0.5714285714285714,
+          "f0_5": null,
+          "mean_endpoint_error_pixels": 2.492109943047027,
+          "missed_annotated_indices": [
+            1,
+            4,
+            5
+          ],
+          "unassessed_prediction_indices": []
+        },
+        "failed_native_rays": [],
+        "reviewed_new_background": {
+          "pixels": 4213,
+          "before_strict_class_histogram": [
+            3080,
+            0,
+            185,
+            0,
+            0,
+            7
+          ],
+          "strict_class_histogram": [
+            3338,
+            0,
+            58,
+            0,
+            0,
+            0
+          ]
+        }
+      }
+    ]
+  },
+  "validation": {
+    "focused_command": "python -B -m pytest tests/test_encounter_training.py -q",
+    "focused_result": "27 passed in 3.44s",
+    "full_command": "python -B -m pytest tests -q",
+    "full_result": "359 passed, 3 dependency warnings in 49.17s",
+    "full_log": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\door-neighborhood-final-tests.log",
+      "sha256": "22206184eebc54dbc5420132858b1cfba94dea53cdf5acf9633e27c7b800d894"
+    },
+    "lint_command": "python -B -m ruff check tests/test_encounter_training.py",
+    "lint_result": "All checks passed!",
+    "live_foundry_world_import": "Not rerun; this is a research/data/test update with no runtime or export change.",
+    "last_installed_runtime_smoke": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\Encounter ML review\\installed-smoke-wall-jamb-29dde04\\report.json",
+      "sha256": "65a5e4e19f2338db17f2075efb17fa2e3b75ab3b89720cb5a36e83958a3b8340"
+    }
+  },
+  "production": {
+    "model_promoted": false,
+    "model_sha256_unchanged": {
+      "battlemap-dino-lights-v1.safetensors": "dcd383eb130e5a973e1e4df5d389fde223f5e92a21e42a6110cd7301bc9600b1",
+      "battlemap-dino-lights-v2.safetensors": "357df3bfc3c842331e07784e1babbf12122a8c450f68aaa07bcd0fc9c4c1300d",
+      "battlemap-dino-v1.safetensors": "02824e2c6f67a0c800fd027a1c194863d9733e75eb05c1f46b8c64b59a82786c",
+      "battlemap-v1.safetensors": "cf7a10498fa9c938ce96f68fded84632c9e70fe4115f7a46f71edd777aca4bbe"
+    },
+    "default_profile": {
+      "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\outputs\\auto-wall\\profiles\\ml-light-centers.json",
+      "sha256": "d1f35d6519a5c6cee3f21ffae0bae6a01fd45c908439efc8e42b860d94179e89"
+    },
+    "scope": "Existing selected semantic-light model and settings retained. No inference speedup claimed by this training trial. The earlier door-jamb smoothing fix remains installed."
+  },
+  "source_script": {
+    "path": "C:\\Users\\Skyri\\Documents\\Codex\\2026-10-22\\ofr\\work\\encounter-ml\\record_v19_door_results.py",
+    "sha256": "f9b8da74ba18d497c8f961bbc6055054f386e73c8eccfb7acfe1c12347efa1e9"
+  }
+}

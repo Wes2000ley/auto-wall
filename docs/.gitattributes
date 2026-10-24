@@ -2,3 +2,4 @@
 ENCOUNTER_ML_RAIL_RESULTS.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 ENCOUNTER_ML_BOUNDARY_RESULTS.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
 ENCOUNTER_ML_WALL_DOOR_GEOMETRY_RESULTS.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol
+ENCOUNTER_ML_DOOR_NEIGHBORHOOD_RESULTS.json -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

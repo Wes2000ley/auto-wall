@@ -807,3 +807,43 @@ profile and all model weights stay unchanged. Missed doors, false wall pixels
 and fragmented predictions still require ML work. The final local suite passes
 357 tests with three dependency warnings in 64.85 seconds; Ruff passes on all
 three changed Python files. A live Foundry world import was not rerun.
+
+## Door-neighborhood supervision trial
+
+Walls and doors remain the priority; this trial adds no fence experiment or
+fence labels. The [door-neighborhood record](ENCOUNTER_ML_DOOR_NEIGHBORHOOD_RESULTS.json)
+contains model hashes, commands, native export checks and retained failures.
+
+A diagnostic compared full native map tiles with known-door-centered 384-pixel
+crops using the installed model and both v18 checkpoints. Centered crops did not
+consistently recover the panels. They change context and patch-grid origin, use
+known locations, and are not a deployable detector or an unbiased accuracy gain.
+V18's selected model correctly covers 4,375 of 4,455 supervised training-door
+pixels at confidence 0.9 while exporting only two of three Frostwake doors and
+four of seven Gilded doors. Correct panel interiors do not establish correct
+component boundaries, wall jambs or exported portals.
+
+Sixteen source-selected ground/floor rectangles beside eight door checks add
+5,901 background pixels on the two training layouts. Primary review inspected
+eight native-source/raster pairs. Every earlier supervised pixel, source image,
+sampling weight, passage check and validation layout remains unchanged. These
+are partial primary source-assisted labels, not independent complete human gold;
+uncertain trim and junctions remain ignored. No prediction supplies a label.
+
+V19 repeats the same 2,400-step training recipe in 464.04 seconds. The selector
+again chooses step 1,200, scoring 0.69916 against v18's 0.69874. Native evaluation
+uses 32 checkpoint/color cases across six validation and two training-fit
+layouts. The selected model recovers Rimebell's third door in original colors
+but still gets two of three after recoloring. Both checkpoints still miss
+Mothveil's door. Original Stone retains an unmatched door; the final recolored
+Dyson model loses its remaining matched door. Training-map door fits also remain
+incomplete. Eighteen exported-geometry closeups confirm persistent jagged wall
+predictions and incomplete portals.
+
+Do not promote this checkpoint. The limited nearby-background additions alone
+are insufficient; this trial does not establish a limitation of ML. The
+installed model, default profile and earlier door-jamb geometry fix stay in
+place. The full local suite passes 359 tests with three dependency warnings in
+49.17 seconds; the focused annotation suite passes 27 tests and Ruff passes.
+No inference speedup is claimed, and a live Foundry world import was not rerun
+for this research/data/test update. Reserved final-test inputs were not read.

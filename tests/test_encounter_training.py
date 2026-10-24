@@ -464,3 +464,40 @@ def test_whistling_rope_side_negatives_preserve_material_and_rejected_post_bound
     assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
     assert accepted["added_background_pixels"] == 3212
     assert accepted["changed_previous_supervised_pixels"] == 0
+
+
+@pytest.mark.parametrize("site,added_regions,added_pixels", [
+    ("gilded-snare", 12, 4213),
+    ("frostwake-beacon", 4, 1688),
+])
+def test_door_neighborhood_negatives_preserve_material_and_frozen_checks(site, added_regions, added_pixels):
+    root = Path(__file__).resolve().parents[1] / "benchmarks/data/encounters"
+    addition = root / "door-neighborhoods-v1"
+    path = addition / f"{site}.json"
+    item = json.loads(path.read_text(encoding="utf-8"))
+    review = json.loads((addition / "review.json").read_text(encoding="utf-8"))
+    accepted = review["samples"][site]
+    parent_path = Path(__file__).resolve().parents[1] / accepted["parent_annotation"].replace("\\", "/")
+    parent = json.loads(parent_path.read_text(encoding="utf-8"))
+    assert accepted["parent_annotation_sha256"] == hashlib.sha256(parent_path.read_bytes()).hexdigest()
+    split_path = root / "partial-source-v2/splits.json"
+    assert review["parent_split_sha256"] == hashlib.sha256(split_path.read_bytes()).hexdigest()
+    assert json.loads(split_path.read_text(encoding="utf-8"))[site] == "train"
+    assert json.loads((addition / "splits.json").read_text(encoding="utf-8")) == {
+        "frostwake-beacon": "train", "gilded-snare": "train"}
+    inherited = {**item, "regions": item["regions"][:-added_regions], "review_notes": item["review_notes"][:-1]}
+    assert inherited == parent
+    assert item["complete"] is False
+    assert all(region["class"] == "background" for region in item["regions"][-added_regions:])
+    before, after = (rasterize_annotation(a, (item["width"], item["height"])) for a in (parent, item))
+    changed = before != after
+    assert int(changed.sum()) == added_pixels
+    assert np.all(before[changed] == 255) and np.all(after[changed] == 0)
+    assert np.array_equal(after[before != 255], before[before != 255])
+    assert structure_checks(item) == structure_checks(parent)
+    assert accepted["status"] == "accepted"
+    assert accepted["source_sha256"] == item["image_sha256"] == parent["image_sha256"]
+    assert accepted["annotation_sha256"] == hashlib.sha256(path.read_bytes()).hexdigest()
+    assert accepted["mask_sha256"] == hashlib.sha256(after.tobytes()).hexdigest()
+    assert accepted["added_background_pixels"] == added_pixels
+    assert accepted["changed_previous_supervised_pixels"] == 0
