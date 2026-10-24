@@ -503,3 +503,96 @@ checks source/model/mask hashes, split membership, calibration folds and counts.
 The full application suite was not rerun for this research-only documentation
 change; the last functional source validation remains the 348-test CUDA run and
 the targeted remote CI results above.
+
+## Door-object semantic follow-up
+
+The [object-verification record](ENCOUNTER_ML_OBJECT_RESULTS.json) preserves four
+additional training runs, their group calibration, 152 completed trial cases,
+exact experiment source, artifact hashes and rejected results. These are repeated
+controls on six validation layouts, across colors and segmentation models. They
+are not 152 independent maps. No application model or runtime detector changed.
+The four final-test layouts remain unevaluated.
+
+Native review identified two different problems. A false wall patch inside
+Mothveil's real door shortened its exported span. Removing that patch only inside
+a verified, shape-supported door panel fixes the span. Separately, broad crop
+features confused correctly labeled floor and torch anchors with nearby doors.
+The high-scoring window negative was actual greenhouse glass. Those source
+labels were not changed to accommodate the classifier.
+
+Fragment augmentation retained every original anchor and added partial views,
+but lost additional real doors. Tight object crops recovered Mothveil while
+still rejecting real gates and drawn doors. Both DINO variants failed the
+recall check. Their results remain in the record.
+
+A controlled comparison then used the public Apache-2.0
+[SigLIP 2 base vision encoder](https://huggingface.co/google/siglip2-base-patch16-224),
+pinned to revision `75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2`.
+Its native safetensors file is 1,500,800,904 bytes, with SHA-256
+`612923381c76ec5a9bed335d1c48827e3f2e506ac31b044b63b2031fadee6a0b`.
+Only that file, config/preprocessor JSON and the model card were downloaded,
+without authentication, archives or remote Python. All 208 vision tensors,
+containing 92,884,224 parameters, loaded strictly. Unused text tensors stayed on
+disk. The initial load stopped before training because the standalone vision
+class omits the full checkpoint's `vision_model.` key prefix. The corrected
+loader removes exactly that prefix and checks complete key identity; the failed
+script, log and initial manifest are preserved.
+
+The DINO and SigLIP tight-crop comparisons use exactly the same 3,648 anchor,
+crop, target and hue records. They pool only explicitly labeled class pixels;
+unknown pixels never supply targets or feature weights. The semantic variant
+improves the known door controls, but its first version also accepts a plain
+Stone wall detail as a door. This is a real false detection, confirmed against
+the native source, and disqualifies that version for release.
+
+Systematic negatives at training-door wall caps then add 294 anchors from the
+existing explicit wall labels. Their locations derive from training component
+geometry, not validation coordinates or model scores. All original anchors are
+retained. No annotation is changed, and no SAM mask becomes a training label.
+Primary native-source reviews sampled 45 door anchors and 22 added wall-cap
+anchors; these checks do not establish exhaustive or independent human gold.
+
+Every cutoff below comes from five training-map group folds, strictly above the
+highest out-of-fold negative score, with a minimum of 0.5. Correlated hue views
+stay together within each fold. Zero observed calibration false positives does
+not guarantee precision on unseen maps.
+
+| Training variant | Cutoff | Retained augmented door rows |
+| --- | --- | --- |
+| DINO with added fragments | 0.93847179 | 3,441 / 3,840 |
+| DINO with tight object crops | 0.96309769 | 715 / 960 |
+| SigLIP with the same tight crops | 0.52797383 | 935 / 960 |
+| SigLIP with training wall-cap negatives | 0.66465580 | 929 / 960 |
+
+Wall-cap training rejects the false Stone detail, but whole-seed filtering still
+removes a real drawn-map door. That filter also remains rejected. A narrower
+v11 experiment keeps all original seeds and uses the verifier only to approve
+added SAM panels. It removes wall conflicts inside accepted panels, rebuilds
+strong wall candidates and recovers jambs once using the updated door/window
+union. If no panel changes a mask, it returns the original masks unchanged.
+This isolates verified growth from the failed destructive classification step;
+it does not correct pre-existing false or misplaced original doors.
+
+In all 32 cached model/color cases, v11 preserves the existing matched door
+spans. The repeated matched-span total rises from 27 to 36, with nine added spans
+and no existing matched span lost. Six of those additions are the same known
+Mothveil door across model/color combinations; the other three are repeated
+Rimebell controls. Mothveil now matches in all six combinations, with mean
+endpoint errors between 1.00 and 2.06 source-image pixels. These counts do not
+represent nine independent newly validated physical doors.
+
+This is useful evidence for door refinement, but the experiment is unshipped.
+Known original Stone errors and noisy masonry contours remain. Mothveil's
+window and Rimebell's railing failures remain. Window, movement-barrier and light counts stay unchanged in
+these cached cases; the caches omit the light-center heatmap, so this is not
+full light-head validation. No end-to-end speed improvement has been established.
+The current training distribution also remains uneven: Temple and ship supply
+128 of 160 original positive door anchors, while only one real training map
+supplies physical glass. More hue views do not add independent style coverage.
+
+The artifact audit checks every recorded experiment script, training/calibration
+split, feature/target file, classifier checkpoint and output-mask hash. All 36
+original training/validation image-mask pairs and all four production model
+hashes remain unchanged. The full application suite was not rerun for this
+research-only documentation change; its last functional source validation
+remains the 348-test local CUDA run and targeted remote CI described above.
