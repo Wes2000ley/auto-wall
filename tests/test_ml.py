@@ -90,6 +90,18 @@ def test_windows_checkpoint_roundtrip_has_six_classes_and_keeps_strict_shapes(tm
         load_model(path, "cpu")
 
 
+def test_missing_checkpoint_buffer_fails_before_inference(tmp_path):
+    model = BattlemapNet(8)
+    state = model.state_dict()
+    del state["enc1.1.running_mean"]
+    path = tmp_path / "missing-buffer.safetensors"
+    save_file(state, path, metadata={
+        "format": FORMAT, "classes": json.dumps(LEGACY_CLASSES), "width": "8",
+        "context_dilation": "1", "details": "{}"})
+    with pytest.raises(RuntimeError, match="Missing key.*enc1.1.running_mean"):
+        load_model(path, "cpu")
+
+
 def test_legacy_head_expansion_copies_existing_class_logits_exactly():
     torch.manual_seed(12)
     model = BattlemapNet(8, 2).eval()

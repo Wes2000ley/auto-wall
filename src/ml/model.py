@@ -81,9 +81,14 @@ def _cached_model(path, modified, size, device):
             if width != 16 or dilation != 4:
                 raise ValueError("Unsupported DINO decoder configuration.")
             from src.ml.dino import DinoBattlemap
-            model = DinoBattlemap(light_centers=model_format != DINO_FORMAT,
-                                 semantic_light_context=model_format == DINO_SEMANTIC_LIGHTS_FORMAT,
-                                 classes=classes)
+            # Skip random initialization of the large pretrained backbone.
+            # Allocate ordinary CPU storage before the strict copy to preserve
+            # dtype conversion and keep model tensors separate from the file.
+            with torch.device("meta"):
+                model = DinoBattlemap(light_centers=model_format != DINO_FORMAT,
+                                     semantic_light_context=model_format == DINO_SEMANTIC_LIGHTS_FORMAT,
+                                     classes=classes)
+            model.to_empty(device="cpu")
         else:
             model = BattlemapNet(width, dilation, classes)
         state = {key: source.get_tensor(key) for key in source.keys()}

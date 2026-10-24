@@ -596,3 +596,80 @@ original training/validation image-mask pairs and all four production model
 hashes remain unchanged. The full application suite was not rerun for this
 research-only documentation change; its last functional source validation
 remains the 348-test local CUDA run and targeted remote CI described above.
+
+## Two-block adaptation and checkpoint loading
+
+The next controlled segmentation trial, v16, adapts the final two DINO blocks
+along with the decoder. It retains v15's labels, initializer, crop sampling,
+augmentation, replay teacher, batch size and optimizer settings. The decoder
+learning rate is 0.00004 and the backbone rate is 0.000004. There are 4,088,598
+trainable parameters. The 2,400-step run took 469.07 seconds locally. Final-test
+entries were removed before reading the dataset; the run used 78 training and
+six validation samples. No training or validation labels changed.
+
+[The audited record](ENCOUNTER_ML_BACKBONE_RESULTS.json) includes the exact
+training sources, invocation, input hashes, checkpoint hashes, six evaluation
+reports and selected native failure crops. Weight comparisons confirm changes
+in blocks 10 and 11 and the final layer normalization, with the other backbone
+tensors preserved exactly. The selected checkpoint is step 1,200; the final
+checkpoint is step 2,400. Both were evaluated on original and recolored
+validation maps. Training-fit checks use the selected checkpoint separately.
+
+| Validation check | Selected: original / recolored | Final: original / recolored |
+| --- | --- | --- |
+| Mothveil matched door spans | 0 / 0 | 0 / 0 |
+| Mothveil matched window spans | 0 / 0 | 0 / 0 |
+| Mothveil unmatched window predictions | 0 / 2 | 0 / 1 |
+| Rimebell matched doors out of three | 3 / 2 | 2 / 3 |
+| Rimebell movement-only segments | 0 / 0 | 23 / 17 |
+| Rimebell fence movement check | fail / fail | fail / fail |
+
+The recolored Mothveil windows lie on a masonry stair landing, rather than the
+real glazing. The final checkpoint also emits movement-only geometry on an
+interior timber support. Native source crops confirm these failures; they are
+model output, not corrected annotations. The extra Rimebell fence fragments
+still leave its tested passage open. Selected-checkpoint training fit emits
+40/43 movement-only segments on Gullthorn, but its full-span movement check
+also fails in both appearances. Legacy geometry checks remain in the record:
+Stone has an unmatched original-image door, and the final recolored Dyson
+checkpoint loses the selected checkpoint's one matched door.
+
+This trial is not promoted. Backbone adaptation alone has not resolved the
+missing glass, broken fence coverage or noisy masonry outlines. Partial labels
+and the single real training layout with glass remain limitations. This result
+does not establish that backbone adaptation cannot work.
+
+The independent runtime change skips random initialization when loading a DINO
+checkpoint, then allocates ordinary CPU storage before the existing strict
+state copy. It preserves dtype conversion, independent tensor storage, frozen
+backbone parameters, metadata checks and cache behavior. It follows PyTorch's
+[documented meta-device loading approach](https://docs.pytorch.org/tutorials/recipes/recipes/module_load_state_dict_tips.html),
+while retaining a normal state copy. The small CNN keeps its existing loader.
+
+Ten interleaved, uncached CPU loads per implementation and checkpoint produced
+these local medians with four CPU threads:
+
+| Production checkpoint | Previous load | Updated load |
+| --- | --- | --- |
+| DINO segmentation | 0.354 s | 0.125 s |
+| DINO light centers v1 | 0.373 s | 0.141 s |
+| DINO semantic light centers v2 | 0.326 s | 0.142 s |
+
+These measurements exclude first-process library imports, disk-cold I/O, CUDA
+transfer and inference. They show a faster checkpoint-loading step, not faster
+segmentation or improved accuracy. All four production checkpoints and the
+six-class v16 checkpoint preserve exact CPU tensors, dtypes and predictions on
+an odd-size input, including light heatmaps where present. A fresh process
+loads DINO through the new path before constructing a reference model. On the
+full Mothveil source, CUDA classes, confidence, light heatmap, UVTT preview and
+native Foundry Scene data match exactly; generated IDs are fixed for the Scene
+comparison. This is functional parity, not a claim that those predictions are
+accurate. All four production model hashes and original image/mask pairs remain
+unchanged.
+
+Validation: the focused DINO/buffer checks pass 8 tests; the final local CUDA
+suite passes 353 tests with three dependency deprecation warnings in 46.75
+seconds. Ruff passes on the three changed Python files. The audit retains an
+initial regression-fixture typo and an initial report-reader error with their
+causes and corrected reruns. No live Foundry world import was rerun for this
+loader change.

@@ -2,6 +2,9 @@
 # Optional packages must be checked before importing the model implementation.
 # ruff: noqa: E402
 
+import hashlib
+import json
+
 import numpy as np
 import pytest
 
@@ -10,10 +13,11 @@ pytest.importorskip("safetensors")
 pytest.importorskip("transformers")
 
 from safetensors import safe_open
+from safetensors.torch import save_file
 
 from src.ml.dino import DinoBattlemap
-from src.ml.model import DINO_LIGHTS_FORMAT, load_model, predict, save_model
-from src.ml.network import WINDOW_CLASSES, expand_legacy_head
+from src.ml.model import DINO_LIGHTS_FORMAT, DINO_SEMANTIC_LIGHTS_FORMAT, load_model, predict, save_model
+from src.ml.network import LEGACY_CLASSES, WINDOW_CLASSES, expand_legacy_head
 from scripts.train_ml import training_optimizer
 
 
@@ -96,3 +100,39 @@ def test_dino_windows_expansion_preserves_light_center_head(tmp_path):
     assert loaded.light_head is not None and details == {"class_set": "windows"}
     for name, value in loaded.light_head.state_dict().items():
         torch.testing.assert_close(value, light_state[name], rtol=0, atol=0)
+
+
+@pytest.mark.parametrize("classes", [LEGACY_CLASSES, WINDOW_CLASSES])
+@pytest.mark.parametrize("dtype", [torch.float16, torch.float64])
+def test_dino_loading_preserves_dtypes_outputs_and_independent_storage(tmp_path, classes, dtype):
+    previous = torch.get_num_threads()
+    torch.set_num_threads(2)
+    try:
+        reference = DinoBattlemap(light_centers=True, semantic_light_context=True, classes=classes).eval()
+        state = reference.state_dict()
+        # Mixed checkpoint dtypes must still copy into the normal float32 model.
+        for name in ("local.head.weight", "local.head.bias", "light_head.layers.6.weight"):
+            state[name] = state[name].to(dtype)
+        path = tmp_path / "converted-dino.safetensors"
+        save_file(state, path, metadata={
+            "format": DINO_SEMANTIC_LIGHTS_FORMAT, "classes": json.dumps(classes),
+            "width": "16", "context_dilation": "4", "details": "{}"})
+        original_hash = hashlib.sha256(path.read_bytes()).digest()
+        reference.load_state_dict(state, strict=True)
+        loaded, _ = load_model(path, "cpu")
+        for name, value in reference.state_dict().items():
+            actual = loaded.state_dict()[name]
+            assert actual.device.type == "cpu" and actual.dtype == value.dtype
+            torch.testing.assert_close(actual, value, rtol=0, atol=0)
+        assert all(not parameter.requires_grad for parameter in loaded.backbone.parameters())
+        image = np.random.default_rng(17).integers(0, 256, (11, 13, 3), dtype=np.uint8)
+        expected = predict(reference, image, include_light_centers=True)
+        actual = predict(loaded, image, include_light_centers=True)
+        for first, second in zip(expected, actual, strict=True):
+            np.testing.assert_array_equal(first, second)
+        with torch.no_grad():
+            loaded.local.head.bias.add_(1)
+        assert hashlib.sha256(path.read_bytes()).digest() == original_hash
+        torch.testing.assert_close(reference.local.head.bias, state["local.head.bias"].float(), rtol=0, atol=0)
+    finally:
+        torch.set_num_threads(previous)
