@@ -1,0 +1,29 @@
+.auto-wall-live .window-content { overflow-y: auto; }
+.auto-wall-live .aw-content { display: flex; flex-direction: column; gap: 0.65rem; padding: 0.65rem; }
+.auto-wall-live p { margin: 0; }
+.auto-wall-live .aw-scene { font-weight: 600; overflow-wrap: anywhere; }
+.auto-wall-live .aw-tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.3rem; }
+.auto-wall-live button.active { background: #264535; border-color: #64d999; color: #fff; }
+.auto-wall-live button[data-layer=doors].active { border-color: #df79ff; }
+.auto-wall-live button[data-layer=invisible].active { border-color: #49d7ee; }
+.auto-wall-live button[data-layer=windows].active { border-color: #80aaff; }
+.auto-wall-live button[data-layer=lights].active { border-color: #ffce72; }
+.auto-wall-live .aw-row { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; }
+.auto-wall-live .aw-row > button, .auto-wall-live .aw-row > select { width: auto; flex: 1; }
+.auto-wall-live label { display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.88rem; }
+.auto-wall-live input[type=number] { width: 5.5rem; height: 1.8rem; }
+.auto-wall-live input[type=checkbox] { margin: 0; }
+.auto-wall-live select { height: 1.8rem; max-width: 100%; }
+.auto-wall-live .aw-help { font-size: 0.8rem; line-height: 1.4; opacity: 0.85; }
+.auto-wall-live .aw-layers { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.auto-wall-live .aw-colors { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 0.4rem; align-items: center; }
+.auto-wall-live .aw-colors input { width: 2.6rem; height: 1.7rem; }
+.auto-wall-live .aw-colors button { width: auto; font-size: 0.8rem; }
+.auto-wall-live .aw-setting { display: flex; justify-content: space-between; gap: 0.6rem; margin: 0.4rem 0; }
+.auto-wall-live details { padding: 0.4rem; border: 1px solid var(--color-border-light-primary, #777); border-radius: 4px; }
+.auto-wall-live summary { cursor: pointer; }
+.auto-wall-live h4 { margin: 0.7rem 0 0.2rem; }
+.auto-wall-live .aw-status { font-size: 0.85rem; padding: 0.5rem; border-left: 3px solid #64d999; background: rgba(70, 130, 90, 0.12); overflow-wrap: anywhere; }
+.auto-wall-live .aw-status.error { border-color: #f28484; background: rgba(180, 60, 60, 0.1); }
+.auto-wall-live [hidden] { display: none !important; }
+.auto-wall-live-overlay { position: fixed; z-index: 1; touch-action: none; outline: none; }

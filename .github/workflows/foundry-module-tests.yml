@@ -1,0 +1,23 @@
+name: Foundry module checks
+
+on:
+  push:
+    branches: [main]
+    paths: ["foundry/**", ".github/workflows/foundry-module-tests.yml"]
+  pull_request:
+    paths: ["foundry/**", ".github/workflows/foundry-module-tests.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  module-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test vector geometry, native document changes and bundled detector
+        run: node --test --test-reporter=spec foundry/tests/*.test.mjs

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><title>Auto-Wall Live · isolated browser checks</title>
+  <link rel="stylesheet" href="/modules/auto-wall-live/styles/editor.css">
+  <style>
+    * { box-sizing: border-box; } body { margin: 0; background: #1c2027; color: #e7e9ef; font: 14px system-ui; }
+    button, select, input { color: inherit; background: #292f39; border: 1px solid #647082; border-radius: 4px; padding: 5px; }
+    button { cursor: pointer; } button:disabled { opacity: .5; cursor: default; }
+    #board { position: fixed; inset: 0; } #controls { position: fixed; z-index: 3; top: 14px; left: 14px; display: flex; gap: 8px; }
+    #readback { position: fixed; z-index: 3; bottom: 10px; left: 14px; width: 430px; background: #151920e8; padding: 8px; max-height: 170px; overflow: auto; font-size: 11px; }
+    #test-results { font: 12px monospace; white-space: pre-wrap; margin: 4px 0; }
+    #auto-wall-live { position: fixed; top: 10px; bottom: 10px; right: 10px; width: 390px; z-index: 10; background: #242a33; border: 1px solid #68778c; border-radius: 7px; overflow-y: auto; }
+    .window-header { position: sticky; top: 0; display: flex; justify-content: space-between; padding: 10px; background: #303846; z-index: 1; }
+    h4 { font-size: 14px; } hr { width: 100%; border: 0; border-top: 1px solid #526071; }
+  </style>
+</head>
+<body>
+  <canvas id="board"></canvas>
+  <div id="controls"><button id="open">Auto-Wall Live</button><button id="checks">Run interaction checks</button><button id="transform">Rotate / offset background</button></div>
+  <div id="readback"><strong>Isolated document API mock — no campaign connection</strong><pre id="test-results">Ready</pre><div id="counts"></div><details><summary>Native document data</summary><pre id="documents"></pre></details></div>
+  <script src="/handlebars.js"></script>
+  <script src="/modules/auto-wall-live/vendor/polygon-clipping.js"></script>
+  <script type="module" src="/tests/browser-harness.mjs"></script>
+</body>
+</html>

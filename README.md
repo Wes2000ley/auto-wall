@@ -1,5 +1,10 @@
 # Auto-Wall
 
+**Foundry in-game editor:** [Auto-Wall Live](foundry/README.md) paints walls, doors,
+invisible walls, windows and lights directly into a Foundry 14 scene, with live
+native persistence and palette-based automatic detection. No exports, ML models,
+Python helper or GPU runtime are needed for the module.
+
 ## Fast Setup fork
 
 This fork adds a responsive **Walls / Doors / Lights** workspace, conservative doorway
