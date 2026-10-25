@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {crosses} from "./helpers.mjs";
-import {PaintGeometry, brushArea, contains, areaSegments, nearest, splitSegments, rectangle, segmentKey, mergeCollinear} from "../auto-wall-live/scripts/geometry.mjs";
+import {PaintGeometry, brushArea, contains, areaSegments, splitSegments, rectangle, segmentKey, mergeCollinear} from "../auto-wall-live/scripts/geometry.mjs";
 
 const empty = () => new PaintGeometry([500, 500]);
 const keys = segments => segments.map(s => segmentKey(s)).sort();
@@ -76,12 +76,11 @@ test("rectangle erasing removes crossing baselines, preserves hidden layers and 
 
 test("rectangles add four edges; serialized ink survives reopening", () => {
   const a = empty().addRectangle("walls", [40, 40], [200, 200]).paint("invisible", [[250, 200], [350, 200]], 20);
-  assert.equal(a.base.walls.length, 4);
+  assert.equal(a.lines.walls.length, 4);
   assert.deepEqual(PaintGeometry.restore(a.serialize()).compose(), a.compose());
 });
 
-test("snapping prefers endpoints; exact clipping handles diagonal and collinear edges", () => {
-  assert.deepEqual(nearest([[[0, 0], [100, 0]], [[50, 5], [60, 5]]], [49, 1], 8), [50, 5]);
+test("exact clipping handles diagonal and collinear edges", () => {
   const [outside, inside] = splitSegments([[[0, 0], [100, 100]], [[0, 40], [100, 40]]], rectangle([40, 40], [60, 60]));
   assert.equal(outside.length, 4); assert.equal(inside.length, 2);
   assert.ok(inside.some(s => segmentKey(s) === segmentKey([[40, 40], [60, 60]])));
@@ -113,4 +112,47 @@ test("painting a window over a door changes the material instead of stacking por
   assert.equal(geometry.compose().doors.length, 0); assert.equal(geometry.compose().windows.length, 1);
   const adjacent = geometry.paint("doors", [[170, 100], [220, 100]], 30);
   assert.equal(adjacent.compose().doors.length, 1); assert.equal(adjacent.compose().windows.length, 1);
+});
+
+test("rectangles keep all four exact edges over older brush ink and portal cuts", () => {
+  const a = empty().paint("walls", [[30, 100], [400, 100]], 40)
+    .paint("doors", [[180, 100], [240, 100]], 80);
+  const b = a.addRectangle("walls", [100, 80], [300, 200]);
+  const wanted = areaSegments(rectangle([100, 80], [300, 200]));
+  for (const edge of wanted) assert.ok(keys(b.compose().walls).includes(segmentKey(edge)));
+  assert.deepEqual(keys(b.lines.walls), keys(wanted));
+  assert.deepEqual(PaintGeometry.restore(b.serialize()).compose(), b.compose());
+});
+
+test("line mode keeps clicked corners, merges collinear repeats, and adds no curved outline", () => {
+  const a = empty().addLines("walls", [[[40, 40], [200, 40]], [[200, 40], [200, 200]]])
+    .addLines("walls", [[[40, 40], [100, 40]]]);
+  assert.deepEqual(keys(a.compose().walls), keys([[[40, 40], [200, 40]], [[200, 40], [200, 200]]]));
+  assert.equal(a.areas.walls.length, 0);
+});
+
+test("a subsequently drawn door cuts an explicit rectangle at its exact jambs", () => {
+  const result = empty().addRectangle("walls", [40, 40], [300, 300])
+    .paint("doors", [[140, 40], [200, 40]], 40).compose();
+  assert.equal(result.doors.length, 1);
+  assert.equal(blocks(result.walls, [170, 10], [170, 70]), false);
+  assert.ok(keys(result.walls).includes(segmentKey([[40, 40], [140, 40]])));
+  assert.ok(keys(result.walls).includes(segmentKey([[200, 40], [300, 40]])));
+});
+
+test("subsequent painting and erasing affect explicit lines, with hidden materials protected", () => {
+  const a = empty().addRectangle("walls", [40, 40], [300, 300])
+    .addLines("invisible", [[[40, 50], [300, 50]]]);
+  const b = a.paint("walls", [[100, 40], [200, 40]], 30, false);
+  assert.equal(b.lines.invisible.length, 1);
+  assert.ok(b.lines.walls.some(s => segmentKey(s) === segmentKey([[40, 40], [85, 40]])));
+  const c = a.erase([130, 35], [150, 55], {walls: true, invisible: false});
+  assert.equal(c.lines.walls.length, 3); assert.equal(c.lines.invisible.length, 1);
+});
+
+test("small freehand wiggles use a coarse outline with few vertices", () => {
+  const points = Array.from({length: 300}, (_, i) => [50 + i, 150 + Math.sin(i) * 0.6]);
+  const result = empty().paint("walls", points, 24).compose();
+  assert.ok(result.walls.length <= 12, `Unexpectedly dense outline: ${result.walls.length} segments`);
+  assert.equal(blocks(result.walls, [100, 100], [100, 200]), true);
 });

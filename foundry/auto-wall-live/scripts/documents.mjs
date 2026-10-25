@@ -48,7 +48,7 @@ function insideOriginal(segment, original) {
   });
 }
 
-export function wallData(layer, segment, level, origin = "manual", template) {
+export function wallData(layer, segment, level, template) {
   const c = segment.flat().map(Math.round);
   if (c[0] === c[2] && c[1] === c[3]) return null;
   const defaults = {c, levels: [level], move: 20, sight: 20, light: 20, sound: 20, dir: 0, door: 0, ds: 0};
@@ -59,16 +59,16 @@ export function wallData(layer, segment, level, origin = "manual", template) {
   const data = template ? structuredClone(template) : defaults;
   delete data._id; delete data._stats;
   data.c = c; data.levels = [level];
-  data.flags = {...data.flags, [MODULE_ID]: {...data.flags?.[MODULE_ID], origin}};
+  data.flags = {...data.flags, [MODULE_ID]: {...data.flags?.[MODULE_ID], origin: "manual"}};
   return data;
 }
 
-export function lightData(light, level, gridDistance, origin = "manual") {
+export function lightData(light, level, gridDistance) {
   if (![light.x, light.y, light.range, gridDistance].every(Number.isFinite) || light.range <= 0 || gridDistance <= 0) throw new Error("Invalid light position or range.");
   return {x: Math.round(light.x), y: Math.round(light.y), elevation: 0, levels: [level], walls: true,
     config: {angle: 360, color: light.color, dim: light.range * gridDistance,
       bright: light.range * gridDistance / 2, alpha: 0.05},
-    flags: {[MODULE_ID]: {origin}}};
+    flags: {[MODULE_ID]: {origin: "manual"}}};
 }
 
 function remainingLevels(scene, document, level) {
@@ -77,16 +77,15 @@ function remainingLevels(scene, document, level) {
 }
 
 /** Plan only embedded-document changes. No scene replacement or export/import. */
-export function planWalls(scene, level, existing, desired, origin = "manual") {
+export function planWalls(scene, level, existing, desired) {
   const wanted = new Map(), existingByKey = new Map(existing.map(d => [key(d), d]));
   for (const layer of ["walls", "invisible", "doors", "windows"]) for (const segment of desired[layer] ?? []) {
-    const plain = wallData(layer, segment, level, origin);
+    const plain = wallData(layer, segment, level);
     if (!plain) continue;
     const identifier = key(plain);
     if (existingByKey.has(identifier)) { wanted.set(identifier, plain); continue; }
     const template = existing.find(d => wallKind(d) === layer && insideOriginal(segment, d));
-    const source = origin === "detection" && template && template.flags?.[MODULE_ID]?.origin !== "detection" ? "manual" : origin;
-    const data = wallData(layer, segment, level, source, template);
+    const data = wallData(layer, segment, level, template);
     if (data) wanted.set(identifier, data);
   }
   const retained = new Set(existing.filter(d => wanted.has(key(d))).map(d => key(d)));
@@ -137,14 +136,14 @@ export class LiveSync {
     }
   }
 
-  async commit({geometry, lights, paint, exclusions = [], origin = "manual", replaceDetectedLights = false}, expected) {
+  async commit({geometry, lights, paint}, expected) {
     if (this.busy) throw new Error("Wait for the current scene edit to finish.");
     if (!this.scene.canUserModify(globalThis.game?.user, "update")) throw new Error("Only a GM with scene access can edit this scene.");
     if (fingerprint(this.state()) !== expected) throw new Error("Scene geometry changed. The editor has refreshed; repeat the gesture.");
     this.busy = true; this.operation++;
     const before = this.state(), previousFlag = structuredClone(this.saved()), receipt = [];
     try {
-      const plan = planWalls(this.scene, this.level, before.walls, geometry, origin);
+      const plan = planWalls(this.scene, this.level, before.walls, geometry);
       // Record each successful batch separately so a later error can roll it back.
       const apply = async (type, method, values, options) => {
         if (!values.length) return;
@@ -170,14 +169,13 @@ export class LiveSync {
       await apply("Wall", "deleteEmbeddedDocuments", plan.remove);
       if (lights) {
         const retained = new Set(lights.filter(l => l._id).map(l => l._id));
-        const removed = before.lights.filter(l => !retained.has(l._id) &&
-          (!replaceDetectedLights || l.flags?.[MODULE_ID]?.origin === "detection"));
+        const removed = before.lights.filter(l => !retained.has(l._id));
         const updates = [], deletes = [];
         for (const light of removed) {
           const levels = remainingLevels(this.scene, light, this.level);
           if (levels.length) updates.push({_id: light._id, levels}); else deletes.push(light._id);
         }
-        await apply("AmbientLight", "createEmbeddedDocuments", lights.filter(l => !l._id).map(l => lightData(l, this.level, this.scene.grid.distance, origin)));
+        await apply("AmbientLight", "createEmbeddedDocuments", lights.filter(l => !l._id).map(l => lightData(l, this.level, this.scene.grid.distance)));
         await apply("AmbientLight", "updateEmbeddedDocuments", updates);
         await apply("AmbientLight", "deleteEmbeddedDocuments", deletes);
       }
@@ -189,7 +187,7 @@ export class LiveSync {
       }
       const plannedFingerprint = fingerprint({walls: [...planned.walls.values()], lights: [...planned.lights.values()]});
       if (fingerprint(this.state()) !== plannedFingerprint) throw new Error("Scene geometry changed while saving. Your edit was rolled back; repeat it on the refreshed scene.");
-      const saved = {version: 1, fingerprint: plannedFingerprint, paint, exclusions};
+      const saved = {version: 1, fingerprint: plannedFingerprint, paint};
       await this.scene.update({[`flags.${MODULE_ID}.levels.${this.level}`]: saved}, {autoWallLive: this.operation});
       if (receipt.length) {
         this.undoStack.push({receipt, previousFlag});

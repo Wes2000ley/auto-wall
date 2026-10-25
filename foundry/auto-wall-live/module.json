@@ -1,8 +1,8 @@
 {
   "id": "auto-wall-live",
   "title": "Auto-Wall Live",
-  "description": "Paint and detect walls, doors, windows, invisible walls, and lights directly in the current scene. No ML, exports, or helper service.",
-  "version": "0.1.0",
+  "description": "Draw rectangles, paint walls, or click connected lines directly in the current scene. Manual doors, windows, invisible walls and lights, with automatic saving.",
+  "version": "0.2.0",
   "authors": [{"name": "Wes2000ley"}],
   "compatibility": {"minimum": "14", "verified": "14.369", "maximum": "14"},
   "scripts": ["vendor/polygon-clipping.js"],

@@ -19,5 +19,5 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Test vector geometry, native document changes and bundled detector
+      - name: Test manual drawing, vector geometry and native document changes
         run: node --test --test-reporter=spec foundry/tests/*.test.mjs

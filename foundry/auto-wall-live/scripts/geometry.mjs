@@ -31,24 +31,6 @@ export function areaSegments(area) {
   return result;
 }
 
-export function nearest(segments, point, radius) {
-  let best = null, minimum = radius;
-  // Endpoints take priority over projections, including portal jambs.
-  for (const segment of segments) for (const endpoint of segment) {
-    const d = distance(point, endpoint);
-    if (d <= minimum) { minimum = d; best = endpoint; }
-  }
-  if (best) return [...best];
-  for (const [start, end] of segments) {
-    const delta = sub(end, start), squared = dot(delta, delta);
-    if (squared < EPS * EPS) continue;
-    const projection = add(start, mul(delta, clamp(dot(sub(point, start), delta) / squared)));
-    const d = distance(point, projection);
-    if (d <= minimum) { minimum = d; best = projection; }
-  }
-  return best && [...best];
-}
-
 export function contains(area, point) {
   for (const poly of area) {
     let inside = false;
@@ -94,7 +76,7 @@ export function brushArea(points, diameter, size, flat = false) {
   if (!points.length) return [];
   if (!points.every(p => Array.isArray(p) && p.length === 2 && p.every(Number.isFinite))) throw new Error("Invalid brush coordinates.");
   const radius = diameter / 2, shapes = [];
-  const path = flat ? [points[0], points.at(-1)] : simplify(points, Math.min(2, diameter * 0.04));
+  const path = flat ? [points[0], points.at(-1)] : simplify(points, Math.max(1, Math.min(8, diameter * 0.12)));
   for (let i = 0; i < path.length - 1; i++) {
     const a = path[i], b = path[i + 1], length = distance(a, b);
     if (length < EPS) continue;
@@ -103,7 +85,7 @@ export function brushArea(points, diameter, size, flat = false) {
     shapes.push(polygon(ring));
   }
   if (!flat) {
-    const count = Math.max(12, Math.min(64, 4 * Math.ceil(Math.PI / Math.acos(Math.max(-1, 1 - Math.min(1, diameter * 0.02) / radius)) / 4)));
+    const count = 8;
     for (const p of path) {
       const ring = Array.from({length: count}, (_, i) => add(p, [radius * Math.cos(i * 2 * Math.PI / count), radius * Math.sin(i * 2 * Math.PI / count)]));
       ring.push(ring[0]); shapes.push(polygon(ring));
@@ -236,6 +218,9 @@ export class PaintGeometry {
     this.base = {walls: [], invisible: [], doors: [], windows: [], ...base};
     this.areas = state.areas ?? {walls: [], invisible: []};
     this.coverage = state.coverage ?? {walls: [], invisible: []};
+    // Explicit rectangles and click-to-click lines must not be clipped by ink
+    // painted before them. Only a subsequent paint or erase operation edits them.
+    this.lines = state.lines ?? {walls: [], invisible: []};
     this.portals = state.portals ?? [];
     this.diameter = state.diameter ?? 1;
   }
@@ -247,7 +232,7 @@ export class PaintGeometry {
 
   serialize() {
     return structuredClone({version: 1, size: this.size, base: this.base, areas: this.areas,
-      coverage: this.coverage, portals: this.portals, diameter: this.diameter});
+      coverage: this.coverage, lines: this.lines, portals: this.portals, diameter: this.diameter});
   }
 
   copy() { return PaintGeometry.restore(this.serialize()); }
@@ -282,25 +267,36 @@ export class PaintGeometry {
         span = [Math.min(...values), Math.max(...values)].map(t => add(points[0], mul(axis, t)));
       } while (changed);
       next.portals.push({layer, area, span});
+      for (const material of ["walls", "invisible"]) {
+        const [outside, removed] = splitSegments(next.lines[material], area);
+        next.lines[material] = uniqueSegments([...outside, ...jambs(removed, span)]);
+      }
     } else {
       if (!["walls", "invisible"].includes(layer)) throw new Error("Unknown brush material.");
       next.areas[layer] = union(next.areas[layer], area);
       next.coverage[layer] = union(next.coverage[layer], area);
+      next.lines[layer] = splitSegments(next.lines[layer], area)[0];
       if (replaceOther) {
         const other = layer === "walls" ? "invisible" : "walls";
         next.areas[other] = difference(next.areas[other], area);
         next.coverage[other] = union(next.coverage[other], area);
+        next.lines[other] = splitSegments(next.lines[other], area)[0];
       }
     }
     return next;
   }
 
   addRectangle(layer, first, last) {
+    return this.addLines(layer, areaSegments(rectangle(first, last)));
+  }
+
+  addLines(layer, segments) {
+    if (!["walls", "invisible"].includes(layer)) throw new Error("Unknown line material.");
+    if (!segments.every(s => s.length === 2 && s.every(p => p.length === 2 && p.every(Number.isFinite)))) {
+      throw new Error("Invalid line coordinates.");
+    }
     const next = this.copy();
-    const portals = [...next.base.doors, ...next.base.windows, ...next.portals.map(p => p.span)];
-    const cuts = union(...portals.map(span => brushArea(span, Math.max(2, next.diameter * 2), next.size, true)));
-    const additions = splitSegments(areaSegments(rectangle(first, last)), cuts)[0];
-    next.base[layer] = uniqueSegments([...next.base[layer], ...additions]);
+    next.lines[layer] = mergeCollinear([...next.lines[layer], ...segments]);
     return next;
   }
 
@@ -309,7 +305,10 @@ export class PaintGeometry {
     for (const layer of ["walls", "invisible", "doors", "windows"]) {
       if (!visible[layer]) continue;
       next.base[layer] = next.base[layer].filter(s => !touchesRectangle(s, first, last));
-      if (layer in next.areas) next.areas[layer] = difference(next.areas[layer], area);
+      if (layer in next.areas) {
+        next.areas[layer] = difference(next.areas[layer], area);
+        next.lines[layer] = next.lines[layer].filter(s => !touchesRectangle(s, first, last));
+      }
     }
     next.portals = next.portals.filter(p => !visible[p.layer] || !touchesRectangle(p.span, first, last));
     return next;
@@ -330,11 +329,17 @@ export class PaintGeometry {
       const uncovered = splitSegments(this.base[layer], this.coverage[layer])[0];
       const [outside, removed] = splitSegments(uncovered, explicit);
       const connections = portals.filter(p => !p.base).flatMap(p => jambs(splitSegments(removed, p.area)[1], p.span));
-      const boundary = areaSegments(difference(this.areas[layer], cuts));
+      // Simplify ink before cutting doorways so portal ends stay exact.
+      const tolerance = Math.max(1, Math.min(6, this.diameter * 0.08));
+      const ink = this.areas[layer].map(poly => poly.map(ring => {
+        const reduced = simplify(ring, tolerance);
+        return reduced.length >= 4 ? reduced : ring;
+      }));
+      const boundary = areaSegments(difference(ink, cuts));
       const added = [...connections, ...mergeCollinear(boundary)];
       const newPoints = [...this.portals.flatMap(p => p.span), ...added.flat()];
       result[layer] = uniqueSegments([...splitAtPoints(outside, newPoints),
-        ...splitAtPoints(added, [...outside.flat(), ...portals.flatMap(p => p.span)])]);
+        ...splitAtPoints(added, [...outside.flat(), ...portals.flatMap(p => p.span)]), ...this.lines[layer]]);
     }
     return result;
   }

@@ -81,11 +81,11 @@ test("undo preserves unrelated native documents created afterward", async () => 
   await sync.undo(); assert.deepEqual([...scene.walls].map(d => d.id), ["extra"]);
 });
 
-test("detected lights replace only prior auto lights and undo restores them", async () => {
+test("manual light edits retain existing lights and undo restores a removed legacy light", async () => {
   const native = {_id: "nativeLight", x: 10, y: 20, levels: ["ground"], config: {dim: 30}};
   const auto = {...native, _id: "autoLight", flags: {[MODULE_ID]: {origin: "detection"}}};
   const scene = new Scene([], [native, auto]), sync = new LiveSync(scene, "ground");
-  await commit(sync, {}, {lights: [native, {x: 40, y: 60, range: 4, color: "#ff9900"}], origin: "detection", replaceDetectedLights: true});
+  await commit(sync, {}, {lights: [native, {x: 40, y: 60, range: 4, color: "#ff9900"}]});
   assert.ok(scene.lights.has("nativeLight")); assert.equal(scene.lights.has("autoLight"), false);
   await sync.undo(); assert.deepEqual(read(scene).lights.sort((a, b) => a._id.localeCompare(b._id)), [auto, native]);
 });

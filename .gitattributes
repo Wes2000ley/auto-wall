@@ -1,3 +1,2 @@
 # Preserve the pinned runtime bytes across Windows and Unix checkouts.
-foundry/auto-wall-live/vendor/opencv.js -text
 foundry/auto-wall-live/vendor/polygon-clipping.js -text

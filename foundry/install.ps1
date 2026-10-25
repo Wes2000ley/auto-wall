@@ -11,6 +11,10 @@ if ((Test-Path -LiteralPath $targetRoot) -and (Get-Item -LiteralPath $targetRoot
     throw 'The module destination is a link. Choose a regular module directory.'
 }
 New-Item -ItemType Directory -Path $targetRoot -Force | Out-Null
+$recordPath = Join-Path $targetRoot 'INSTALL-MANIFEST.json'
+$previousFiles = if (Test-Path -LiteralPath $recordPath) {
+    @((Get-Content -LiteralPath $recordPath -Raw | ConvertFrom-Json).files)
+} else { @() }
 $files = Get-ChildItem -LiteralPath $sourceRoot -Recurse -File
 $manifest = @()
 foreach ($file in $files) {
@@ -26,7 +30,29 @@ foreach ($file in $files) {
     if ($sourceHash -ne $installedHash) { throw "Installed file hash mismatch: $relative" }
     $manifest += [pscustomobject]@{path=$relative.Replace('\', '/'); sha256=$installedHash; bytes=$file.Length}
 }
-$record = [ordered]@{module='auto-wall-live'; version='0.1.0'; installed_at_utc=[DateTime]::UtcNow.ToString('o'); files=$manifest}
-$record | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $targetRoot 'INSTALL-MANIFEST.json') -Encoding utf8
+# Retire only files owned by the previous installation, with unchanged bytes.
+# This removes the old detector on upgrade without touching unknown user files.
+foreach ($previous in $previousFiles) {
+    if ($previous.path.Replace('\', '/') -in $manifest.path) { continue }
+    $obsoletePath = [IO.Path]::GetFullPath((Join-Path $targetRoot $previous.path))
+    if (-not $obsoletePath.StartsWith($targetRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) {
+        throw 'An obsolete module path escaped the destination.'
+    }
+    if (-not (Test-Path -LiteralPath $obsoletePath)) { continue }
+    $obsoleteFile = Get-Item -LiteralPath $obsoletePath
+    $parent = $obsoleteFile.Directory
+    while ($parent -and $parent.FullName -ne $targetRoot) {
+        if ($parent.LinkType) { throw 'An obsolete module path contains a directory link.' }
+        $parent = $parent.Parent
+    }
+    if ($obsoleteFile.PSIsContainer -or $obsoleteFile.LinkType -or
+        (Get-FileHash -LiteralPath $obsoletePath -Algorithm SHA256).Hash -ne $previous.sha256) {
+        throw "Obsolete module file was changed locally; preserve it before updating: $($previous.path)"
+    }
+    Remove-Item -LiteralPath $obsoletePath -Force
+}
+$moduleVersion = (Get-Content -LiteralPath (Join-Path $sourceRoot 'module.json') -Raw | ConvertFrom-Json).version
+$record = [ordered]@{module='auto-wall-live'; version=$moduleVersion; installed_at_utc=[DateTime]::UtcNow.ToString('o'); files=$manifest}
+$record | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $recordPath -Encoding utf8
 Write-Output "Installed and verified $($files.Count) files at $targetRoot."
-Write-Output 'No world data or module activation settings were changed. Restart Foundry when convenient to discover the new module, then enable Auto-Wall Live in Manage Modules.'
+Write-Output 'No world data or module activation settings were changed. Reload the Foundry client to use the update. For a first installation, restart Foundry when convenient, then enable Auto-Wall Live in Manage Modules.'

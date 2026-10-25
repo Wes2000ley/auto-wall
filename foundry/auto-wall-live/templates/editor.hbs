@@ -4,12 +4,19 @@
   <div class="aw-tools" role="group" aria-label="Drawing material">
     {{#each tools}}<button type="button" data-action="tool" data-layer="{{layer}}" aria-pressed="false">{{label}}</button>{{/each}}
   </div>
-  <div class="aw-row">
-    <label><input type="checkbox" data-brush checked> Brush (B)</label>
-    <label><input type="checkbox" data-snap checked> Snap</label>
-    <label>Size <input type="number" min="2" max="2048" step="1" data-diameter aria-label="Brush diameter"></label>
+  <div class="aw-modes" role="group" aria-label="Drawing mode">
+    {{#each modes}}<button type="button" data-action="mode" data-mode="{{mode}}" aria-pressed="false">{{label}}</button>{{/each}}
   </div>
-  <p class="aw-help">Left drag paints. Brush off draws wall rectangles. Doors and windows are straight spans. Right drag pans. Middle drag erases a rectangle. Wheel resizes the brush; Ctrl+wheel zooms. Ctrl+Z undoes an edit; Esc cancels or pauses.</p>
+  <button type="button" data-action="finishLine" hidden>Finish line (Enter)</button>
+  <div class="aw-row" data-size-controls>
+    <label>Brush / door width <input type="number" min="2" max="2048" step="1" data-diameter aria-label="Brush diameter"></label>
+  </div>
+  <div class="aw-row" data-light-controls hidden>
+    <label>Color <input type="color" data-light-color aria-label="Light color"></label>
+    <label>Radius <input type="number" min="0.1" max="1000" step="0.5" data-light-range aria-label="Light radius in grid squares"></label>
+  </div>
+  <p class="aw-help">Rectangle: drag opposite corners to draw four straight edges. Paint: drag a merged outline. Line: click the start, then click each corner; Enter or Esc finishes. Moving the mouse adds no vertices.</p>
+  <p class="aw-help">Right drag or Space + left drag pans. Middle drag erases a rectangle. Wheel resizes Paint; Ctrl + wheel zooms. Ctrl + Z undoes an edit. Doors and windows use a straight opening; lights use a click.</p>
   <div class="aw-layers" role="group" aria-label="Visible and editable layers">
     <label><input type="checkbox" data-visible="walls" checked> Walls</label>
     <label><input type="checkbox" data-visible="doors" checked> Doors</label>
@@ -17,54 +24,7 @@
     <label><input type="checkbox" data-visible="windows" checked> Windows</label>
     <label><input type="checkbox" data-visible="lights" checked> Lights</label>
   </div>
-  <div class="aw-row">
-    <button type="button" data-action="undo">Undo edit</button>
-    <span class="aw-help" data-count></span>
-  </div>
-  <hr>
-  <div class="aw-row">
-    <strong>Auto detection</strong>
-    <select data-preset aria-label="Palette preset">
-      <option value="">Choose preset…</option>
-      <option value="foundry">Foundry schema · tolerant</option>
-      <option value="exact">Foundry schema · exact</option>
-      <option value="demon">Gray walls · orange doors</option>
-    </select>
-  </div>
-  <div class="aw-row">
-    <button type="button" data-action="importProfile">Import palette JSON</button>
-    <input type="file" accept=".json,application/json" data-profile hidden>
-    <label>Resolution <select data-setting="max_dimension"><option value="512">512</option><option value="1024">1024</option><option value="2048">2048</option><option value="4096">4096</option></select></label>
-  </div>
-  <div class="aw-colors">
-    {{#each colors}}
-    <label>{{label}} <input type="color" data-setting="{{key}}" aria-label="{{label}} color"></label>
-    <button type="button" data-action="sample" data-color="{{key}}" aria-label="Sample {{label}} color from map">Pick</button>
-    {{/each}}
-  </div>
-  <div class="aw-row">
-    <label>Walls <select data-setting="wall_mode"><option value="color">Selected color</option><option value="stone">Neutral stone</option><option value="edges">Edges</option></select></label>
-    <label>Geometry <select data-setting="wall_geometry"><option value="outline">Outline</option><option value="centerline">Centerline</option></select></label>
-  </div>
-  <div class="aw-row">
-    <label><input type="checkbox" data-setting="doors"> Detect doors</label>
-    <label><input type="checkbox" data-setting="lights"> Detect lights</label>
-  </div>
-  <details>
-    <summary>Detection settings</summary>
-    <label class="aw-setting">Door color match <select data-setting="door_match"><option value="hue">Hue (shaded art)</option><option value="rgb">RGB (palette)</option></select></label>
-    <label><input type="checkbox" data-setting="door_wall_support"> Require walls at both door jambs</label>
-    <label class="aw-setting">Light mode <select data-setting="light_mode"><option value="warm">Warm</option><option value="cool">Cool</option><option value="color">Selected color</option><option value="brightness">Brightness</option></select></label>
-    {{#each groups}}
-      <h4>{{title}}</h4>
-      {{#each fields}}<label class="aw-setting">{{label}} <input type="number" data-setting="{{key}}" min="{{min}}" max="{{max}}" step="{{step}}"></label>{{/each}}
-    {{/each}}
-    <p class="aw-help">Detection lengths and areas use a 2048-pixel reference edge. Neutral stone and edge modes also find decorative details; inspect the result. Invisible walls and windows are manual tools.</p>
-  </details>
-  <div class="aw-row aw-detect">
-    <button type="button" data-action="detect"><i class="fa-solid fa-wand-magic-sparkles"></i> Detect map</button>
-    <button type="button" data-action="cancelDetection" hidden>Cancel detection</button>
-  </div>
-  <p class="aw-help">Detect map saves to the current level and replaces the previous auto pass. Brush and rectangle corrections are protected. Hidden layers are excluded from rectangle erasing. Invisible walls block movement and allow sight, light, and sound.</p>
+  <div class="aw-row"><button type="button" data-action="undo">Undo edit</button><span class="aw-help" data-count></span></div>
+  <p class="aw-help">Completed edits save directly to the scene. No grid or endpoint snapping. Hidden layers are protected from erasing. Pause editing to play normally.</p>
   <p class="aw-status" role="status" aria-live="polite" data-status></p>
 </div>
