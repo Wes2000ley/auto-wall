@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Anime model comparison</title>
+<style>body{background:#171c24;color:#ecf0f8;font:15px system-ui;margin:20px}button,select{font:inherit;padding:8px}#status,#summary{white-space:pre-wrap}.row{display:flex;gap:16px;overflow:auto;margin-bottom:24px}figure{margin:0;flex:0 0 auto;max-width:640px}img{display:block;max-width:none}figcaption{padding:8px 0;max-width:640px}h2{font-size:18px}</style></head>
+<body><h1>Anime model research · candidates are not installed</h1>
+<p>Private inputs/results stay on localhost. Lossless PNG, no sharpening or smoothing, one AI pass at native scale then resize. Both 2× and 4× outputs are saved. Horizontal galleries display pixels at 1:1. No candidate is promoted automatically.</p>
+<label>Backend <select id="backend"><option value="webgpu">WebGPU (require GPU)</option><option value="wasm">CPU</option></select></label>
+<label>Display <select id="scale"><option value="2">2×</option><option value="4" selected>4×</option></select></label>
+<label>Assembly <select id="assembly"><option value="">Tiled</option><option value="-whole">Whole crop</option></select></label>
+<button id="compare">Compare private map crops</button><button id="cancel" disabled>Cancel</button><button id="review">View saved results</button>
+<p id="status">Ready</p><div id="results"></div><pre id="summary"></pre>
+<script type="module" src="./enhancer-comparison.mjs"></script></body></html>

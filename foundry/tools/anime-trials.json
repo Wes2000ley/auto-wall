@@ -1,0 +1,423 @@
+[
+  {
+    "id": "animejanai-v31", "label": "AnimeJaNai HD V3.1 Balanced", "scale": 2,
+    "page": "https://github.com/the-database/mpv-AnimeJaNai", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "animejanai-v31.onnx", "sha256": "b308e93c3dda3c4f9f968295b2b7b8d1c0583a711bca53a08d51134d9d1cbd5c",
+      "url": "https://raw.githubusercontent.com/the-database/mpv-AnimeJaNai/8e5020aea6cdbb9e577b4b2dc544135d649b7fa7/BuildMpvUpscale2xAnimeJaNai/mpv-upscale-2x_animejanai/animejanai/onnx/2x_AnimeJaNai_HD_V3.1_Balanced_SPANF3_b8f64_unshuffle_fp16.onnx"}
+  },
+  {
+    "id": "animejanai-v31-sharp1", "label": "AnimeJaNai HD V3.1 Sharp1 Balanced", "scale": 2,
+    "page": "https://github.com/the-database/mpv-AnimeJaNai", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "animejanai-v31-sharp1.onnx", "sha256": "dde763c8202cfebac5ec030ea6644f3ee339ea35bbda8a76e257405399552f0f",
+      "url": "https://raw.githubusercontent.com/the-database/mpv-AnimeJaNai/8e5020aea6cdbb9e577b4b2dc544135d649b7fa7/BuildMpvUpscale2xAnimeJaNai/mpv-upscale-2x_animejanai/animejanai/onnx/2x_AnimeJaNai_HD_V3.1Sharp1_Balanced_SPANF3_b8f64_unshuffle_fp16.onnx"}
+  },
+  {
+    "id": "ani4kv2", "label": "Ani4K V2 Compact", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/Ani4K-v2", "license": "CC-BY-NC-4.0",
+    "source": {"file": "ani4kv2.onnx", "sha256": "747163e8572650380b0b2f16f89e8c3ce2c29cd19525e9af8782d4bf1fe653c2",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/Ani4K-v2/2x_Ani4Kv2_G6i2_Compact_107500_fp32.onnx"},
+    "reference": {"file": "ani4kv2.pth", "sha256": "fe99290e9e4f95424219566dbe159184a123587622cc00bc632b1eecbd07d7a4",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/Ani4K-v2/2x_Ani4Kv2_G6i2_Compact_107500.pth"}
+  },
+  {
+    "id": "anisd", "label": "AniSD SPAN G6i1", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniSD", "license": "CC-BY-NC-4.0",
+    "source": {"file": "anisd.pth", "sha256": "424d51a7882e8de2cce420372e46e219527eb52017314473e92753bc8e75ac7c",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniSD/2x_AniSD_G6i1_SPAN_215K.pth"}
+  },
+  {
+    "id": "anitoon", "label": "AniToon RealPLKSR Small", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniToon", "license": "CC-BY-NC-4.0",
+    "source": {"file": "anitoon.pth", "sha256": "882b1b1749d7cb1f3fe3f25d60333a263517cc66d6fae79858b81cfdbd7d77a3",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniToon/2x_AniToon_RPLKSRS_242500.pth"}
+  },
+  {
+    "id": "aniscale2", "label": "AniScale 2S Compact", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniScale2", "license": "CC-BY-NC-4.0",
+    "source": {"file": "aniscale2.pth", "sha256": "916ddf99eac77008834a8aeb3dc74b64b17eee02932c18bca93cfa093106e85d",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniScale2/2x_AniScale2S_Compact_i8_60K.pth"}
+  },
+  {
+    "id": "apisr", "label": "APISR RRDB GAN", "scale": 4,
+    "page": "https://github.com/Kiteretsu77/APISR/releases/tag/v0.2.0", "license": "GPL-3.0 repository; research only",
+    "source": {"file": "apisr.pth", "sha256": "6bd14a66224c90d4754011f378ac828b18e221f2d031026ec99cb5facdf40c19",
+      "url": "https://github.com/Kiteretsu77/APISR/releases/download/v0.2.0/4x_APISR_RRDB_GAN_generator.pth"}
+  },
+  {
+    "id": "artcnn-rgb-gan", "label": "ArtCNN R16F128 RGB GAN (experimental)", "scale": 4,
+    "page": "https://github.com/Artoriuz/ArtCNN/tree/0837e5326e710f49e2ab0a8d995da0708047442e/ONNX/Experiments", "license": "MIT",
+    "source": {"file": "artcnn-rgb-gan.onnx", "sha256": "87ace7fa06266b04b0494f9c9061889c9567ebdc956199e4f3c9f609e210370a",
+      "url": "https://raw.githubusercontent.com/Artoriuz/ArtCNN/0837e5326e710f49e2ab0a8d995da0708047442e/ONNX/Experiments/ArtCNN_R16F128_RGB_GAN_4x.onnx"}
+  },
+  {
+    "id": "artcnn-rgb", "label": "ArtCNN R16F128 RGB (experimental)", "scale": 4,
+    "page": "https://github.com/Artoriuz/ArtCNN/tree/0837e5326e710f49e2ab0a8d995da0708047442e/ONNX/Experiments", "license": "MIT",
+    "source": {"file": "artcnn-rgb.onnx", "sha256": "267bfea8a2269d59340d405eefbd93e354153b1bdbe50df17a20b3812633ebb1",
+      "url": "https://raw.githubusercontent.com/Artoriuz/ArtCNN/0837e5326e710f49e2ab0a8d995da0708047442e/ONNX/Experiments/ArtCNN_R16F128_RGB_4x.onnx"}
+  },
+  {
+    "id": "animevideo-v3", "label": "Real-ESRGAN AnimeVideo V3", "scale": 4,
+    "page": "https://github.com/xinntao/Real-ESRGAN/blob/master/docs/anime_video_model.md", "license": "BSD-3-Clause",
+    "source": {"file": "animevideo-v3.pth", "sha256": "b8a8376811077954d82ca3fcf476f1ac3da3e8a68a4f4d71363008000a18b75d",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesr-animevideov3.pth"}
+  },
+  {
+    "id": "animesharp-esrgan", "label": "AnimeSharp ESRGAN (original 4x)", "scale": 4,
+    "page": "https://huggingface.co/Kim2091/AnimeSharp", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "animesharp-esrgan.pth", "sha256": "e7a7de2dafd7331c1992862bbbcd9e9712a9f9f8e6303f0aaa59b4341d359bab",
+      "url": "https://huggingface.co/Kim2091/AnimeSharp/resolve/7696d95ced82b0c1f2a41f6ac73336133f0a90e1/4x-AnimeSharp.pth"}
+  },
+  {
+    "id": "adore", "label": "Adore", "scale": 2, "minimumSize": 64, "inputMultiple": 4,
+    "page": "https://github.com/renarchi/Re-SISR/releases/tag/Adore", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "adore.onnx", "sha256": "532c1b30711c2bb7ea6ddf123fd219df87ca9816fbb8ddaaad5c1f311d5b7c44",
+      "url": "https://github.com/renarchi/Re-SISR/releases/download/Adore/2x_Adore_renarchi_fp32.onnx"}
+  },
+  {
+    "id": "fallin-soft", "label": "Fallin Soft", "scale": 2, "minimumSize": 64, "inputMultiple": 4,
+    "page": "https://github.com/renarchi/Re-SISR/releases/tag/Fallin", "license": "CC-BY-4.0",
+    "source": {"file": "fallin-soft.onnx", "sha256": "487792c65406a6851a6bd48d5cbdcee75317fdc3e241f02fe7054936b9914d15",
+      "url": "https://github.com/renarchi/Re-SISR/releases/download/Fallin/2x_Fallin_soft_renarchi_fp32.onnx"}
+  },
+  {
+    "id": "fallin-strong", "label": "Fallin Strong", "scale": 2, "minimumSize": 64, "inputMultiple": 4,
+    "page": "https://github.com/renarchi/Re-SISR/releases/tag/Fallin", "license": "CC-BY-4.0",
+    "source": {"file": "fallin-strong.onnx", "sha256": "b19c5eafb1e91c4233cb091b4a062f9eeb1c05d2df9bdedd482b40e8e034eb81",
+      "url": "https://github.com/renarchi/Re-SISR/releases/download/Fallin/2x_Fallin_strong_renarchi_fp32.onnx"}
+  },
+  {
+    "id": "alchemy", "label": "Alchemy", "scale": 4, "dynamicDysample": true,
+    "page": "https://github.com/renarchi/Re-SISR/releases/tag/4x_Alchemy", "license": "CC-BY-4.0",
+    "source": {"file": "alchemy.pth", "sha256": "8bafb02ffcbc2fa6f25523f66b9a055bff4b2a851f8bbe34a2f382703eb1c953",
+      "url": "https://github.com/renarchi/Re-SISR/releases/download/4x_Alchemy/4x_Alchemy.pth"}
+  },
+  {
+    "id": "waifu-v3-noise1", "label": "Waifu2x SwinUNet V3 · noise 1", "scale": 2,
+    "minimumSize": 64, "inputMultiple": 32, "outputOffset": 16,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-v3-noise1.onnx", "sha256": "3b8ffb1202e29fa435637e07565a8da04ae579e16aa8ab5d29bcee6a47cc9c25",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet_v3/art/noise1_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-v3-noise2", "label": "Waifu2x SwinUNet V3 · noise 2", "scale": 2,
+    "minimumSize": 64, "inputMultiple": 32, "outputOffset": 16,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-v3-noise2.onnx", "sha256": "c500ca835c836a20b94834fa025b8baec2db28e34f57f0b6eaee939b23386ceb",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet_v3/art/noise2_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-v3-noise3", "label": "Waifu2x SwinUNet V3 · noise 3", "scale": 2,
+    "minimumSize": 64, "inputMultiple": 32, "outputOffset": 16,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-v3-noise3.onnx", "sha256": "0c15d001198519dad6741a5568baada9ecfa6180ba46c00a8f6070145c5ec07a",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet_v3/art/noise3_scale2x.onnx"}
+  },
+  {
+    "id": "realcugan-noise1", "label": "Real-CUGAN · denoise 1", "scale": 2, "minimumSize": 32, "inputMultiple": 2,
+    "page": "https://github.com/bilibili/ailab/releases/tag/Real-CUGAN", "license": "MIT repository",
+    "source": {"file": "realcugan-denoise1.pth", "sha256": "2e783c39da6a6394fbc250fdd069c55eaedc43971c4f2405322f18949ce38573",
+      "member": "updated_weights/up2x-latest-denoise1x.pth",
+      "archive": {"file": "realcugan-updated_weights.zip", "sha256": "99a8ce2e4a6ce0548668879f148b3db3e143201d3df42c825a4143490396da53",
+        "url": "https://github.com/bilibili/ailab/releases/download/Real-CUGAN/updated_weights.zip"}}
+  },
+  {
+    "id": "realcugan-noise2", "label": "Real-CUGAN · denoise 2", "scale": 2, "minimumSize": 32, "inputMultiple": 2,
+    "page": "https://github.com/bilibili/ailab/releases/tag/Real-CUGAN", "license": "MIT repository",
+    "source": {"file": "realcugan-denoise2.pth", "sha256": "8188b3faef4258cf748c59360cbc8086ebedf4a63eb9d5d6637d45f819d32496",
+      "member": "updated_weights/up2x-latest-denoise2x.pth",
+      "archive": {"file": "realcugan-updated_weights.zip", "sha256": "99a8ce2e4a6ce0548668879f148b3db3e143201d3df42c825a4143490396da53",
+        "url": "https://github.com/bilibili/ailab/releases/download/Real-CUGAN/updated_weights.zip"}}
+  },
+  {
+    "id": "realcugan-noise3", "label": "Real-CUGAN · denoise 3", "scale": 2, "minimumSize": 32, "inputMultiple": 2,
+    "page": "https://github.com/bilibili/ailab/releases/tag/Real-CUGAN", "license": "MIT repository",
+    "source": {"file": "realcugan-denoise3.pth", "sha256": "0a14739f3f5fcbd74ec3ce2806d13a47916c916b20afe4a39d95f6df4ca6abd8",
+      "member": "updated_weights/up2x-latest-denoise3x.pth",
+      "archive": {"file": "realcugan-updated_weights.zip", "sha256": "99a8ce2e4a6ce0548668879f148b3db3e143201d3df42c825a4143490396da53",
+        "url": "https://github.com/bilibili/ailab/releases/download/Real-CUGAN/updated_weights.zip"}}
+  },
+  {
+    "id": "caelum-car1", "label": "Caelum PPBUNet v1.0 · CAR1", "scale": 4, "inputMultiple": 32, "minimumSize": 32,
+    "page": "https://github.com/yumenana/Caelum/releases/tag/v1.0.1", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "caelum-PPBUNet_v1.0_CAR1_x4.onnx", "sha256": "92060c175d657a9c6b91aaaf302ba550025183b214e163f3798225ac10571c04",
+      "member": "Models/PPBUNet_v1/directml/einsum-batched-matmul-v1/364acfcd7220b529310ada120b815cdac0b16c688762eb7e834ffb2cc94e6560.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}},
+    "referenceONNX": {"file": "PPBUNet_v1.0_CAR1_x4.onnx", "sha256": "364acfcd7220b529310ada120b815cdac0b16c688762eb7e834ffb2cc94e6560",
+      "member": "Models/PPBUNet_v1/PPBUNet_v1.0_CAR1_x4.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}}
+  },
+  {
+    "id": "caelum-car2", "label": "Caelum PPBUNet v1.0 · CAR2", "scale": 4, "inputMultiple": 32, "minimumSize": 32,
+    "page": "https://github.com/yumenana/Caelum/releases/tag/v1.0.1", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "caelum-PPBUNet_v1.0_CAR2_x4.onnx", "sha256": "bbd3d6cd9c2fe27bfeafedeeb5d8f9e247924b441e75ed05949caa0985e892b6",
+      "member": "Models/PPBUNet_v1/directml/einsum-batched-matmul-v1/e4742543401c2075dfad92556af0b8f11c254f2210e12a058c2b8eac6174f5de.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}},
+    "referenceONNX": {"file": "PPBUNet_v1.0_CAR2_x4.onnx", "sha256": "e4742543401c2075dfad92556af0b8f11c254f2210e12a058c2b8eac6174f5de",
+      "member": "Models/PPBUNet_v1/PPBUNet_v1.0_CAR2_x4.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}}
+  },
+  {
+    "id": "caelum-sr", "label": "Caelum PPBUNet v1.0 · SR", "scale": 4, "inputMultiple": 32, "minimumSize": 32,
+    "page": "https://github.com/yumenana/Caelum/releases/tag/v1.0.1", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "caelum-PPBUNet_v1.0_SR_x4.onnx", "sha256": "c971ec1a6781f1b6d72a190b9df24640f853e3ae0e66dbc88a111101768fd4f0",
+      "member": "Models/PPBUNet_v1/directml/einsum-batched-matmul-v1/ef9bb4fbcb94eeeed92e4fc28492d07261f730b608e81b7bedcb2a31abc0451c.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}},
+    "referenceONNX": {"file": "PPBUNet_v1.0_SR_x4.onnx", "sha256": "ef9bb4fbcb94eeeed92e4fc28492d07261f730b608e81b7bedcb2a31abc0451c",
+      "member": "Models/PPBUNet_v1/PPBUNet_v1.0_SR_x4.onnx",
+      "archive": {"file": "caelum-v1.0.1.zip", "sha256": "bb46bd9892a489f53a3f43eef3c746216b5f86b1d43490766175cd30a9c0a114",
+        "url": "https://github.com/yumenana/Caelum/releases/download/v1.0.1/Caelum_v1.0.1.with.model.zip"}}
+  },
+  {
+    "id": "waifu-scan-noise2", "label": "Waifu2x SwinUNet Art Scan - noise 2", "scale": 2,
+    "minimumSize": 64, "inputMultiple": 48, "inputRemainder": 16, "outputOffset": 16,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-swin-art_scan-noise2-2x.onnx", "sha256": "e24ea77f48a45605b21dde4ba6ce41341315f41dbf33a66868217cb219907d3c",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet/art_scan/noise2_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-scan-noise3", "label": "Waifu2x SwinUNet Art Scan - noise 3", "scale": 2,
+    "minimumSize": 64, "inputMultiple": 48, "inputRemainder": 16, "outputOffset": 16,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-swin-art_scan-noise3-2x.onnx", "sha256": "c36b5c7d4e66e4fbf52956489b944d4dbadbce9e18c0e8e30153e36e62c87b23",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet/art_scan/noise3_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-swin-noise3-4x", "label": "Waifu2x SwinUNet Art - noise 3 (4x)", "scale": 4,
+    "minimumSize": 64, "inputMultiple": 48, "inputRemainder": 16, "outputOffset": 32,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-swin-art-noise3-4x.onnx", "sha256": "ec057c6afeaf71c210732448e388911ccd098e8d74ab317254bf93ab48357350",
+      "url": "https://unlimited.waifu2x.net/models/swin_unet/art/noise3_scale4x.onnx"}
+  },
+  {
+    "id": "realcugan-noise3-4x", "label": "Real-CUGAN - denoise 3 (4x)", "scale": 4, "minimumSize": 32, "inputMultiple": 2,
+    "page": "https://github.com/bilibili/ailab/releases/tag/Real-CUGAN", "license": "MIT repository",
+    "source": {"file": "realcugan-4x-denoise3.pth", "sha256": "42bd8fcdae37c12c5b25ed59625266bfa65780071a8d38192d83756cb85e98dd",
+      "member": "updated_weights/up4x-latest-denoise3x.pth",
+      "archive": {"file": "realcugan-updated_weights.zip", "sha256": "99a8ce2e4a6ce0548668879f148b3db3e143201d3df42c825a4143490396da53",
+        "url": "https://github.com/bilibili/ailab/releases/download/Real-CUGAN/updated_weights.zip"}}
+  },
+  {
+    "id": "hfa2k-4x", "label": "HFA2k RRDB", "scale": 4,
+    "page": "https://github.com/Phhofm/models/tree/43a9792f0b7fda901216fbcceb925af9885eafbd/4xHFA2k", "license": "CC-BY-4.0",
+    "source": {"file": "hfa2k-4x.pth", "sha256": "35dfd9f6e9d2d264f0e79c6a054798a5e71b1c752bd8b668786c01ebd62fe2b0",
+      "url": "https://raw.githubusercontent.com/Phhofm/models/43a9792f0b7fda901216fbcceb925af9885eafbd/4xHFA2k/4xHFA2k.pth"}
+  },
+  {
+    "id": "hfa2k-ludvae-swinir", "label": "HFA2k LUDVAE SwinIR Light", "scale": 4, "inputMultiple": 8, "minimumSize": 64, "exportSize": 96, "dynamicSwinMask": true,
+    "page": "https://github.com/Phhofm/models/tree/43a9792f0b7fda901216fbcceb925af9885eafbd/4xHFA2kLUDVAESwinIR_light", "license": "CC-BY-4.0",
+    "source": {"file": "hfa2k-ludvae-swinir.pth", "sha256": "6563dd659ef2bf15cd594de243d4eee6cb41e66c43ab3df58c5be8fd2e3b5735",
+      "url": "https://raw.githubusercontent.com/Phhofm/models/43a9792f0b7fda901216fbcceb925af9885eafbd/4xHFA2kLUDVAESwinIR_light/4xHFA2kLUDVAESwinIR_light.pth"}
+  },
+  {
+    "id": "animesharp-v3", "label": "AnimeSharp V3 ESRGAN", "scale": 2, "inputMultiple": 4, "minimumSize": 4,
+    "page": "https://huggingface.co/Kim2091/AnimeSharpV3/tree/f22f9185d715491586ace0eb2a3acd7b4f49a6d6", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "animesharp-v3.pth", "sha256": "d5722d738002c1353ce4bbc3fb44fe2ecf01606c713cdb5853f772b08af84f53",
+      "url": "https://huggingface.co/Kim2091/AnimeSharpV3/resolve/f22f9185d715491586ace0eb2a3acd7b4f49a6d6/2x-AnimeSharpV3.pth"}
+  },
+  {
+    "id": "scunet-psnr", "label": "SCUNet real PSNR (denoise only)", "scale": 1, "inputMultiple": 64, "minimumSize": 64,
+    "page": "https://github.com/cszn/SCUNet", "license": "Apache-2.0",
+    "source": {"file": "scunet_color_real_psnr.pth", "sha256": "fa78899ba2caec9d235a900e91d96c689da71c42029230c2028b00f09f809c2e",
+      "url": "https://github.com/cszn/KAIR/releases/download/v1.0/scunet_color_real_psnr.pth"}
+  },
+  {
+    "id": "scunet-gan", "label": "SCUNet real GAN (denoise only)", "scale": 1, "inputMultiple": 64, "minimumSize": 64,
+    "page": "https://github.com/cszn/SCUNet", "license": "Apache-2.0",
+    "source": {"file": "scunet_color_real_gan.pth", "sha256": "892c83f812c59173273b74f4f34a14ecaf57a2fdb68df056664589beb55c966e",
+      "url": "https://github.com/cszn/KAIR/releases/download/v1.0/scunet_color_real_gan.pth"}
+  },
+  {
+    "id": "illustration-v3-denoise-2x-fdat", "label": "IllustrationJaNai V3 Denoise FDAT M (2x)", "scale": 2, "minimumSize": 16, "inputMultiple": 16,
+    "page": "https://github.com/the-database/MangaJaNai/releases/tag/3.0.0", "license": "CC-BY-NC-4.0",
+    "source": {"file": "2x_IllustrationJaNai_V3denoise_FDAT_M_unshuffle_30k_fp16.safetensors", "sha256": "960c9555f62fb19113e8d808bde5a54b64181b1db417bca1bbda26516e48f108",
+      "member": "2x_IllustrationJaNai_V3denoise_FDAT_M_unshuffle_30k_fp16.safetensors",
+      "archive": {"file": "IllustrationJaNai_V3denoise.zip", "sha256": "6c26828ad8e142c9e9c7181451257f3f56a0f5c7f897d9c7878ce898404f53e5",
+        "url": "https://github.com/the-database/MangaJaNai/releases/download/3.0.0/IllustrationJaNai_V3denoise.zip"}}
+  },
+  {
+    "id": "illustration-v3-denoise-2x-span", "label": "IllustrationJaNai V3 Denoise SPAN S (2x)", "scale": 2,
+    "page": "https://github.com/the-database/MangaJaNai/releases/tag/3.0.0", "license": "CC-BY-NC-4.0",
+    "source": {"file": "2x_IllustrationJaNai_V3denoise_SPAN_S_30k_fp16.safetensors", "sha256": "d709bfb8f7cefcd0bc0d2dce485208dcda165b2559eacec66296b53d486f0951",
+      "member": "2x_IllustrationJaNai_V3denoise_SPAN_S_30k_fp16.safetensors",
+      "archive": {"file": "IllustrationJaNai_V3denoise.zip", "sha256": "6c26828ad8e142c9e9c7181451257f3f56a0f5c7f897d9c7878ce898404f53e5",
+        "url": "https://github.com/the-database/MangaJaNai/releases/download/3.0.0/IllustrationJaNai_V3denoise.zip"}}
+  },
+  {
+    "id": "illustration-v3-denoise-4x-dat2", "label": "IllustrationJaNai V3 Denoise DAT2 (4x)", "scale": 4, "minimumSize": 16,
+    "page": "https://github.com/the-database/MangaJaNai/releases/tag/3.0.0", "license": "CC-BY-NC-4.0",
+    "source": {"file": "4x_IllustrationJaNai_V3denoise_DAT2_27k_bf16.safetensors", "sha256": "430d5e58053be88d250b6ee2c1016a19f919baafb9b6bda0f45c14b54453fb12",
+      "member": "4x_IllustrationJaNai_V3denoise_DAT2_27k_bf16.safetensors",
+      "archive": {"file": "IllustrationJaNai_V3denoise.zip", "sha256": "6c26828ad8e142c9e9c7181451257f3f56a0f5c7f897d9c7878ce898404f53e5",
+        "url": "https://github.com/the-database/MangaJaNai/releases/download/3.0.0/IllustrationJaNai_V3denoise.zip"}}
+  },
+  {
+    "id": "illustration-v3-denoise-4x-fdat-m", "label": "IllustrationJaNai V3 Denoise FDAT M (4x)", "scale": 4, "minimumSize": 8, "inputMultiple": 8,
+    "page": "https://github.com/the-database/MangaJaNai/releases/tag/3.0.0", "license": "CC-BY-NC-4.0",
+    "source": {"file": "4x_IllustrationJaNai_V3denoise_FDAT_M_47k_fp16.safetensors", "sha256": "a15dfc813b1f1138ca3da06c6cbf530dd1acbff0ba0d4eb97b5c021f3facbf6c",
+      "member": "4x_IllustrationJaNai_V3denoise_FDAT_M_47k_fp16.safetensors",
+      "archive": {"file": "IllustrationJaNai_V3denoise.zip", "sha256": "6c26828ad8e142c9e9c7181451257f3f56a0f5c7f897d9c7878ce898404f53e5",
+        "url": "https://github.com/the-database/MangaJaNai/releases/download/3.0.0/IllustrationJaNai_V3denoise.zip"}}
+  },
+  {
+    "id": "illustration-v3-denoise-4x-fdat-xl", "label": "IllustrationJaNai V3 Denoise FDAT XL (4x)", "scale": 4, "minimumSize": 8, "inputMultiple": 8,
+    "page": "https://github.com/the-database/MangaJaNai/releases/tag/3.0.0", "license": "CC-BY-NC-4.0",
+    "source": {"file": "4x_IllustrationJaNai_V3denoise_FDAT_XL_32k_bf16.safetensors", "sha256": "3099fd76f427ee29513aa91dda02b9c1a54e0f7fdd08b653175655de798562f7",
+      "member": "4x_IllustrationJaNai_V3denoise_FDAT_XL_32k_bf16.safetensors",
+      "archive": {"file": "IllustrationJaNai_V3denoise.zip", "sha256": "6c26828ad8e142c9e9c7181451257f3f56a0f5c7f897d9c7878ce898404f53e5",
+        "url": "https://github.com/the-database/MangaJaNai/releases/download/3.0.0/IllustrationJaNai_V3denoise.zip"}}
+  },
+  {
+    "id": "animejanai-sd-strong", "label": "AnimeJaNai SD V1 beta34 Strong", "scale": 2,
+    "page": "https://github.com/the-database/mpv-AnimeJaNai", "license": "CC-BY-NC-SA-4.0",
+    "source": {"file": "animejanai-sd-strong.onnx", "sha256": "ded46591ddfaeb22b3daaf84ad7b36838335aa3efca66acfa36177ce4ab21eb5",
+      "url": "https://raw.githubusercontent.com/the-database/mpv-AnimeJaNai/8e5020aea6cdbb9e577b4b2dc544135d649b7fa7/BuildMpvUpscale2xAnimeJaNai/mpv-upscale-2x_animejanai/animejanai/onnx/2x_AnimeJaNai_SD_V1beta34_Compact_1x3xHxW_dyn-HW_strong_fp16_op21_dynamo.onnx"}
+  },
+  {
+    "id": "waifu-cunet-noise2", "label": "Waifu2x CUNet - noise 2", "scale": 2, "minimumSize": 64, "inputMultiple": 4, "outputOffset": 36,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-cunet-noise2-2x.onnx", "sha256": "b2e853c10201dd707ebcc4b7aa078523f3ffb7a3b736bd14d8f2cf3fa3eb3909",
+      "url": "https://unlimited.waifu2x.net/models/cunet/art/noise2_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-cunet-noise3", "label": "Waifu2x CUNet - noise 3", "scale": 2, "minimumSize": 64, "inputMultiple": 4, "outputOffset": 36,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-cunet-noise3-2x.onnx", "sha256": "0c6b38f6ef5d7ba1278241576ea80e3f717683cf5da57fbac1f3f09b9b6cd1cf",
+      "url": "https://unlimited.waifu2x.net/models/cunet/art/noise3_scale2x.onnx"}
+  },
+  {
+    "id": "waifu-cunet-noise3-1x", "label": "Waifu2x CUNet - denoise 3 only", "scale": 1, "minimumSize": 64, "inputMultiple": 4, "outputOffset": 28,
+    "page": "https://github.com/nagadomi/nunif/tree/0d3d92c8f4396da564c44524b6390ee5c76b9668/waifu2x", "license": "MIT repository",
+    "source": {"file": "waifu-cunet-noise3-1x.onnx", "sha256": "c27bf12fb6f86df0caf754c85de692da2ed2a79b68ff170b49e086bbdeda8846",
+      "url": "https://unlimited.waifu2x.net/models/cunet/art/noise3.onnx"}
+  },
+  {
+    "id": "realcugan-pro-denoise3-2x", "label": "Real-CUGAN Pro - denoise 3 (2x)", "scale": 2, "minimumSize": 32, "inputMultiple": 2,
+    "page": "https://github.com/bilibili/ailab/blob/main/Real-CUGAN/Changelog_CN.md", "license": "MIT repository",
+    "source": {"file": "pro-denoise3x-up2x.pth", "sha256": "e80ca8fc7c261e3dc8f4c0ce0656ac5501d71a476543071615c43392dbeb4c0d",
+      "member": "updated20220535/weights_pro/pro-denoise3x-up2x.pth",
+      "archive": {"file": "realcugan-pro-20220535.zip", "sha256": "4076f6cf0caa64e6b9fab76a30cb2b46c913d9e0e531e693121e228aec2e6ec1",
+        "url": "https://drive.usercontent.google.com/download?id=1dosekutNcdsCwB5cfqZ2f_SPUqvb7jId&export=download&confirm=t"}}
+  },
+  {
+    "id": "realcugan-pro-denoise3-3x", "label": "Real-CUGAN Pro - denoise 3 (3x)", "scale": 3, "minimumSize": 32, "inputMultiple": 4,
+    "page": "https://github.com/bilibili/ailab/blob/main/Real-CUGAN/Changelog_CN.md", "license": "MIT repository",
+    "source": {"file": "pro-denoise3x-up3x.pth", "sha256": "4ddd14e2430db0d75d186c6dda934db34929c50da8a88a0c6f4accb871fe4b70",
+      "member": "updated20220535/weights_pro/pro-denoise3x-up3x.pth",
+      "archive": {"file": "realcugan-pro-20220535.zip", "sha256": "4076f6cf0caa64e6b9fab76a30cb2b46c913d9e0e531e693121e228aec2e6ec1",
+        "url": "https://drive.usercontent.google.com/download?id=1dosekutNcdsCwB5cfqZ2f_SPUqvb7jId&export=download&confirm=t"}}
+  },
+  {
+    "id": "realcugan-pro-conservative-2x", "label": "Real-CUGAN Pro - conservative (2x)", "scale": 2, "minimumSize": 32, "inputMultiple": 2,
+    "notes": "Fails the strict native numerical gate on random high-frequency probes: the original checkpoint produces very large values. Natural-map outputs were checked separately; this is not a promotion candidate.",
+    "page": "https://github.com/bilibili/ailab/blob/main/Real-CUGAN/Changelog_CN.md", "license": "MIT repository",
+    "source": {"file": "pro-conservative-up2x.pth", "sha256": "b8ae5225d2d515aa3c33ef1318aadc532a42ea5ed8d564471b5a5b586783e964",
+      "member": "updated20220535/weights_pro/pro-conservative-up2x.pth",
+      "archive": {"file": "realcugan-pro-20220535.zip", "sha256": "4076f6cf0caa64e6b9fab76a30cb2b46c913d9e0e531e693121e228aec2e6ec1",
+        "url": "https://drive.usercontent.google.com/download?id=1dosekutNcdsCwB5cfqZ2f_SPUqvb7jId&export=download&confirm=t"}}
+  },
+  {
+    "id": "animevideo-v2-2x", "label": "RealESRGAN V2 AnimeVideo XS (2x)", "scale": 2,
+    "page": "https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0", "license": "BSD-3-Clause",
+    "source": {"file": "RealESRGANv2-animevideo-xsx2.pth", "sha256": "27985aa2198711ecd72f9bb274ec7b164e018fc9ce2933daaa7c7ab36a2bd3fe",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.3.0/RealESRGANv2-animevideo-xsx2.pth"}
+  },
+  {
+    "id": "animevideo-v2-4x", "label": "RealESRGAN V2 AnimeVideo XS (4x)", "scale": 4,
+    "page": "https://github.com/xinntao/Real-ESRGAN/releases/tag/v0.2.3.0", "license": "BSD-3-Clause",
+    "source": {"file": "RealESRGANv2-animevideo-xsx4.pth", "sha256": "5e04b111c16d5b40deb8f8062d09fdff72fa80281fb9607be23b62650c08daff",
+      "url": "https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.3.0/RealESRGANv2-animevideo-xsx4.pth"}
+  },
+  {
+    "id": "bigoldies", "label": "BIGOLDIES Anime Restoration", "scale": 2,
+    "page": "https://openmodeldb.info/models/2x-BIGOLDIES", "license": "CC-BY-NC-SA-4.0 (OpenModelDB metadata)",
+    "source": {"file": "bigoldies.pth", "sha256": "a7bc580a3c4abb2b04a2cc8b47679de207741f79cebc952eedc03b27e2f27cef",
+      "url": "https://objectstorage.us-phoenix-1.oraclecloud.com/n/ax6ygfvpvzka/b/open-modeldb-files/o/2x-BIGOLDIES.pth"}
+  },
+  {
+    "id": "waifaux-nl3", "label": "Waifaux NL3 SuperLite", "scale": 2,
+    "page": "https://openmodeldb.info/models/2x-Waifaux-NL3-SuperLite", "license": "CC-BY-NC-SA-4.0 (OpenModelDB metadata)",
+    "source": {"file": "waifaux-nl3.pth", "sha256": "b0b62d44d1f18f34d2eba4dfbbf0913fb528e49514166b8e9d147de09ffed49e",
+      "url": "https://objectstorage.us-phoenix-1.oraclecloud.com/n/ax6ygfvpvzka/b/open-modeldb-files/o/2x-Waifaux-NL3-SuperLite.pth"}
+  },
+  {
+    "id": "ld-anime-skr", "label": "LD-Anime Skr Restoration", "scale": 2,
+    "page": "https://openmodeldb.info/models/2x-LD-Anime-Skr-v1-0", "license": "CC-BY-NC-SA-4.0 (OpenModelDB metadata)",
+    "source": {"file": "ld-anime-skr.pth", "sha256": "f93891555a37e5809bbf701fcae0f1c39464baa9630e03ba6d223151ca13ba74",
+      "url": "https://drive.usercontent.google.com/download?id=18iWj4eWiMfUd2WyLCEzMlZK1JVT7L8nT&export=download&confirm=t"}
+  },
+  {
+    "id": "yandere-neo-xl", "label": "NMKD YandereNeo XL", "scale": 4,
+    "page": "https://openmodeldb.info/models/4x-NMKD-YandereNeo-XL", "license": "WTFPL (OpenModelDB metadata)",
+    "source": {"file": "yandere-neo-xl.pth", "sha256": "ddcb5856b948654b6298fd50ed90a461eff8442d298779c23724a8c0e7bbbab1",
+      "url": "https://huggingface.co/ABDALLALSWAITI/Upscalers/resolve/c80fa53d1bde60b7ddcf1b09b79d901b8e4526fa/anime/4x_NMKD-YandereNeoXL_200k.pth"}
+  },
+  {
+    "id": "ultra-yandere", "label": "NMKD UltraYandere", "scale": 4,
+    "page": "https://openmodeldb.info/models/4x-NMKD-UltraYandere", "license": "WTFPL (OpenModelDB metadata)",
+    "source": {"file": "ultra-yandere.pth", "sha256": "717ec8b63ae676b3b6ca6bcc0c7446b75c68a356fde404c725ee4dc8d40e37b2",
+      "url": "https://huggingface.co/ABDALLALSWAITI/Upscalers/resolve/c80fa53d1bde60b7ddcf1b09b79d901b8e4526fa/anime/4x_NMKD-UltraYandere_300k.pth"}
+  },
+  {
+    "id": "waifugan-v3", "label": "WaifuGAN V3", "scale": 4,
+    "page": "https://openmodeldb.info/models/4x-WaifuGAN-v3", "license": "CC-BY-NC-4.0 (OpenModelDB metadata)",
+    "source": {"file": "waifugan-v3.pth", "sha256": "f2d8c985b59ff33cf1d70bdae489f748b687fff6124310da5c1bfbb8f8913486",
+      "url": "https://huggingface.co/ABDALLALSWAITI/Upscalers/resolve/c80fa53d1bde60b7ddcf1b09b79d901b8e4526fa/anime/WaifuGAN_v3_30000.pth"}
+  },
+  {
+    "id": "anisd-ac-span", "label": "AniSD AC SPAN", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniSD", "license": "CC-BY-NC-4.0",
+    "source": {"file": "2x_AniSD_AC_G6i2b_SPAN_190K.pth", "sha256": "8d4223495eb8c87d31c24a030370432d612708e4cac11e833a48563a71fa7f36",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniSD/2x_AniSD_AC_G6i2b_SPAN_190K.pth"}
+  },
+  {
+    "id": "anisd-ac-rplksr", "label": "AniSD AC RealPLKSR", "scale": 2,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniSD-RealPLKSR", "license": "CC-BY-NC-4.0",
+    "source": {"file": "2x_AniSD_AC_RealPLKSR_127500.pth", "sha256": "57f468ecd7cfb18f9b9a2454cd79bade6d722aa7ff0186cfc5579451043640a6",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniSD-RealPLKSR/2x_AniSD_AC_RealPLKSR_127500.pth"}
+  },
+  {
+    "id": "anisd-dc-dat2", "label": "AniSD DC DAT2", "scale": 2, "minimumSize": 16,
+    "page": "https://github.com/Sirosky/Upscale-Hub/releases/tag/AniSD", "license": "CC-BY-NC-4.0",
+    "source": {"file": "2x_AniSD_DC_DAT2_97500.pth", "sha256": "f08c16cff3c32dfbbdff2bfad60a552e3232de7afb1026a4186d0a0d0d954b87",
+      "url": "https://github.com/Sirosky/Upscale-Hub/releases/download/AniSD/2x_AniSD_DC_DAT2_97500.pth"}
+  },
+  {
+    "id": "uniscale-cartoon-restore", "label": "UniScale CartoonRestore Lite", "scale": 2,
+    "page": "https://openmodeldb.info/models/2x-UniScale-CartoonRestore-lite", "license": "CC-BY-NC-SA-4.0 (OpenModelDB metadata)",
+    "source": {"file": "uniscale-cartoon-restore.pth", "sha256": "3533d7e303b78bfe15e416a0bc3f42697edd3c20f995dc9333b093214f196768",
+      "url": "https://objectstorage.us-phoenix-1.oraclecloud.com/n/ax6ygfvpvzka/b/open-modeldb-files/o/2x-UniScale-CartoonRestore-lite.pth"}
+  },
+  {
+    "id": "ditherdeleter-v3", "label": "DitherDeleter V3 Smooth (1x cleanup)", "scale": 1,
+    "page": "https://openmodeldb.info/models/1x-DitherDeleterV3-Smooth", "license": "WTFPL (OpenModelDB metadata)",
+    "source": {"file": "ditherdeleter-v3.pth", "sha256": "1e98cb5427d16baeb83033c574d1ca4d8dadf05dd043b32c3ba98f75e30f6205",
+      "url": "https://drive.usercontent.google.com/download?id=1C6RTSFkBnidfBxBI6HjasgUEIgAzG3l3&export=download&confirm=t"}
+  },
+  {
+    "id": "cyte-v1", "label": "Cyte V1 SuperUltraCompact", "scale": 2,
+    "page": "https://github.com/NevermindNilas/Ai-models/tree/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Cyte-V1-SuperUltraCompact", "license": "CC-BY-NC-4.0; additional TAS-specific grant in author license",
+    "source": {"file": "nilas-Cyte-V1-SuperUltraCompact-Cyte-V1_2x_fp32_op17_slim.onnx", "sha256": "4dbe59c45a8c3a5f7dbe28fd271a937bbb354a4cc8800c5024ef51c363a21b95",
+      "url": "https://raw.githubusercontent.com/NevermindNilas/Ai-models/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Cyte-V1-SuperUltraCompact/Cyte-V1_2x_fp32_op17_slim.onnx"},
+    "reference": {"file": "nilas-Cyte-V1-SuperUltraCompact-2x-Cyte-V1-SuperUltraCompact.pth", "sha256": "d4eea1e072f74f42e864d8a76e10a3df48b5f996f4f9db0a613799455a1d86f8",
+      "url": "https://raw.githubusercontent.com/NevermindNilas/Ai-models/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Cyte-V1-SuperUltraCompact/2x-Cyte-V1-SuperUltraCompact.pth"}
+  },
+  {
+    "id": "saryn-v1-lite", "label": "Saryn V1 Lite", "scale": 2, "inputMultiple": 2,
+    "page": "https://github.com/NevermindNilas/Ai-models/tree/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Saryn-V1-Lite", "license": "CC-BY-NC-4.0",
+    "notes": "Author PyTorch checkpoint retained privately, but its architecture is unsupported by Spandrel 0.4.2. Native comparison uses the original author ONNX graph, a weaker reference.",
+    "source": {"file": "nilas-Saryn-V1-Lite-Saryn-V1-Lite-FP32.onnx", "sha256": "b7ffa1126060f964d4e6fc4e5d6808c6a392163cb63a1b890ffc86b288feaf90",
+      "url": "https://raw.githubusercontent.com/NevermindNilas/Ai-models/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Saryn-V1-Lite/Saryn-V1-Lite-FP32.onnx"}
+  },
+  {
+    "id": "gauss-v1", "label": "Gauss V1", "scale": 2, "inputMultiple": 2,
+    "page": "https://github.com/NevermindNilas/Ai-models/tree/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Gauss-V1", "license": "CC-BY-NC-4.0 (trained weights); Apache-2.0 architecture",
+    "notes": "Author safetensors checkpoint retained privately, but its architecture is unsupported by Spandrel 0.4.2. Native comparison uses the original author ONNX graph, a weaker reference.",
+    "source": {"file": "nilas-Gauss-V1-Gauss_fp32.onnx", "sha256": "09b3751119df7bd421a78d12177050bb92f7acc20c27029152b27453d6ab2c5d",
+      "url": "https://raw.githubusercontent.com/NevermindNilas/Ai-models/057fcffc2323fa5bd063f4d4b26f2ff1a1b984fd/Gauss-V1/Gauss_fp32.onnx"}
+  }
+]

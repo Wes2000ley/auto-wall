@@ -1,0 +1,1553 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-10-26",
+  "status": "Research checkpoint. No candidate promoted. Search remains open.",
+  "qualityTarget": "Clean enlargement with source details retained; no added texture or invented structure. Visual screening is subjective, not a ground-truth quality metric.",
+  "environment": {
+    "os": "Windows",
+    "gpu": "NVIDIA GeForce RTX 3080",
+    "browser": "Chrome 156",
+    "python": "3.13.1",
+    "torch": "2.11.0+cu128",
+    "nativeRuntime": "onnxruntime 1.25.1 CPUExecutionProvider",
+    "browserRuntime": "onnxruntime-web@1.30.0",
+    "spandrel": "0.4.2"
+  },
+  "baseline": {
+    "id": "digital-art-4x",
+    "description": "Upscayl 2.15.0 digital-art-4x / RealESRGAN_x4plus_anime_6B",
+    "sha256": "d45e88d316144da13c13eff845d02e5fa3f47662f9cf8db0f4dbde51189e7034",
+    "repeatedBatchMeasurements": [
+      {
+        "batch": "comparison-inputs",
+        "medianWarmCropMs": 186.1,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-clean",
+        "medianWarmCropMs": 185.3,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-restoration",
+        "medianWarmCropMs": 188,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-detail-final",
+        "medianWarmCropMs": 213.7,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-illustration",
+        "medianWarmCropMs": 182.8,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-cunet-pro",
+        "medianWarmCropMs": 182.5,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-anime-restoration-classics",
+        "medianWarmCropMs": 183.6,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-anisd-cleanup",
+        "medianWarmCropMs": 185.7,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-restoration-targeted",
+        "medianWarmCropMs": 205.5,
+        "maxWholeVersusTiledRGBError": 3
+      },
+      {
+        "batch": "comparison-nilas-anime",
+        "medianWarmCropMs": 186.1,
+        "maxWholeVersusTiledRGBError": 3
+      }
+    ]
+  },
+  "method": {
+    "region": [
+      160,
+      128
+    ],
+    "sourceContextPixelsPerSide": 48,
+    "gpuTileCore": 128,
+    "nativeMaxAbsoluteErrorTolerance": 0.001,
+    "browserReferenceMaxRGBError": 3,
+    "browserReferenceMeanRGBError": 0.5,
+    "displayScales": [
+      2,
+      4
+    ],
+    "output": "Lossless PNG, no post-sharpening or smoothing; one native-scale model pass then browser high-quality resize. 1x models are denoisers followed by resize.",
+    "timing": "Median of one warmed crop measurement per map, including pixel assembly/readback; excludes session creation, reference test, whole-crop pass, encoding and save. Not a full-map or controlled cross-device benchmark.",
+    "wholeVersusTiled": "Difference across the entire native-scale crop, not only a seam and not a perceptual score.",
+    "outputDigest": "SHA256 of sorted-in-map-order lines: filename + space + PNG SHA256 + newline; 2x then 4x, tiled then whole when saved.",
+    "limits": "Five small crops from a related art-style corpus; no high-resolution ground truth. Native correctness and browser compatibility do not establish image quality. Earlier browser runs predate in-worker model hash verification; their exact saved graphs were separately validated natively."
+  },
+  "inputs": [
+    {
+      "id": "emberroot-burrow",
+      "name": "Emberroot Burrow",
+      "sourceSHA256": "6d9d9d1cf7dc18c0c73d5b40f645bf1c7ad6b0630a7c40c81d291c6d4f156781",
+      "sourceCrop": [
+        1120,
+        480,
+        160,
+        128
+      ],
+      "region": {
+        "x": 48,
+        "y": 48,
+        "width": 160,
+        "height": 128
+      }
+    },
+    {
+      "id": "frostwake-beacon",
+      "name": "Frostwake Beacon",
+      "sourceSHA256": "37d49cee08e5f1deedcbfdcb37e8f19a52d86290f99ac73a548a747204acc155",
+      "sourceCrop": [
+        690,
+        290,
+        160,
+        128
+      ],
+      "region": {
+        "x": 48,
+        "y": 48,
+        "width": 160,
+        "height": 128
+      }
+    },
+    {
+      "id": "ashenwatch-hold",
+      "name": "Ashenwatch Hold",
+      "sourceSHA256": "e8d0886542a6d633d2627c112e080693fafdf73d07de986761c20fb720548741",
+      "sourceCrop": [
+        1160,
+        280,
+        160,
+        128
+      ],
+      "region": {
+        "x": 48,
+        "y": 48,
+        "width": 160,
+        "height": 128
+      }
+    },
+    {
+      "id": "coppercap-warren",
+      "name": "Coppercap Warren",
+      "sourceSHA256": "c198d040c5450d5e3e8a912b51db765f1390446c40fe8471bd68381b6f95e171",
+      "sourceCrop": [
+        430,
+        430,
+        160,
+        128
+      ],
+      "region": {
+        "x": 48,
+        "y": 48,
+        "width": 160,
+        "height": 128
+      }
+    },
+    {
+      "id": "blackbriar-kilns",
+      "name": "Blackbriar Kilns",
+      "sourceSHA256": "a5d370840ef22eed6a2a53be8a45ebfc98c345e82edd0ddd582aceadf7530e31",
+      "sourceCrop": [
+        1050,
+        620,
+        160,
+        128
+      ],
+      "region": {
+        "x": 48,
+        "y": 48,
+        "width": 160,
+        "height": 128
+      }
+    }
+  ],
+  "counts": {
+    "catalogModels": 61,
+    "nativePassed": 60,
+    "nativeFailed": 1,
+    "candidateMapComparisons": 300,
+    "baselineMapComparisons": 50,
+    "candidatePNGsVerified": 1090
+  },
+  "batches": [
+    {
+      "id": "comparison-inputs",
+      "successfulMapComparisons": 60,
+      "failures": [],
+      "wholeCropPNGsSaved": false,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-clean",
+      "successfulMapComparisons": 25,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-restoration",
+      "successfulMapComparisons": 50,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-detail-final",
+      "successfulMapComparisons": 50,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-illustration",
+      "successfulMapComparisons": 30,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-cunet-pro",
+      "successfulMapComparisons": 35,
+      "failures": [
+        {
+          "model": "realcugan-pro-conservative-2x",
+          "phase": "preparation",
+          "error": "ValueError: Prepared/reference mismatch on 32 x 32: 7.03125"
+        }
+      ],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-anime-restoration-classics",
+      "successfulMapComparisons": 45,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": false,
+      "createdAt": null
+    },
+    {
+      "id": "comparison-anisd-cleanup",
+      "successfulMapComparisons": 20,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": true,
+      "createdAt": "2026-10-26T06:28:47.483Z"
+    },
+    {
+      "id": "comparison-restoration-targeted",
+      "successfulMapComparisons": 15,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": true,
+      "createdAt": "2026-10-26T15:11:30.572Z"
+    },
+    {
+      "id": "comparison-nilas-anime",
+      "successfulMapComparisons": 20,
+      "failures": [],
+      "wholeCropPNGsSaved": true,
+      "browserVerifiedModelHashes": true,
+      "createdAt": "2026-10-26T15:21:19.525Z"
+    }
+  ],
+  "models": [
+    {
+      "id": "animejanai-v31",
+      "preparedSHA256": "add16bb1b15b28daf4d56e8fe5d8ed8c4063803f2ea79b14dba8f3e1c9d34e19",
+      "preparedBytes": 3905473,
+      "sourceSHA256": "b308e93c3dda3c4f9f968295b2b7b8d1c0583a711bca53a08d51134d9d1cbd5c",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0.000244140625,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 21.3,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "1784fb5bdb7356a8f98a13a3c648f1bae47d016445273ec9db523a91749f49fb"
+    },
+    {
+      "id": "animejanai-v31-sharp1",
+      "preparedSHA256": "0415323a1382cfb95d9ffb43cd215449fb212a262096b226487f4665072f537e",
+      "preparedBytes": 3905473,
+      "sourceSHA256": "dde763c8202cfebac5ec030ea6644f3ee339ea35bbda8a76e257405399552f0f",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0.000244140625,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 28.4,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "03ad058efa90568b234be4cd47633548bf7f21feb600781512623c1355de8caa"
+    },
+    {
+      "id": "ani4kv2",
+      "preparedSHA256": "1ecc6c3e66dcf78a8a45e98859dfa603f2adceab337d6d5bb6167d5c7e74816a",
+      "preparedBytes": 2413525,
+      "sourceSHA256": "747163e8572650380b0b2f16f89e8c3ce2c29cd19525e9af8782d4bf1fe653c2",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 5.960464477539062e-07,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 547.1,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "173974beb94716f0f8e802bad570707f81c4c15b15dabb672b209166a6e55a95"
+    },
+    {
+      "id": "anisd",
+      "preparedSHA256": "73e6e9b43ebdb9484daf92ca50187d13479a4b60baf52cdb17d871c36fd5519e",
+      "preparedBytes": 1656357,
+      "sourceSHA256": "424d51a7882e8de2cce420372e46e219527eb52017314473e92753bc8e75ac7c",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.4901161193847656e-06,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 48.2,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "ba77eb4f6bdae9018ed974ffc62d8057bc4564af25e442b49b33a174151eefd4"
+    },
+    {
+      "id": "anitoon",
+      "preparedSHA256": "41843cb5560ab4b58db0867da75f2963e41066c07b7af563beb54f3e23b569c9",
+      "preparedBytes": 9544953,
+      "sourceSHA256": "882b1b1749d7cb1f3fe3f25d60333a263517cc66d6fae79858b81cfdbd7d77a3",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.8743019104003906e-07,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 3671.8,
+      "maxWholeVersusTiledRGBError": 9,
+      "maxMeanWholeVersusTiledRGBError": 0.31772461,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "86094903d3dbc7b10af8ed6e6f0982e48133616cb72d9c2a201131c2e8ff7d3e"
+    },
+    {
+      "id": "aniscale2",
+      "preparedSHA256": "44dfa869fa1a026b20fc175a5e71121a709b4abce145297b0b21c82fb7f3cf1a",
+      "preparedBytes": 2409863,
+      "sourceSHA256": "916ddf99eac77008834a8aeb3dc74b64b17eee02932c18bca93cfa093106e85d",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.0728836059570312e-06,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 558.2,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "b1295d10a0974c6fc0915ca30eebd1d1a74968e5c6330f16febaaf2fda4bfab1"
+    },
+    {
+      "id": "apisr",
+      "preparedSHA256": "af5dc35e748f688abc2e22b59f38955b573041f2d24951f461fc7ed0aa601ba7",
+      "preparedBytes": 17961377,
+      "sourceSHA256": "6bd14a66224c90d4754011f378ac828b18e221f2d031026ec99cb5facdf40c19",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 2.086162567138672e-06,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 200.3,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.0005127,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "58b60c19e257b69788424419f3a6a5e870adeede9123342d2c14c40640b66586"
+    },
+    {
+      "id": "artcnn-rgb-gan",
+      "preparedSHA256": "42a55d20ad843b15b98a0458f376aeae3c2cfab77613b9e98b0f62abb3d8888e",
+      "preparedBytes": 29178638,
+      "sourceSHA256": "87ace7fa06266b04b0494f9c9061889c9567ebdc956199e4f3c9f609e210370a",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 195.5,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 1.02e-06,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "0f85d0bc916dae54eed0afca2606e570a33820692bf389af1dff812fa1e07040"
+    },
+    {
+      "id": "artcnn-rgb",
+      "preparedSHA256": "6ace92792e9269617ca7c7d1dfe45f2fd8e0dc5fa646df22bb684d0552c2e198",
+      "preparedBytes": 29178638,
+      "sourceSHA256": "267bfea8a2269d59340d405eefbd93e354153b1bdbe50df17a20b3812633ebb1",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 190.3,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 4.07e-06,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "03ba37585432ea0aea235efbe1cd9cd6e9881363c8edae0a9dbae69cb9c05c0a"
+    },
+    {
+      "id": "animevideo-v3",
+      "preparedSHA256": "33c5fe18525ade9a3f9508d4babfe2af09cf20b45f4e9ae2c1921fb62beeb4f5",
+      "preparedBytes": 2492953,
+      "sourceSHA256": "b8a8376811077954d82ca3fcf476f1ac3da3e8a68a4f4d71363008000a18b75d",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.1026859283447266e-06,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 681.1,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "95076a3183774766b4101d545df77e5398535715a740a6ddb3670d47c2b87bbd"
+    },
+    {
+      "id": "animesharp-esrgan",
+      "preparedSHA256": "e2bb0bfb99d8ba14f6655bbbb9cde09138803613872490792e557e13afecfe8c",
+      "preparedBytes": 67132686,
+      "sourceSHA256": "e7a7de2dafd7331c1992862bbbcd9e9712a9f9f8e6303f0aaa59b4341d359bab",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.2069940567016602e-06,
+      "batch": "comparison-inputs",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 559.7,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 4.578e-05,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 10,
+      "outputDigestSHA256": "a95d08863eb9cec48bbe9d0b83083b98414a8f7fb9fcbf6e5d6711fbbb1f2723"
+    },
+    {
+      "id": "adore",
+      "preparedSHA256": "3ec90ec2d7c962f0055c727079752c4f451eff76c6a10f9c02b1d9f45445d698",
+      "preparedBytes": 5678809,
+      "sourceSHA256": "532c1b30711c2bb7ea6ddf123fd219df87ca9816fbb8ddaaad5c1f311d5b7c44",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-clean",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 30.3,
+      "maxWholeVersusTiledRGBError": 83,
+      "maxMeanWholeVersusTiledRGBError": 2.70413818,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "41e83147a1a81cef2d16e405405ae7e46362c89158ef7b3e6b42501abacdb147"
+    },
+    {
+      "id": "fallin-soft",
+      "preparedSHA256": "a340986454e328412bf21cf1fd66d05912dcc61e638e4676c3a9e707616ddb16",
+      "preparedBytes": 5670293,
+      "sourceSHA256": "487792c65406a6851a6bd48d5cbdcee75317fdc3e241f02fe7054936b9914d15",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-clean",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 37.6,
+      "maxWholeVersusTiledRGBError": 5,
+      "maxMeanWholeVersusTiledRGBError": 0.16438395,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "65492ebd4678d99586cf1fb5424f6c3f5cb8a366bc79d682b12920e7549b6832"
+    },
+    {
+      "id": "fallin-strong",
+      "preparedSHA256": "3c16c0e05844e111956b3ae7ca0e4e40ca03b0538245e55a0db5bebc14f3c145",
+      "preparedBytes": 5670293,
+      "sourceSHA256": "b19c5eafb1e91c4233cb091b4a062f9eeb1c05d2df9bdedd482b40e8e034eb81",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-clean",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 40.6,
+      "maxWholeVersusTiledRGBError": 17,
+      "maxMeanWholeVersusTiledRGBError": 0.46213379,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "cf25865fa20a30bed78b0d8f397e61ad91a9e90109a7f7cafbe04d83dce51421"
+    },
+    {
+      "id": "alchemy",
+      "preparedSHA256": "e88b9d73f72b95da9fb03acc07c9f9fede229400282243ae3f3f64003623b70e",
+      "preparedBytes": 29968272,
+      "sourceSHA256": "8bafb02ffcbc2fa6f25523f66b9a055bff4b2a851f8bbe34a2f382703eb1c953",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 5.185604095458984e-06,
+      "batch": "comparison-clean",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 8556.4,
+      "maxWholeVersusTiledRGBError": 23,
+      "maxMeanWholeVersusTiledRGBError": 0.36303609,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.0001953125
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "404ad7462c8a326ea66522b36c2f3d20131c504b7902730152d4a03e5b6da94c"
+    },
+    {
+      "id": "waifu-v3-noise1",
+      "preparedSHA256": "b9ad648133d0e49a83bb305480db4413a3b0ce809b681310965fccaad7debf50",
+      "preparedBytes": 16466527,
+      "sourceSHA256": "3b8ffb1202e29fa435637e07565a8da04ae579e16aa8ab5d29bcee6a47cc9c25",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 5.364418029785156e-07,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 155.5,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.0073527,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "90a5d392312a8f352ce85a4d98ae7295a7509c9a9068297493ab86b41e02ada0"
+    },
+    {
+      "id": "waifu-v3-noise2",
+      "preparedSHA256": "522fb3db95db297c5c91ae3e55d6a3aba46c8873451c9410c1596399b197364a",
+      "preparedBytes": 16466527,
+      "sourceSHA256": "c500ca835c836a20b94834fa025b8baec2db28e34f57f0b6eaee939b23386ceb",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 4.172325134277344e-07,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 154.4,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.00592855,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "cca52b56061bc63e33fdf631ae45f805d63178bc768f905a21705c4f689e3a9b"
+    },
+    {
+      "id": "waifu-v3-noise3",
+      "preparedSHA256": "b7dc2e1000f8fcbeb41db20e8b2bc25fb211e720f98b01db3a47bdd28abd07c2",
+      "preparedBytes": 16466574,
+      "sourceSHA256": "0c15d001198519dad6741a5568baada9ecfa6180ba46c00a8f6070145c5ec07a",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 4.76837158203125e-07,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 153.9,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.00380046,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "bf27a2efdc1c58f2f4aea2f72c5b818a9f398e9150b22902bf873b3c596e65cd"
+    },
+    {
+      "id": "realcugan-noise1",
+      "preparedSHA256": "36d2f28773be6bc8a5ee3bee8b3b76d98e5624fccb944049baf747511698f7f8",
+      "preparedBytes": 5168670,
+      "sourceSHA256": "2e783c39da6a6394fbc250fdd069c55eaedc43971c4f2405322f18949ce38573",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.470348358154297e-06,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 45.9,
+      "maxWholeVersusTiledRGBError": 21,
+      "maxMeanWholeVersusTiledRGBError": 0.60126953,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.0005208333333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "9da67cec38eb019639e0a5ce35050d4c78ae56ef40b51085b5bd2bf08946638e"
+    },
+    {
+      "id": "realcugan-noise2",
+      "preparedSHA256": "d8c682c5f458c6979a774995af53243b31f5ff5177995ce96d044fa30e9f0ecf",
+      "preparedBytes": 5168670,
+      "sourceSHA256": "8188b3faef4258cf748c59360cbc8086ebedf4a63eb9d5d6637d45f819d32496",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.129243850708008e-06,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 55.1,
+      "maxWholeVersusTiledRGBError": 23,
+      "maxMeanWholeVersusTiledRGBError": 0.74835612,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "25aafcb07c2fc8b1895b0ebab14b91ac660c8f182eccefe22032ca85450a2c41"
+    },
+    {
+      "id": "realcugan-noise3",
+      "preparedSHA256": "d997cd92bc7683ea79fee7f71c344997ae2c650a58115b31fae1c2ce37e5cd17",
+      "preparedBytes": 5168670,
+      "sourceSHA256": "0a14739f3f5fcbd74ec3ce2806d13a47916c916b20afe4a39d95f6df4ca6abd8",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 5.960464477539062e-07,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 49.4,
+      "maxWholeVersusTiledRGBError": 34,
+      "maxMeanWholeVersusTiledRGBError": 0.81317546,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "0fdd9d67b331d337cbb59dc37c7939dde07919e6b69945015a550a5fbd921539"
+    },
+    {
+      "id": "caelum-car1",
+      "preparedSHA256": "edbd20dd2c43cbee20f0413417d23adeec0f531a0c082c455a45c5b1bf83f896",
+      "preparedBytes": 42877646,
+      "sourceSHA256": "92060c175d657a9c6b91aaaf302ba550025183b214e163f3798225ac10571c04",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 1082.5,
+      "maxWholeVersusTiledRGBError": 22,
+      "maxMeanWholeVersusTiledRGBError": 0.75677795,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "db458e3428d883b63e2a3990974980c39f9986d1c5406bd56496fbfa650b270e"
+    },
+    {
+      "id": "caelum-car2",
+      "preparedSHA256": "a3e665dd56e2a4f55937f79f8f767bd82c17c225e05d239ea26d93cd3833ad77",
+      "preparedBytes": 42877646,
+      "sourceSHA256": "bbd3d6cd9c2fe27bfeafedeeb5d8f9e247924b441e75ed05949caa0985e892b6",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 984.1,
+      "maxWholeVersusTiledRGBError": 25,
+      "maxMeanWholeVersusTiledRGBError": 0.59890849,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "2ed2a79bb393c6b8e888e9d6ba5c73bed33e904cacbdde4aeee0d45e46d2a684"
+    },
+    {
+      "id": "caelum-sr",
+      "preparedSHA256": "9f4a3396bef0c2f74afec99d15f0d72d212b79749073510ead24449d90debd40",
+      "preparedBytes": 42877646,
+      "sourceSHA256": "c971ec1a6781f1b6d72a190b9df24640f853e3ae0e66dbc88a111101768fd4f0",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-restoration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 961.3,
+      "maxWholeVersusTiledRGBError": 37,
+      "maxMeanWholeVersusTiledRGBError": 1.10088196,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "4c02702bef58d5804ffff05f004aa9ac4e739d95fa41ccc713d0f5fed704b6b3"
+    },
+    {
+      "id": "waifu-scan-noise2",
+      "preparedSHA256": "900a40577941fabb02c3796711eaad2ab93ec7b49761fc95ebcfdc0eb420f4e7",
+      "preparedBytes": 21060902,
+      "sourceSHA256": "e24ea77f48a45605b21dde4ba6ce41341315f41dbf33a66868217cb219907d3c",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 487.8,
+      "maxWholeVersusTiledRGBError": 19,
+      "maxMeanWholeVersusTiledRGBError": 0.28521322,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "2d0c6c1acfce9a97549f0d24b1e7e1f62658adbd21b8a3d3691ab33dfa617a25"
+    },
+    {
+      "id": "waifu-scan-noise3",
+      "preparedSHA256": "3c4aceb30f13428be293be16ebd4d4f4d2bc0bc9cd1e5ede1c438a25ce9f901e",
+      "preparedBytes": 21060902,
+      "sourceSHA256": "c36b5c7d4e66e4fbf52956489b944d4dbadbce9e18c0e8e30153e36e62c87b23",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 433.7,
+      "maxWholeVersusTiledRGBError": 25,
+      "maxMeanWholeVersusTiledRGBError": 0.3111084,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "e1cbc3327ce207f35276951c0db2beaa8c6468bfef414e446b8aafbbb463d0a9"
+    },
+    {
+      "id": "waifu-swin-noise3-4x",
+      "preparedSHA256": "e58d27e71eab69a8a279f60aa4747f59fc831366cd0cc601c5afbcaeaafac66a",
+      "preparedBytes": 21024207,
+      "sourceSHA256": "ec057c6afeaf71c210732448e388911ccd098e8d74ab317254bf93ab48357350",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 423.1,
+      "maxWholeVersusTiledRGBError": 24,
+      "maxMeanWholeVersusTiledRGBError": 0.23662211,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "de18a2de40f6c1589b5ff067be8e36634dfa20749941db2fe20e7580aecc74fb"
+    },
+    {
+      "id": "realcugan-noise3-4x",
+      "preparedSHA256": "552d3e03138bee153f0706735d77f16dcd2b2bf5d2070ba531a39a609aec9348",
+      "preparedBytes": 5660170,
+      "sourceSHA256": "42bd8fcdae37c12c5b25ed59625266bfa65780071a8d38192d83756cb85e98dd",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 5.5730342864990234e-06,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 74.6,
+      "maxWholeVersusTiledRGBError": 26,
+      "maxMeanWholeVersusTiledRGBError": 0.58650208,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "a254dd7c4aaced95b0b88355fd3fda30e78a41b80d9c99f9be20c5b6a56f8154"
+    },
+    {
+      "id": "hfa2k-4x",
+      "preparedSHA256": "6ea282ea7aa6f9ffb63d6b3e4b0dadbd3059e1ac4dc2f3e0a56186e54142e586",
+      "preparedBytes": 67167235,
+      "sourceSHA256": "35dfd9f6e9d2d264f0e79c6a054798a5e71b1c752bd8b668786c01ebd62fe2b0",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.516674041748047e-06,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 521.5,
+      "maxWholeVersusTiledRGBError": 3,
+      "maxMeanWholeVersusTiledRGBError": 0.01498006,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "2d5ab75b1b57c8e8cfe0c6de18628c3ec0c70389f81cd3fc57c1e38f501746c6"
+    },
+    {
+      "id": "hfa2k-ludvae-swinir",
+      "preparedSHA256": "742e181d7889cf1bc23cf8652a6f82a53ccf331ef3bea773df7d96b559802c70",
+      "preparedBytes": 6971228,
+      "sourceSHA256": "6563dd659ef2bf15cd594de243d4eee6cb41e66c43ab3df58c5be8fd2e3b5735",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.76837158203125e-07,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 298.4,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 2.238e-05,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "88ff9373e94b4feb7f77dfd37951e23bbfd38bf9a70a783d690eccb49080db7b"
+    },
+    {
+      "id": "animesharp-v3",
+      "preparedSHA256": "c801d084b1c5e0d55df7c1bc8e759ece135adf8876e77dfbb26459a4cfe32b53",
+      "preparedBytes": 67191438,
+      "sourceSHA256": "d5722d738002c1353ce4bbc3fb44fe2ecf01606c713cdb5853f772b08af84f53",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.1324882507324219e-06,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 156,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.00529785,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "d0ed53c9d364f62ea1c23d8c7301939fc15e7062cc4160a5b1afd83c5e1869e5"
+    },
+    {
+      "id": "scunet-psnr",
+      "preparedSHA256": "a2f133c9776fa2b5974f3f428311753fe84df249d164b07ac4e2bd1aa1dcb564",
+      "preparedBytes": 74682711,
+      "sourceSHA256": "fa78899ba2caec9d235a900e91d96c689da71c42029230c2028b00f09f809c2e",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.5762786865234375e-07,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 551.1,
+      "maxWholeVersusTiledRGBError": 2,
+      "maxMeanWholeVersusTiledRGBError": 0.03110352,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "f14ac0d731c7a4cbc62edd5aec52a4d27d7bf8f9131ff93182f1498cb4a0ee5d"
+    },
+    {
+      "id": "scunet-gan",
+      "preparedSHA256": "c37fafa4429f964cd14de74b7c31b93fa79637ae17d294e146c962757896b637",
+      "preparedBytes": 74682711,
+      "sourceSHA256": "892c83f812c59173273b74f4f34a14ecaf57a2fdb68df056664589beb55c966e",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.5762786865234375e-07,
+      "batch": "comparison-detail-final",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 596.9,
+      "maxWholeVersusTiledRGBError": 5,
+      "maxMeanWholeVersusTiledRGBError": 0.07317708,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "f67ad9b2dca03660540339f760d76e20232b4729c30fd00560790f43c3133e39"
+    },
+    {
+      "id": "illustration-v3-denoise-2x-fdat",
+      "preparedSHA256": "6216d64c1ac68125f47d84e3e22463d8f46ee91d43d5d8ae28ea13d7c7ca09f9",
+      "preparedBytes": 16888793,
+      "sourceSHA256": "960c9555f62fb19113e8d808bde5a54b64181b1db417bca1bbda26516e48f108",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 9.08970832824707e-07,
+      "batch": "comparison-illustration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 217.5,
+      "maxWholeVersusTiledRGBError": 12,
+      "maxMeanWholeVersusTiledRGBError": 0.30070801,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "6cef02e6a046ddd20cfee776f37a29299a82d93f0248a497dd7086df27c2750f"
+    },
+    {
+      "id": "illustration-v3-denoise-2x-span",
+      "preparedSHA256": "b36d4ed90f74524b83f7345993c1cb8a8ddaf9de6d3276af5256e961e121b8a3",
+      "preparedBytes": 1658451,
+      "sourceSHA256": "d709bfb8f7cefcd0bc0d2dce485208dcda165b2559eacec66296b53d486f0951",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 2.384185791015625e-06,
+      "batch": "comparison-illustration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 46,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.0005208333333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "d96faeff973016e279eca0a28736f90e30cbdbd27d7b2ed3ce16439f3c169b3c"
+    },
+    {
+      "id": "illustration-v3-denoise-4x-dat2",
+      "preparedSHA256": "b88f224952eca789ed1ce7720c975fab2814ec6924f107d4236756fe186df9a7",
+      "preparedBytes": 52398617,
+      "sourceSHA256": "430d5e58053be88d250b6ee2c1016a19f919baafb9b6bda0f45c14b54453fb12",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.1324882507324219e-06,
+      "batch": "comparison-illustration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 3041.5,
+      "maxWholeVersusTiledRGBError": 23,
+      "maxMeanWholeVersusTiledRGBError": 0.87872721,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "14b04030c629a9007af79ae1d8fb2c5dd07cc215d2e62ec85a8fc2b5de4dd4eb"
+    },
+    {
+      "id": "illustration-v3-denoise-4x-fdat-m",
+      "preparedSHA256": "d3c5fa46beeb17684b11adf8a1be6cf73c675ce72497397175fff10425779807",
+      "preparedBytes": 16843028,
+      "sourceSHA256": "a15dfc813b1f1138ca3da06c6cbf530dd1acbff0ba0d4eb97b5c021f3facbf6c",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.4901161193847656e-06,
+      "batch": "comparison-illustration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 760.8,
+      "maxWholeVersusTiledRGBError": 30,
+      "maxMeanWholeVersusTiledRGBError": 0.9517568,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "555001891f3a889b0a1742bf7917ab002d47b3ace0699700292ceba8b450c9c4"
+    },
+    {
+      "id": "illustration-v3-denoise-4x-fdat-xl",
+      "preparedSHA256": "73c328a88180e0cee179e82476a45c145755e7c54195372991967f1f40755716",
+      "preparedBytes": 93952626,
+      "sourceSHA256": "3099fd76f427ee29513aa91dda02b9c1a54e0f7fdd08b653175655de798562f7",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.0728836059570312e-06,
+      "batch": "comparison-illustration",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 6573.5,
+      "maxWholeVersusTiledRGBError": 32,
+      "maxMeanWholeVersusTiledRGBError": 1.06125488,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "c2ed55f39d8e2a28549a486ce2c3addfa151000e6c423b744b2b5068323280a8"
+    },
+    {
+      "id": "animejanai-sd-strong",
+      "preparedSHA256": "7df7d5f2d106650dc3bf2be4e3c3ace3007bd4a948df348521f9d2da34039a47",
+      "preparedBytes": 2409016,
+      "sourceSHA256": "ded46591ddfaeb22b3daaf84ad7b36838335aa3efca66acfa36177ce4ab21eb5",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0.00048804283142089844,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 519.3,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.0005208333333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "0c07e2e13a6e560ed1023992226347deec8dc5b06028d8eb48e9bf9ab2dea76f"
+    },
+    {
+      "id": "waifu-cunet-noise2",
+      "preparedSHA256": "4537e94d01a079ef789591fe3152565994111c4fbc6475258e37d5ae339e3ffe",
+      "preparedBytes": 5279689,
+      "sourceSHA256": "b2e853c10201dd707ebcc4b7aa078523f3ffb7a3b736bd14d8f2cf3fa3eb3909",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 35.1,
+      "maxWholeVersusTiledRGBError": 19,
+      "maxMeanWholeVersusTiledRGBError": 1.2449707,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "6209e450a8655b8595f9f6f28ef6e2061dd94d57e0a0266a63a80ed02d8fdceb"
+    },
+    {
+      "id": "waifu-cunet-noise3",
+      "preparedSHA256": "469769fc82ea4b45c5a301bd32c498349554d7654bbcd9c2f7ba07a3a73fae1b",
+      "preparedBytes": 5279689,
+      "sourceSHA256": "0c6b38f6ef5d7ba1278241576ea80e3f717683cf5da57fbac1f3f09b9b6cd1cf",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 34,
+      "maxWholeVersusTiledRGBError": 8,
+      "maxMeanWholeVersusTiledRGBError": 0.21824951,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "cdf49d5a5b72bb92cf545deb580c82df3f59426d2ed95e52b64885e0f1291875"
+    },
+    {
+      "id": "waifu-cunet-noise3-1x",
+      "preparedSHA256": "a9fbd811fdde41282fdda83b35ce3eef3ff681aa380958562f83fd5042306687",
+      "preparedBytes": 5276781,
+      "sourceSHA256": "c27bf12fb6f86df0caf754c85de692da2ed2a79b68ff170b49e086bbdeda8846",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 22,
+      "maxWholeVersusTiledRGBError": 5,
+      "maxMeanWholeVersusTiledRGBError": 0.13343099,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "98c85f94fe2ff49a17024092d2888d5297af2d1f537c57c0c4c486791d309157"
+    },
+    {
+      "id": "realcugan-pro-denoise3-2x",
+      "preparedSHA256": "c3c52b4b7704f145a92f00c5331f67475f4abd80301fb29c82a00eb970452613",
+      "preparedBytes": 5169390,
+      "sourceSHA256": "e80ca8fc7c261e3dc8f4c0ce0656ac5501d71a476543071615c43392dbeb4c0d",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.159046173095703e-06,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 48.1,
+      "maxWholeVersusTiledRGBError": 29,
+      "maxMeanWholeVersusTiledRGBError": 1.25277913,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "28916fd275d7b25c0b9c2f7b18ffa4ff1288c973cfbc15bfa6c520a93e060949"
+    },
+    {
+      "id": "realcugan-pro-denoise3-3x",
+      "preparedSHA256": "6e308459b9212c31607c436e1c50128b58ce9c0502aed33a44ec5a0e6a08e95f",
+      "preparedBytes": 5176304,
+      "sourceSHA256": "4ddd14e2430db0d75d186c6dda934db34929c50da8a88a0c6f4accb871fe4b70",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 8.58306884765625e-06,
+      "batch": "comparison-cunet-pro",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 80.6,
+      "maxWholeVersusTiledRGBError": 37,
+      "maxMeanWholeVersusTiledRGBError": 0.79163592,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.0002314814814814815
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "fb9ea702ef24d99f917f2824a9aa38a717132f53bf7ecd1eb05c067b4f8935bd"
+    },
+    {
+      "id": "animevideo-v2-2x",
+      "preparedSHA256": "8b32120bf186d4f1e6f0d280084c94349e132e247a4538495dc4627c7e29e22a",
+      "preparedBytes": 2410985,
+      "sourceSHA256": "27985aa2198711ecd72f9bb274ec7b164e018fc9ce2933daaa7c7ab36a2bd3fe",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 8.940696716308594e-07,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 542.8,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "b215a1c64af0a8d11c41ab7b2fa5e6cfb6ca5ca6b66deb4178fd52932a4376e4"
+    },
+    {
+      "id": "animevideo-v2-4x",
+      "preparedSHA256": "dd6d99529d759f4a2ba8a76b221638eb25cd0ef9309efa47c5c0d1120dc02b3f",
+      "preparedBytes": 2494075,
+      "sourceSHA256": "5e04b111c16d5b40deb8f8062d09fdff72fa80281fb9607be23b62650c08daff",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 1.9371509552001953e-06,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 794.4,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "c639a4506cb734843cbe9af36e5a7dbad75bb8eab994ffd1106c1c1a1fd9c3ae"
+    },
+    {
+      "id": "bigoldies",
+      "preparedSHA256": "bfa6c95a98fa20056c671232a937b10d95e50a6279bcfbe96dfc6015da03b7af",
+      "preparedBytes": 67018662,
+      "sourceSHA256": "a7bc580a3c4abb2b04a2cc8b47679de207741f79cebc952eedc03b27e2f27cef",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 3.2782554626464844e-07,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 453.5,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.00030518,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "adc2dedd065529eb96ddb2ddc5f9a2ed2de2dec232b6af1719df593202ac79a1"
+    },
+    {
+      "id": "waifaux-nl3",
+      "preparedSHA256": "d583341979c50118d5bbcff08ec8fa8df82d7012ec0619b6a3b1efde5a3a0a2f",
+      "preparedBytes": 6941766,
+      "sourceSHA256": "b0b62d44d1f18f34d2eba4dfbbf0913fb528e49514166b8e9d147de09ffed49e",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.76837158203125e-07,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 89.5,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 4.07e-06,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "c3eea3631f9e3ff6589344390d1a72db2fe3fa5e965ca821da7fb28f123134a0"
+    },
+    {
+      "id": "ld-anime-skr",
+      "preparedSHA256": "01b6d2181f34808af864421aa51da32d70bf78fe5b03b0afb7839bd94882d80e",
+      "preparedBytes": 67018662,
+      "sourceSHA256": "f93891555a37e5809bbf701fcae0f1c39464baa9630e03ba6d223151ca13ba74",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.172325134277344e-07,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 455.3,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 3.255e-05,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "044c291162a8b2364bdce972cb9ea14301785939cbeddb4ca42004847ce6ffb5"
+    },
+    {
+      "id": "yandere-neo-xl",
+      "preparedSHA256": "03670620ae1661b6d195f6fd488b6a6af01567e69cb309d8ad88b09443251dd9",
+      "preparedBytes": 67167235,
+      "sourceSHA256": "ddcb5856b948654b6298fd50ed90a461eff8442d298779c23724a8c0e7bbbab1",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 2.205371856689453e-06,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 504.7,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 0.00033468,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 6.510416666666667e-05
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "efcac07297c05ed21bb7b8dcf66902cf4ed41836f2406ab1fd95053911351ee8"
+    },
+    {
+      "id": "ultra-yandere",
+      "preparedSHA256": "57d4aafac047f159adbe8e50f08977da4fe124ce4761d44daa63629f6d2cfc48",
+      "preparedBytes": 67167235,
+      "sourceSHA256": "717ec8b63ae676b3b6ca6bcc0c7446b75c68a356fde404c725ee4dc8d40e37b2",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 2.2649765014648438e-06,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 499.7,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 6.205e-05,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00013020833333333333
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "7ded912b913d878e3a8b17179470d94940b74ee406b1deca6a571c72fd2711c9"
+    },
+    {
+      "id": "waifugan-v3",
+      "preparedSHA256": "cdff0fc22d7ad28c45cf5b989b80f1a0f79c33b457a1749f0f67b4143b310686",
+      "preparedBytes": 67167235,
+      "sourceSHA256": "f2d8c985b59ff33cf1d70bdae489f748b687fff6124310da5c1bfbb8f8913486",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 5.781650543212891e-06,
+      "batch": "comparison-anime-restoration-classics",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 506.4,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 3.662e-05,
+      "browserNativeReference": {
+        "max": 1,
+        "mean": 0.00026041666666666666
+      },
+      "browserVerifiedModelHashes": false,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "f23c1e246ec016c1014b91b0340795700d595c18c6d3f6fdfaa620ea22f9b3c1"
+    },
+    {
+      "id": "anisd-ac-span",
+      "preparedSHA256": "f582fa60286cd4f0040c3afc7c75aae1adbb78861c0c447f32623882c694d5dc",
+      "preparedBytes": 1658451,
+      "sourceSHA256": "8d4223495eb8c87d31c24a030370432d612708e4cac11e833a48563a71fa7f36",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 8.344650268554688e-07,
+      "batch": "comparison-anisd-cleanup",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 42.5,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "a2577d2d52e354c40128c30a1d97f356e962db7fd12aa8f8d0263d16ab7fe910"
+    },
+    {
+      "id": "anisd-ac-rplksr",
+      "preparedSHA256": "05fae194336a65f4e98e27d05ad6c3c256e02cf3213626744a792a55117a3e2a",
+      "preparedBytes": 29859863,
+      "sourceSHA256": "57f468ecd7cfb18f9b9a2454cd79bade6d722aa7ff0186cfc5579451043640a6",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 6.3478946685791016e-06,
+      "batch": "comparison-anisd-cleanup",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 10005.5,
+      "maxWholeVersusTiledRGBError": 10,
+      "maxMeanWholeVersusTiledRGBError": 0.28852132,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "1ab100b386158416a165e4031abb5e264beb155165676cac6b0aa64f6ee4ebc6"
+    },
+    {
+      "id": "anisd-dc-dat2",
+      "preparedSHA256": "2b8551729379e6a78ae173ab0338cb9337475eddab544a47450ba9bd079e5a1b",
+      "preparedBytes": 51807231,
+      "sourceSHA256": "f08c16cff3c32dfbbdff2bfad60a552e3232de7afb1026a4186d0a0d0d954b87",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 6.556510925292969e-07,
+      "batch": "comparison-anisd-cleanup",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 2915.1,
+      "maxWholeVersusTiledRGBError": 9,
+      "maxMeanWholeVersusTiledRGBError": 0.37703451,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "d8f32f331cf1e3a19efe25dc185e584dcc62494833e4f0c60c05aee864978510"
+    },
+    {
+      "id": "uniscale-cartoon-restore",
+      "preparedSHA256": "88bd11d3a66edd2289671aa35b64b4daea4ac45f1fe71dbcd0d4e3e1a617b1e4",
+      "preparedBytes": 20242971,
+      "sourceSHA256": "3533d7e303b78bfe15e416a0bc3f42697edd3c20f995dc9333b093214f196768",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.76837158203125e-07,
+      "batch": "comparison-restoration-targeted",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 177.9,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 8.14e-06,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "8017abdbbde8191e0a7dae363d659f2623891c3d2ba23e647e9c502bad713f50"
+    },
+    {
+      "id": "ditherdeleter-v3",
+      "preparedSHA256": "85de988c96ff081f03b6687d512f82dd8f8a5a618c59b7ae83eb4f0152327e9d",
+      "preparedBytes": 66870094,
+      "sourceSHA256": "1e98cb5427d16baeb83033c574d1ca4d8dadf05dd043b32c3ba98f75e30f6205",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 4.76837158203125e-07,
+      "batch": "comparison-restoration-targeted",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 500,
+      "maxWholeVersusTiledRGBError": 1,
+      "maxMeanWholeVersusTiledRGBError": 3.255e-05,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "e907066db095a59afafa8b5fe7e419eb67465d86927925c5409b14e0410afb7c"
+    },
+    {
+      "id": "cyte-v1",
+      "preparedSHA256": "de9828fb6f2f9ef0df279e9706dc39040892e7e59ced6301d42eb5ba2ce152cf",
+      "preparedBytes": 184764,
+      "sourceSHA256": "4dbe59c45a8c3a5f7dbe28fd271a937bbb354a4cc8800c5024ef51c363a21b95",
+      "nativeReference": "independent PyTorch",
+      "nativeMaxAbsoluteError": 6.258487701416016e-07,
+      "batch": "comparison-nilas-anime",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 157.6,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "49fa04ba3ac365f718ded6ab9821088f630ee8982834602032d9a4ffc54be796"
+    },
+    {
+      "id": "saryn-v1-lite",
+      "preparedSHA256": "2fd9585378b9cfeef1a1d15cbc3bf626b153ad4a33d093f703b4353e849598eb",
+      "preparedBytes": 941993,
+      "sourceSHA256": "b7ffa1126060f964d4e6fc4e5d6808c6a392163cb63a1b890ffc86b288feaf90",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-nilas-anime",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 487.6,
+      "maxWholeVersusTiledRGBError": 32,
+      "maxMeanWholeVersusTiledRGBError": 0.81067301,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "03bebb054a5e71e86a5a1c41d2d541813547b35a024ab86b4ad08f0e2598f207"
+    },
+    {
+      "id": "gauss-v1",
+      "preparedSHA256": "4b3154896513491a957c53a9f0e400df00aea8d2016f75fe2e33887c8fde6628",
+      "preparedBytes": 1152284,
+      "sourceSHA256": "09b3751119df7bd421a78d12177050bb92f7acc20c27029152b27453d6ab2c5d",
+      "nativeReference": "author ONNX graph; no independent PyTorch comparison",
+      "nativeMaxAbsoluteError": 0,
+      "batch": "comparison-nilas-anime",
+      "requestedProvider": "webgpu",
+      "successfulMapComparisons": 5,
+      "medianWarmCropMs": 297.4,
+      "maxWholeVersusTiledRGBError": 0,
+      "maxMeanWholeVersusTiledRGBError": 0,
+      "browserNativeReference": {
+        "max": 0,
+        "mean": 0
+      },
+      "browserVerifiedModelHashes": true,
+      "savedPNGs": 20,
+      "outputDigestSHA256": "47da97558a8d130c1a14039ee7db9115f7e79317c372c091a0a09b1600c963b4"
+    }
+  ],
+  "nativeFailures": [
+    {
+      "id": "realcugan-pro-conservative-2x",
+      "label": "Real-CUGAN Pro - conservative (2x)",
+      "scale": 2,
+      "page": "https://github.com/bilibili/ailab/blob/main/Real-CUGAN/Changelog_CN.md",
+      "license": "MIT repository",
+      "sourceSHA256": "b8ae5225d2d515aa3c33ef1318aadc532a42ea5ed8d564471b5a5b586783e964",
+      "inputMultiple": 2,
+      "minimumSize": 32,
+      "inputRemainder": 0,
+      "outputOffset": 0,
+      "error": "ValueError: Prepared/reference mismatch on 32 x 32: 7.03125"
+    }
+  ]
+}

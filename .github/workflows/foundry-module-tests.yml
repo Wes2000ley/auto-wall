@@ -24,3 +24,11 @@ jobs:
       - name: Test both module installations and upgrade preservation
         shell: pwsh
         run: ./foundry/tests/install.test.ps1
+      - name: Check model research tools without downloading candidate weights
+        run: |
+          node --check foundry/tests/serve-harness.mjs
+          node --check foundry/tests/enhancer-comparison.mjs
+          node --check foundry/tests/enhancer-trial-worker.mjs
+          python3 -m py_compile foundry/tools/prepare-anime-trials.py
+          python3 -m json.tool foundry/tools/anime-trials.json > /dev/null
+          python3 -m json.tool foundry/tests/model-trial-results.json > /dev/null
