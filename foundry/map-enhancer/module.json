@@ -1,0 +1,12 @@
+{
+  "id": "map-enhancer",
+  "title": "Map Enhancer",
+  "description": "Local AI map upscaling with before/after previews, sharpening and edge-preserving smoothing. Includes the Digital Art model and browser runtime; no external service required.",
+  "version": "0.1.0",
+  "authors": [{"name": "Wes2000ley"}],
+  "compatibility": {"minimum": "14", "verified": "14.369", "maximum": "14"},
+  "esmodules": ["scripts/main.mjs"],
+  "styles": ["styles/enhancer.css"],
+  "url": "https://github.com/Wes2000ley/auto-wall/tree/main/foundry/map-enhancer",
+  "license": "LICENSE"
+}

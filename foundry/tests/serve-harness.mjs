@@ -5,7 +5,7 @@ import {fileURLToPath} from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const handlebars = process.argv[2];
 if (!handlebars) throw new Error("Pass the absolute path to handlebars/dist/handlebars.js for the test harness.");
-const types = {".mjs": "text/javascript", ".js": "text/javascript", ".css": "text/css", ".html": "text/html", ".hbs": "text/plain"};
+const types = {".mjs": "text/javascript", ".js": "text/javascript", ".css": "text/css", ".html": "text/html", ".hbs": "text/plain", ".wasm": "application/wasm", ".png": "image/png"};
 http.createServer(async (request, response) => {
   try {
     const pathname = decodeURIComponent(new URL(request.url, "http://127.0.0.1").pathname);

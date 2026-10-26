@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Map Enhancer isolated checks</title>
+<link rel="stylesheet" href="/modules/map-enhancer/styles/enhancer.css">
+<style>
+body {background:#20252e;color:#edf0f6;font:15px system-ui;margin:18px}button,input,select{font:inherit}button{cursor:pointer;padding:7px}button:disabled{cursor:default;opacity:.5}button,input,select{background:#303846;color:inherit;border:1px solid #697688;border-radius:4px}#test-results{white-space:pre-wrap;padding:14px;border:1px solid #697688} .map-enhancer{max-width:1000px;border:1px solid #697688;margin-top:15px} .window-header{padding:12px;background:#111720;display:flex;justify-content:space-between}#tests{display:flex;gap:8px;flex-wrap:wrap} .me-actions{margin-bottom:15px}
+</style></head><body>
+<h1>Map Enhancer: isolated Foundry API doubles</h1>
+<p>Actual module UI, model, worker and runtime. Upload and scene APIs use in-memory doubles. This does not alter a campaign.</p>
+<p id="capabilities"></p>
+<label>Local test map <input id="local-map" type="file" accept="image/png,image/jpeg,image/webp"></label>
+<div id="tests"><button id="open">Open Map Enhancer</button><button id="filters">Check GPU filters and seams</button><button id="worker">Check CPU model and reference</button><button id="gpu">Check GPU model and reference</button><button id="ui-checks">Check preview, save, restore, cancel</button></div>
+<pre id="test-results">Ready</pre><pre id="documents"></pre>
+<script src="/handlebars.js"></script><script type="module" src="./enhancer-harness.mjs"></script>
+</body></html>

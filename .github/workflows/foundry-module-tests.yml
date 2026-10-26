@@ -19,5 +19,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Test manual drawing, vector geometry and native document changes
+      - name: Test manual tools, enhancement filters, native document changes and bundled assets
         run: node --test --test-reporter=spec foundry/tests/*.test.mjs
+      - name: Test both module installations and upgrade preservation
+        shell: pwsh
+        run: ./foundry/tests/install.test.ps1

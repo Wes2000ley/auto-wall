@@ -1,0 +1,30 @@
+{
+  "runtime": "onnxruntime-web@1.30.0",
+  "model": "Upscayl 2.15.0 digital-art-4x / RealESRGAN_x4plus_anime_6B",
+  "files": {
+    "vendor/ort/ort-wasm-simd-threaded.jsep.mjs": {
+      "sha256": "709853412fd1ffc34247af1e73569227b5b79629c5ca3f59cc39cf7e500e4947",
+      "bytes": 46851
+    },
+    "vendor/ort/ort-wasm-simd-threaded.jsep.wasm": {
+      "sha256": "3ad23231b5bd6d9dda55a7f84606315e0bf35b6750c28ee993c987c54cacab0f",
+      "bytes": 28312028
+    },
+    "vendor/ort/ort-wasm-simd-threaded.mjs": {
+      "sha256": "e13f7f94fc51b4ca72b12faeb1ee95f4ace6dfbc8939bc718aabdc0a27c4299b",
+      "bytes": 24381
+    },
+    "vendor/ort/ort-wasm-simd-threaded.wasm": {
+      "sha256": "3398c10d07d229bd91b364548e130e0e51a8e5704b88c7c083ebbeb78842dee2",
+      "bytes": 14239897
+    },
+    "vendor/ort/ort.all.min.mjs": {
+      "sha256": "2e4a0eae53c3f246e26423aaca493d3bfc22ce524894f27519a9ec4a14e6397a",
+      "bytes": 819537
+    },
+    "models/digital-art-4x.onnx": {
+      "sha256": "d45e88d316144da13c13eff845d02e5fa3f47662f9cf8db0f4dbde51189e7034",
+      "bytes": 17903632
+    }
+  }
+}

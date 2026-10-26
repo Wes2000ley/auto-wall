@@ -1,12 +1,15 @@
-param([Parameter(Mandatory = $true)][string]$DataPath)
+param(
+    [Parameter(Mandatory = $true)][string]$DataPath,
+    [ValidateSet('auto-wall-live', 'map-enhancer')][string]$ModuleId = 'auto-wall-live'
+)
 $ErrorActionPreference = 'Stop'
 
 $dataRoot = (Resolve-Path -LiteralPath $DataPath).Path
 if (-not (Test-Path -LiteralPath (Join-Path $dataRoot 'worlds') -PathType Container)) {
     throw 'Choose the Foundry user Data directory containing worlds and modules.'
 }
-$sourceRoot = Join-Path $PSScriptRoot 'auto-wall-live'
-$targetRoot = [IO.Path]::GetFullPath((Join-Path $dataRoot 'modules/auto-wall-live'))
+$sourceRoot = Join-Path $PSScriptRoot $ModuleId
+$targetRoot = [IO.Path]::GetFullPath((Join-Path $dataRoot "modules/$ModuleId"))
 if ((Test-Path -LiteralPath $targetRoot) -and (Get-Item -LiteralPath $targetRoot).LinkType) {
     throw 'The module destination is a link. Choose a regular module directory.'
 }
@@ -51,8 +54,8 @@ foreach ($previous in $previousFiles) {
     }
     Remove-Item -LiteralPath $obsoletePath -Force
 }
-$moduleVersion = (Get-Content -LiteralPath (Join-Path $sourceRoot 'module.json') -Raw | ConvertFrom-Json).version
-$record = [ordered]@{module='auto-wall-live'; version=$moduleVersion; installed_at_utc=[DateTime]::UtcNow.ToString('o'); files=$manifest}
+$moduleInfo = Get-Content -LiteralPath (Join-Path $sourceRoot 'module.json') -Raw | ConvertFrom-Json
+$record = [ordered]@{module=$ModuleId; version=$moduleInfo.version; installed_at_utc=[DateTime]::UtcNow.ToString('o'); files=$manifest}
 $record | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $recordPath -Encoding utf8
 Write-Output "Installed and verified $($files.Count) files at $targetRoot."
-Write-Output 'No world data or module activation settings were changed. Reload the Foundry client to use the update. For a first installation, restart Foundry when convenient, then enable Auto-Wall Live in Manage Modules.'
+Write-Output "No world data or module activation settings were changed. Reload the Foundry client to use the update. For a first installation, restart Foundry when convenient, then enable $($moduleInfo.title) in Manage Modules."

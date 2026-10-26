@@ -1,0 +1,23 @@
+.map-enhancer .window-content { overflow: auto; }
+.map-enhancer .me-content { display: flex; flex-direction: column; gap: .7rem; padding: .8rem; }
+.map-enhancer .me-heading { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
+.map-enhancer .me-layout { display: grid; grid-template-columns: minmax(280px, 1fr) 280px; gap: 1rem; }
+.map-enhancer .me-preview { min-width: 0; }
+.map-enhancer [data-comparison] { width: 100%; height: 350px; display: block; border: 1px solid #66707e; border-radius: 4px; touch-action: none; cursor: grab; }
+.map-enhancer [data-overview] { display: block; max-width: 100%; max-height: 150px; margin: .6rem auto; cursor: crosshair; border: 1px solid #66707e; }
+.map-enhancer .me-compare-control { display: flex; align-items: center; gap: .5rem; margin-top: .4rem; }
+.map-enhancer .me-compare-control input { flex: 1; }
+.map-enhancer .me-preview-tools { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin: .4rem 0; font-size: .8rem; }
+.map-enhancer .me-preview-tools button { width: auto; }
+.map-enhancer .me-adjustments { display: flex; flex-direction: column; gap: .5rem; }
+.map-enhancer .me-adjustments label { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .2rem; font-size: .85rem; }
+.map-enhancer .me-adjustments input, .map-enhancer .me-adjustments select { width: 100%; }
+.map-enhancer .me-adjustments output { font-variant-numeric: tabular-nums; opacity: .85; }
+.map-enhancer .me-help { font-size: .78rem; line-height: 1.4; opacity: .85; margin: .2rem 0; }
+.map-enhancer .me-status { margin: 0; padding: .6rem; border-left: 3px solid #83c5a5; background: #46825a20; overflow-wrap: anywhere; }
+.map-enhancer .me-status.error { border-color: #ef8888; background: #b43c3c20; }
+.map-enhancer .me-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.map-enhancer .me-actions button { width: auto; flex: 1; min-width: 130px; }
+.map-enhancer .me-save { border-color: #83c5a5; }
+.map-enhancer progress { width: 100%; height: .5rem; accent-color: #83c5a5; }
+.map-enhancer [hidden] { display: none !important; }

@@ -5,6 +5,11 @@ paints walls, and creates connected lines one click at a time in a Foundry 14
 scene. Walls, doors, invisible walls, windows and lights save directly to native
 scene documents. The module is entirely manual, with no detection or exports.
 
+**Foundry map enhancement:** [Map Enhancer](foundry/map-enhancer/README.md) bundles
+Upscayl's Digital Art model for local map upscaling, before/after previews,
+sharpening and bilateral smoothing. Save a WebP into the map's asset folder and
+switch the current scene level's background directly in Foundry 14.
+
 ## Fast Setup fork
 
 This fork adds a responsive **Walls / Doors / Lights** workspace, conservative doorway

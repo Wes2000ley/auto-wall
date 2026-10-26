@@ -1,0 +1,36 @@
+<div class="me-content">
+  <div class="me-heading"><strong data-map></strong><span data-source-size></span></div>
+  <div class="me-layout">
+    <section class="me-preview" aria-label="Map comparison">
+      <canvas data-comparison aria-label="Original and processed map detail"></canvas>
+      <label class="me-compare-control">Original <input type="range" min="0" max="100" value="50" data-split aria-label="Before and after split"> Processed</label>
+      <div class="me-preview-tools"><button type="button" data-action="fit">Fit preview</button><span>Wheel to zoom · drag to pan</span></div>
+      <canvas data-overview aria-label="Click the map to choose a preview detail"></canvas>
+      <p class="me-help">Click the overview to choose a detail. The preview processes that crop; Save processes the whole map with the same settings.</p>
+    </section>
+    <section class="me-adjustments" aria-label="Enhancement settings">
+      <label>Output scale <select data-option="scale"><option value="1">1× · enhance at original size</option><option value="2" selected>2×</option><option value="4">4×</option></select></label>
+      <label>Maximum edge <select data-option="maxEdge"><option value="4096">4096 px</option><option value="8192" selected>8192 px</option><option value="12288">12288 px</option><option value="16383">16383 px</option></select></label>
+      <p class="me-help" data-output-size></p>
+      <label>Sharpen <output data-value="sharpen"></output><input type="range" min="0" max="2" step="0.05" data-option="sharpen" aria-label="Sharpen amount"></label>
+      <label>Sharpen radius <output data-value="sharpRadius"></output><input type="range" min="1" max="4" step="1" data-option="sharpRadius" aria-label="Sharpen radius"></label>
+      <label>Edge-preserving smoothing <output data-value="smooth"></output><input type="range" min="0" max="1" step="0.05" data-option="smooth" aria-label="Smoothing amount"></label>
+      <label>Smoothing radius <output data-value="smoothRadius"></output><input type="range" min="1" max="4" step="1" data-option="smoothRadius" aria-label="Smoothing radius"></label>
+      <label>Color tolerance <output data-value="edgeTolerance"></output><input type="range" min="0.01" max="0.4" step="0.01" data-option="edgeTolerance" aria-label="Color tolerance"></label>
+      <p class="me-help">Lower tolerance preserves stronger edges. Sliders reuse the AI preview, so they do not rerun the upscale.</p>
+      <label>WebP quality <output data-value="quality"></output><input type="range" min="0.5" max="1" step="0.01" data-option="quality" aria-label="WebP quality"></label>
+      <label>Processing <select data-option="backend"><option value="auto">Automatic · GPU when available</option><option value="cpu">CPU fallback</option></select></label>
+      <label>Asset folder <input type="text" data-folder aria-label="Foundry asset folder"></label>
+      <p class="me-help">A new WebP is saved here. The original stays available. The scene size, walls and grid stay aligned.</p>
+    </section>
+  </div>
+  <progress max="1" value="0" data-progress aria-label="Processing progress"></progress>
+  <p class="me-status" role="status" aria-live="polite" data-status>Loading the current map…</p>
+  <div class="me-actions">
+    <button type="button" data-action="preview">Generate preview</button>
+    <button type="button" data-action="save" class="me-save">Save WebP &amp; switch scene</button>
+    <button type="button" data-action="cancel" hidden>Cancel processing</button>
+    <button type="button" data-action="restore">Restore previous map</button>
+    <button type="button" data-action="reload">Reload map</button>
+  </div>
+</div>
